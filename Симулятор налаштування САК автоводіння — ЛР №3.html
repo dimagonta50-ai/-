@@ -82,7 +82,7 @@ function run(){const t=S.tr,v=n(t.v),c=S.c,a=V.a;if(!v||v<=0)return alert('Вк�
 if(!(c.antenna&&c.computer&&c.actuator&&c.display))return alert('Автопілот не вмикається: не всі вузли ввімкнено (крок 1).');
 const k=S.rtk&&S.rtk!=='wait'?S.rtk:'none',B=bias(),cal=S.cal,ok=cal.L&&cal.R&&cal.N,h=a.act[0]=='г';
 const r=sim({v,L:a.wb/1000,Le:(n(S.wb)??250)/100,gn:(S.st==a.st?1:.55)*(ok?(Math.abs(cal.L.a)+Math.abs(cal.R.a))/2/a.lock:.6),lock:a.lock*Math.PI/180,tau:h?.2:.4,td:h?.1:.3,sg:{fix:.008,float:.03,none:.15}[k]*V.shade,dr:{fix:.01,float:.06,none:.5}[k],b:B.t/100,d0:(ok?cal.N.a:V.z0)*Math.PI/180+V.slip,Kp:.0008*t.sp*t.sp,Ki:.002*t.si,Kd:.045*t.sd});
-t.last={...r,v,sp:t.sp,si:t.si,sd:t.sd};t.n++;AN=1;S.es=0;save();R()}
+t.prev=t.last;t.last={...r,v,sp:t.sp,si:t.si,sd:t.sd};t.n++;AN=1;S.es=0;save();R()}
 const MX=[10,15,10,15,10,10,30],NM=['Живлення й RTK','Параметри агрегату','Параметри знаряддя','Калібрування датчика','Лінія А-В','Режим і перекриття','Пробний прохід'];
 function score(){const a=V.a,c=S.c,k=S.cal,r=[],e=(x,t)=>Math.abs((n(S[x])??-1e3)-t);
 r[0]=5*Object.values(c).filter(Boolean).length/6+({fix:5,float:2.5}[S.rtk]||0);
@@ -99,7 +99,7 @@ if(Math.abs(B.lat+B.io)>3)d.push('Стабільне бокове зміщенн
 if(!S.c.imu&&V.slope>=2)d.push('Система «тягне» вбік на схилі '+V.slope+' %: не ввімкнено IMU (крок 1).');
 if(S.st!=a.st||Math.abs((n(S.wb)??0)-a.wb/10)>2)d.push('Хибна кінематика регулятора: перевірте тип рульового керування та колісну базу (крок 2).');
 if(!(k.L&&k.R&&k.N)||Math.abs(k.N.a)>.5||a.lock-Math.abs(k.L.a)>1||a.lock-Math.abs(k.R.a)>1)d.push('Похибка калібрування датчика кута: нейтраль не збігається з прямим положенням коліс або крайні положення знято не до упору (крок 4).');
-if(l){if(l.rms>6&&l.zc>=6)d.push('«Змійка» навколо лінії: завищений Kp або недостатній Kd.');if(l.jerk>1.8)d.push('Різкі ривки керма: завищена диференціальна складова Kd.');if(Math.abs(l.mean+B.t)>3)d.push('Постійне зміщення від лінії не усунуте: підвищте Ki або перевірте нейтраль датчика; за дуже малого Kp трактор не встигає вийти на лінію.')}
+if(l){if(l.rms>100)d.push('Трактор іде по колу, кермо в упорі: нейтраль датчика (крок 4) знята не в прямому положенні — зазвичай через хибне крайнє значення, від якого рахувалась середина (Л+П)/2.');if(l.rms>6&&l.zc>=6)d.push('«Змійка» навколо лінії: завищений Kp або недостатній Kd.');if(l.jerk>1.8)d.push('Різкі ривки керма: завищена диференціальна складова Kd.');if(Math.abs(l.mean+B.t)>3)d.push('Постійне зміщення від лінії не усунуте: підвищте Ki або перевірте нейтраль датчика; за дуже малого Kp трактор не встигає вийти на лінію.')}
 return d}
 function rec(i){const c=S.c,o=x=>x?'увімк.':'ВИМК.',m=(x,u)=>x===''||x==null?'—':x+u,k=S.cal,l=S.tr.last,q=x=>x?f1(x.raw)+'°':'—';
 return[0,`Антена ${o(c.antenna)}, бортовий комп’ютер ${o(c.computer)}, GSM-модем ${o(c.gsm)}, дисплей ${o(c.display)} (виконавчий механізм ${o(c.actuator)}, IMU ${o(c.imu)}); GSM: ${gsm()}/5; RTK: ${S.rtk&&S.rtk!='wait'?RL[S.rtk]:'не підключено'}`,
@@ -146,9 +146,9 @@ return`<h2>Крок 4. Калібрування датчика кута пово
 <div class="big" id="raw">—</div><p class="note">Показання датчика</p>
 <input type="range" id="sl" min="-60" max="60" step="0.1" value="${S.ang}" oninput="mv(this.value)"><div class="nb"><button class="g" onclick="mv(+S.ang-0.1)">−0,1°</button><button class="g" onclick="mv(+S.ang+0.1)">+0,1°</button></div>
 <div>${bt('L','Зафіксувати ліво')}${bt('R','Зафіксувати право')}${bt('N','Зафіксувати нейтраль')}</div>
-<p class="note">${mid!==null?`Підказка: нуль датчика лежить посередині між крайніми значеннями: (Л+П)/2 = ${mid}°. Саме це показання має бути в «нейтралі».`:'Спершу зафіксуйте обидва крайні положення — з них визначається середина діапазону.'}</p>${rb(4)}`+nav(3,5)}
+<p class="note">${mid!==null?`Підказка: якщо обидва крайні положення зняті до упору, нуль датчика лежить посередині: (Л+П)/2 = ${mid}°. Перевірте, що Л і П справді з різних боків прямого положення та рівновіддалені від нього; інакше середина буде хибною.`:'Спершу зафіксуйте обидва крайні положення — з них визначається середина діапазону.'}</p>${rb(4)}`+nav(3,5)}
 function mv(v){S.ang=+(+v).toFixed(1);const a=cl(S.ang,-V.a.lock,V.a.lock);$('raw').textContent=f1(a+V.z0)+'°';$('sl').value=S.ang;['wl','wr'].forEach(i=>$(i).setAttribute('transform',`rotate(${a} ${i=='wl'?60:180} 60)`));save()}
-function fx(k){const a=cl(S.ang,-V.a.lock,V.a.lock);S.cal[k]={raw:f1(a+V.z0),a};save();R()}
+function fx(k){const a=cl(S.ang,-V.a.lock,V.a.lock);if(k=='N'&&S.cal.L&&S.cal.R&&Math.abs(a+V.z0-(S.cal.L.raw+S.cal.R.raw)/2)>5&&!confirm('Колеса далеко від середини діапазону — це точно пряме положення? Орієнтир: (Л+П)/2 = '+f1((S.cal.L.raw+S.cal.R.raw)/2)+'°. Зафіксувати все одно?'))return;if(k!='N'&&Math.abs(a)<V.a.lock-.05&&!confirm('Колеса ще не впираються в упор — показання продовжило б змінюватись. Доверніть повзунок до упору. Зафіксувати все одно?'))return;S.cal[k]={raw:f1(a+V.z0),a};save();R()}
 function s5(){const t=S.ln,sh=V.shape,p=t.type=='пряма'?'M30,110 L230,30':t.type=='крива'?'M20,120 Q130,10 240,100':'M130,70 m-55,0 a55,55 0 1,0 110,0 a55,55 0 1,0 -110,0',c=sh=='пряма'?'M20,120 L240,30':sh=='крива'?'M20,110 Q130,0 240,100':'M130,70 m-55,0 a55,55 0 1,0 110,0 a55,55 0 1,0 -110,0';
 return`<h2>Крок 5. Запис базової лінії А-В</h2><p class="hint">Контур поля — ${sh}. Оберіть відповідний тип лінії, проїдьте від точки А до точки В вручну й зафіксуйте. Що довша базова лінія, то точніше визначено напрям.</p>
 <svg class="ch" viewBox="0 0 260 140"><rect x="3" y="3" width="254" height="134" fill="none" stroke="var(--sub)"/><path d="${c}" fill="none" stroke="var(--sub)" stroke-width="12" opacity=".25"/><path d="${p}" fill="none" stroke="var(--ac)" stroke-width="3" stroke-dasharray="6 5"/></svg>
@@ -160,16 +160,16 @@ function s6(){const sh=n(S.sh);return`<h2>Крок 6. Вибір режиму в
 <label>Режим водіння</label><select onchange="u('md',this.value)"><option ${S.md=='паралельне'?'selected':''}>паралельне</option><option ${S.md=='кругове'?'selected':''}>кругове</option></select>
 <label>Зсув між суміжними проходами, см</label><input type="number" value="${S.sh}" oninput="u('sh',this.value);$('np').textContent=this.value>0?Math.ceil(V.fieldW*100/this.value):'—'">
 <p class="note">Кількість проходів на полі шириною ${V.fieldW} м: <b id="np">${sh>0?Math.ceil(V.fieldW*100/sh):'—'}</b></p><div id="sp">${strips()}</div>${rb(6)}`+nav(5,7)}
-function s7(){const t=S.tr,l=t.last,sl=(k,x,h)=>`<label>${x}: <b id="v${k}">${t[k]}</b></label><input type="range" min="0" max="10" step="0.5" value="${t[k]}" oninput="S.tr.${k}=+this.value;$('v${k}').textContent=this.value;save()"><div class="note">${h}</div>`;
+function s7(){const t=S.tr,l=t.last,sl=(k,x,h)=>`<label>${x}: <b id="v${k}">${t[k]}</b></label><input type="range" min="0" max="10" step="0.5" value="${t[k]}" oninput="S.tr.${k}=+this.value;$('v${k}').textContent=this.value;$('h${k}').innerHTML=tx('${k}',this.value);save()"><div class="note" id="h${k}">${tx(k,t[k])}</div>`;
 return`<h2>Крок 7. Перевірка та пробний прохід</h2><p class="hint">Задайте швидкість і налаштуйте ПІД-регулятор. Мета — вийти на лінію й утримувати її з відхиленням ≤3 см. Рекомендована швидкість для цього знаряддя: ${V.a.v[0]}–${V.a.v[1]} км/год.</p>
 <label>Швидкість тестування, км/год</label><input type="number" value="${t.v}" oninput="S.tr.v=this.value;save()">
 ${sl('sp','Kp — чутливість до відхилення','більше — різкіше повертає кермо до лінії')}${sl('si','Ki — інтегральна складова','усуває постійне зміщення (схил, нейтраль, важке знаряддя)')}${sl('sd','Kd — випередження','гасить коливання; завелике — ривки керма')}
-<button class="p" onclick="run()">${l?'Повторити прохід':'Почати пробний прохід'}</button> <span class="note">спроб: ${t.n}</span>${l?res():''}
+${expl()}<button class="p" onclick="run()">${l?'Повторити прохід':'Почати пробний прохід'}</button> <span class="note">спроб: ${t.n}</span>${l?res():''}
 <div class="np"><button class="g" onclick="S.es=1;save();R()" ${l?'':'disabled'}>Перехопити кермо (перевірка аварійного вимкнення)</button> ${S.es?'<span class="bd">керування передано трактористу — Так (0,3 с)</span>':''}</div>${rb(7)}`+nav(6,8)}
-function chart(l){const T=l.tr,m=cl(Math.max(...T.map(p=>Math.abs(p[1]))),20,100),X=x=>30+x*1.8,Y=y=>100-y/m*85,d=T.map((p,i)=>(i?'L':'M')+X(p[0]).toFixed(0)+','+Y(p[1]).toFixed(1)).join('');
+function chart(l){const T=l.tr,m=cl(Math.max(...T.map(p=>Math.abs(p[1]))),20,300),X=x=>30+x*1.8,Y=y=>100-y/m*85,d=T.map((p,i)=>(i?'L':'M')+X(p[0]).toFixed(0)+','+Y(p[1]).toFixed(1)).join('');
 return`<svg class="ch" viewBox="0 0 580 200"><rect x="30" y="${Y(5)}" width="540" height="${Y(-5)-Y(5)}" fill="var(--ac)" opacity=".18"/><line x1="30" x2="570" y1="100" y2="100" stroke="var(--sub)" stroke-dasharray="3 3"/><path class="pl" pathLength="1" d="${d}" fill="none" stroke="var(--ac)" stroke-width="2"/>
 <g fill="var(--sub)" font-size="11"><text x="2" y="14">+${Math.round(m)} см</text><text x="2" y="196">−${Math.round(m)} см</text>${[0,100,200,300].map(x=>`<text x="${X(x)-8}" y="198">${x} м</text>`).join('')}<text x="34" y="${Y(5)-3}">±5 см</text></g></svg>`}
-function res(){const l=S.tr.last;return`<div style="margin-top:14px"><span class="big">${l.rms} см</span> <span class="note">СКВ відхилення після виходу на лінію (макс. ${l.mx} см; ривки керма ${l.jerk} °/с)</span> <span class="bd ${l.rms<=3?'':'w'}">${l.rms<=3?'норма':'потребує налаштування'}</span>${chart(l)}${ansvg()}</div>`}
+function res(){const l=S.tr.last;return`<div style="margin-top:14px"><span class="big">${l.rms} см</span> <span class="note">СКВ відхилення після виходу на лінію (макс. ${l.mx} см; ривки керма ${l.jerk} °/с)</span> <span class="bd ${l.rms<=3?'':'w'}">${l.rms<=3?'норма':'потребує налаштування'}</span>${chart(l)}${ansvg()}${advice()}</div>`}
 function s8(){const r=score(),tot=Math.round(r.reduce((a,b)=>a+b,0)),dg=diag(),code=hash(JSON.stringify([S.reg,S.wb,S.lon,S.lat,S.iw,S.io,S.ov,S.sh,tot,S.tr.n])).toString(36).toUpperCase().slice(0,7),gr=tot>=90?'відмінно':tot>=75?'добре':tot>=60?'задовільно':'потребує повторного налаштування';
 return`<h2>Підсумковий протокол налаштування</h2><table class="t2"><tr><th>Студент</th><td>${S.reg.name}, група ${S.reg.group}, № ${S.reg.num}</td></tr><tr><th>Варіант</th><td>${V.id}: ${V.a.t} + ${V.a.im}; поле: гін ${V.fieldL} м, контур ${V.shape}, ухил ${V.slope} %</td></tr><tr><th>Результат</th><td><span class="big">${tot} / 100</span> — ${gr}; спроб на кроці 7: ${S.tr.n}; код протоколу: <b>${code}</b></td></tr></table>
 <table class="t2"><tr><th>Крок</th><th style="width:auto">Фактичне значення (для таблиці методички)</th><th style="width:70px">Бали</th></tr>${[1,2,3,4,5,6,7].map(i=>`<tr><td>${i}. ${NM[i-1]}</td><td>${rec(i)}</td><td>${r[i-1]} / ${MX[i-1]}</td></tr>`).join('')}</table>
@@ -178,6 +178,27 @@ ${r.map((x,i)=>`<div class="bar"><span>${NM[i]}</span><i style="width:${x/MX[i]*
 <h3>Діагностика (зіставте з таблицею 3.2 методички)</h3>${dg.length?'<ul>'+dg.map(x=>`<li>${x}</li>`).join('')+'</ul>':'<p><span class="bd">Зауважень немає — налаштування виконано якісно.</span></p>'}
 <div class="nb np"><button class="g" onclick="go(7)">До кроку 7</button><button class="p" onclick="window.print()">Друк / зберегти як PDF</button></div>`}
 let AN=0;
+const TX={sp:['Мала чутливість: трактор повільно повертається до лінії й довго «доходить» до неї; відхилення зникає лише на великій відстані.','Помірна чутливість: баланс між швидкістю виходу на лінію та плавністю керма.','Велика чутливість: різкі повороти, перерегулювання, «змійка» — особливо на високій швидкості та з повільним кермом (підрулювач). Підвищіть Kd або зменште Kp.'],
+si:['Інтегральна складова майже вимкнена: постійні збурення (схил, знос вбік, неточна нейтраль) залишать постійне зміщення від лінії.','Помірна: повільно «вибирає» постійне зміщення, не розхитуючи систему.','Завелика: накопичена помилка змушує перескакувати лінію, з’являються повільні хвилі, є ризик втрати стійкості.'],
+sd:['Мало демпфування: трактор перетинає лінію з коливаннями, що не гаснуть («змійка»).','Достатнє випередження: коливання гаснуть, кермо працює плавно.','Забагато: кермо реагує на кожен шум курсу — ривки, знос гідравліки, «нервова» робота.']};
+const tx=(k,v)=>{v=+v;const a=TX[k],lo={sp:2.5,si:.5,sd:2}[k],hi={sp:7.5,si:5,sd:7.5}[k];return '→ '+a[v<lo?0:v>hi?2:1]};
+const expl=()=>`<details class="np" open><summary>Як це працює: що робить кожен повзунок і до чого призводить</summary><table class="t2"><tr><td><b>Повзунок</b></td><td><b>Що робить</b></td><td><b>Замало</b></td><td><b>Забагато</b></td></tr>
+<tr><td>Kp</td><td>Реагує на відхилення зараз: чим далі від лінії, тим сильніше повертає кермо.</td><td>Повільний вихід на лінію</td><td>Різкі повороти, «змійка»</td></tr>
+<tr><td>Ki</td><td>Накопичує помилку за пройдений шлях і повільно її усуває.</td><td>Лишається постійне зміщення (схил, знос, нейтраль)</td><td>Перескок через лінію, повільні хвилі</td></tr>
+<tr><td>Kd</td><td>Дивиться на напрям руху відносно лінії й гасить коливання.</td><td>Коливання не гаснуть</td><td>Ривки керма від шуму, знос гідравліки</td></tr></table>
+<p class="note"><b>Порядок налаштування:</b> 1) Ki = 0, Kp середній; збільшуйте Kd, доки коливання не зникнуть. 2) Підніміть Kp, доки вихід на лінію не стане швидким без «змійки». 3) Додайте мінімальний Ki, щоб прибрати постійне зміщення. 4) Чим вища швидкість і повільніше кермо (підрулювач), тим менший Kp і більший Kd потрібні.<br><b>Чого повзунки не виправлять:</b> систематичну похибку від хибних даних (кроки 2–4: зміщення антени й знаряддя, база, нейтраль датчика, IMU) та слабкий RTK (крок 1).</p></details>`;
+function advice(){const l=S.tr.last,p=S.tr.prev,B=bias(),a=[],off=Math.abs(l.mean+B.t)>3;
+if(l.rms<=3)a.push('Норма: утримання лінії в межах 3 см. Перевірте аварійне вимкнення й відкрийте протокол.');
+else if(l.rms>100)a.push('Трактор ходить колом, кермо в упорі. Повзунки тут не допоможуть: перевірте нейтраль і крайні положення датчика на кроці 4.');
+else{
+if(l.zc>=6&&l.rms>6)a.push(l.sd<=l.sp*.7?'Коливання навколо лінії при малому Kd відносно Kp: збільште Kd або зменште Kp.':l.si>3?'Коливання при великому Ki: зменште Ki.':'Коливання при помірних Kp/Kd: зменште Kp або швидкість.');
+if(l.jerk>1.8)a.push('Різкі ривки керма: зменште Kd.');
+if(l.zc<6&&off)a.push(l.si<1?'Постійне зміщення від лінії: підвищте Ki (спробуйте 1–3).':'Ki вже підвищено, а зміщення лишилось: перевірте нейтраль датчика (крок 4) і зміщення антени/знаряддя (кроки 2–3).');
+if(l.zc<6&&!off&&l.rms>6)a.push('Трактор повільно виходить на лінію: підвищте Kp.');
+if(Math.abs(B.t)>3)a.push('Систематична похибка ≈ '+f1(B.t)+' см від введених даних не лікується повзунками: кроки 2–3 та IMU.')}
+if(S.rtk!=='fix')a.push('RTK не в режимі «Фікс» — шум вимірювання обмежує досяжну точність (крок 1).');
+if(!inR(l.v))a.push('Швидкість поза рекомендованою для цього знаряддя ('+V.a.v[0]+'–'+V.a.v[1]+' км/год).');
+return`<div class="rb np"><b>Що показав прохід і що робити:</b>${p?`<br>Порівняно з попередньою спробою (Kp ${p.sp}, Ki ${p.si}, Kd ${p.sd}): СКВ ${p.rms} → ${l.rms} см.`:''}<ul>${a.map(x=>`<li>${x}</li>`).join('')}</ul></div>`}
 const bl=s=>V.shade>1&&Math.abs(((s[0]-V.blk+540)%360)-180)<35&&s[1]<35,vis=()=>V.sky.slice(0,V.sats).filter(s=>!bl(s));
 function sky(){const c=S.rtk=='fix'?'var(--ac)':S.rtk=='float'?'var(--df)':'var(--sub)',pt=(r,a)=>[100+r*Math.sin(a),100-r*Math.cos(a)].map(v=>v.toFixed(1)).join(','),a1=(V.blk-35)*Math.PI/180,a2=(V.blk+35)*Math.PI/180;
 const w=V.shade>1?`<path d="M${pt(49,a1)} L${pt(80,a1)} A80 80 0 0 1 ${pt(80,a2)} L${pt(49,a2)} A49 49 0 0 0 ${pt(49,a1)}Z" fill="var(--wn)" opacity=".25"/>`:'';
@@ -197,7 +218,7 @@ return`<svg class="ch" viewBox="0 0 580 160"><rect x="30" y="12" width="540" hei
 function u(k,v){S[k]=v;save();ds();if($('tv')&&'wb lon lat'.includes(k))$('tv').innerHTML=tv();if(k=='sh'&&$('sp'))$('sp').innerHTML=strips()}
 function go(i){S.step=i;save();R();scrollTo(0,0)}
 function ds(){if(!V){$('ds').innerHTML='<div class="t">ДИСПЛЕЙ САК</div><div class="d"><span>Очікування</span><span>—</span></div>';return}
-const k=S.cal,l=S.tr.last,r=[['Варіант',V.id],['RTK',S.rtk&&S.rtk!='wait'?RL[S.rtk]:'—'],['GSM / супутн.',gsm()+'/5 · '+vis().length],['Колісна база',S.wb?S.wb+' см':'—'],['Захват',S.iw?S.iw+' см':'—'],['Кут Л/П',(k.L?f1(k.L.raw):'—')+'° / '+(k.R?f1(k.R.raw):'—')+'°'],['Лінія',S.ln.set?S.ln.type+' '+S.ln.len+' м':'—'],['Зсув проходів',S.sh?S.sh+' см':'—'],['Відхилення',l?l.rms+' см':'—']];
+const k=S.cal,l=S.tr.last,r=[['Варіант',V.id],['RTK',S.rtk&&S.rtk!='wait'?RL[S.rtk]:'—'],['GSM / супутн.',gsm()+'/5 · '+vis().length],['Колісна база',S.wb?S.wb+' см':'—'],['Захват',S.iw?S.iw+' см':'—'],['Кут Л/П',(k.L?f1(k.L.raw):'—')+'° / '+(k.R?f1(k.R.raw):'—')+'°'],['Нейтраль',k.N?f1(k.N.raw)+'°':'—'],['Лінія',S.ln.set?S.ln.type+' '+S.ln.len+' м':'—'],['Зсув проходів',S.sh?S.sh+' см':'—'],['Відхилення',l?l.rms+' см':'—']];
 $('ds').innerHTML='<div class="t">ДИСПЛЕЙ САК — ЖИВІ ПОКАЗАННЯ</div>'+r.map(x=>`<div class="d"><span>${x[0]}</span><span>${x[1]}</span></div>`).join('')}
 function R(){if(!V)S.step=0;$('nv').innerHTML=TT.map((t,i)=>`<button class="${i==S.step?'on':''}" ${!V&&i?'disabled':''} onclick="go(${i})">${t}</button>`).join('');
 $('mn').innerHTML=[s0,s1,s2,s3,s4,s5,s6,s7,s8][S.step]();if(S.step==4)mv(S.ang);if(S.step==7&&AN&&S.tr.last){AN=0;anim()}ds()}
