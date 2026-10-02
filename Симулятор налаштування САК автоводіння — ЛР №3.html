@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="uk"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Симулятор налаштування САК автоводіння — ЛР №3</title>
+<style>
+:root{--bg:#EEF1EC;--pn:#fff;--ink:#1E2420;--sub:#5B6760;--ln:#D7DED5;--ac:#3B6B35;--aci:#fff;--wn:#B5402B;--db:#171A12;--df:#FFB000;--dd:#8A6300;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#15180F;--pn:#1E2318;--ink:#EDEFE8;--sub:#A7B0A0;--ln:#333C2B;--ac:#6FAE63;--aci:#0E130B;--wn:#E06A54;--db:#0D0F09;--df:#FFC233;--dd:#6E4E00}}
+:root[data-theme="dark"]{--bg:#15180F;--pn:#1E2318;--ink:#EDEFE8;--sub:#A7B0A0;--ln:#333C2B;--ac:#6FAE63;--aci:#0E130B;--wn:#E06A54;--db:#0D0F09;--df:#FFC233;--dd:#6E4E00}
+html{scroll-padding-top:env(safe-area-inset-top,0px);height:100%}*{box-sizing:border-box}
+body{margin:0;height:100%;background:var(--bg);color:var(--ink);font:15px/1.45 -apple-system,"Segoe UI",Roboto,Arial,sans-serif}
+.w{max-width:1080px;margin:0 auto;padding:18px 14px 40px}h1{font-size:1.2rem;margin:0 0 12px}
+.lay{display:grid;grid-template-columns:170px 1fr 250px;gap:14px;align-items:start}@media(max-width:880px){.lay{grid-template-columns:1fr}}
+nav{display:flex;flex-direction:column;gap:4px;position:sticky;top:10px}@media(max-width:880px){nav{flex-direction:row;overflow-x:auto;position:static}}
+nav button{border:1px solid var(--ln);background:var(--pn);color:var(--sub);padding:7px 9px;border-radius:8px;font-size:.8rem;text-align:left;cursor:pointer;white-space:nowrap}
+nav button.on{border-color:var(--ac);color:var(--ink);font-weight:700}nav button:disabled{opacity:.4}
+main{background:var(--pn);border:1px solid var(--ln);border-radius:10px;padding:18px 20px;min-height:340px}main h2{margin:0 0 4px;font-size:1.05rem}
+.hint,.note{color:var(--sub);font-size:.85rem;margin:4px 0 12px}.note{margin:6px 0}
+label{display:block;font-size:.84rem;margin:11px 0 3px;color:var(--sub)}label.il{display:flex;gap:8px;align-items:center;color:var(--ink);margin:6px 0;font-size:.92rem}
+input[type=text],input[type=number],select{width:100%;padding:8px 10px;border:1px solid var(--ln);border-radius:8px;background:var(--bg);color:var(--ink);font-size:.95rem}
+input[type=range]{width:100%;accent-color:var(--ac)}.r2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+button.p,button.g{border:1px solid var(--ac);border-radius:8px;padding:9px 15px;font-size:.9rem;cursor:pointer;margin:4px 4px 4px 0}
+button.p{background:var(--ac);color:var(--aci);font-weight:600}button.g{background:none;color:var(--ac)}button:disabled{opacity:.4;cursor:not-allowed}
+.nb{display:flex;justify-content:space-between;margin-top:20px}
+aside{background:var(--db);border-radius:10px;padding:13px 15px;font:.8rem/1.6 ui-monospace,Consolas,monospace;color:var(--df);position:sticky;top:10px}@media(max-width:880px){aside{position:static}}
+aside .d{display:flex;justify-content:space-between;gap:8px;border-bottom:1px dashed var(--dd);padding:2px 0}aside .t{color:var(--dd);font-size:.7rem;margin-bottom:6px}
+.t2{width:100%;border-collapse:collapse;font-size:.86rem;margin:8px 0}.t2 th,.t2 td{border:1px solid var(--ln);padding:6px 8px;text-align:left;vertical-align:top}.t2 th{width:32%;background:var(--bg)}
+.rb{border:1px dashed var(--ac);border-radius:8px;padding:9px 12px;margin-top:14px;font-size:.86rem}
+.bd{display:inline-block;padding:2px 9px;border-radius:99px;font-size:.78rem;font-weight:600;background:color-mix(in srgb,var(--ac) 20%,transparent);color:var(--ac)}.bd.w{background:color-mix(in srgb,var(--wn) 20%,transparent);color:var(--wn)}
+.big{font-size:1.5rem;font-weight:700;color:var(--ac)}svg.ch{width:100%;height:auto;background:var(--bg);border-radius:8px;margin:8px 0}
+.bar{display:flex;align-items:center;gap:8px;font-size:.84rem;margin:3px 0}.bar i{display:block;height:9px;background:var(--ac);border-radius:5px}.bar span{width:150px}
+.pl{stroke-dasharray:1;stroke-dashoffset:0;animation:dr 1.3s ease-out}@keyframes dr{from{stroke-dashoffset:1}}
+details{margin-bottom:10px;font-size:.85rem}summary{cursor:pointer;color:var(--ac)}
+@media print{nav,.nb,aside,.np{display:none!important}.lay{display:block}main{border:0;padding:0}body{background:#fff;color:#000}}
+</style></head><body><div class="w">
+<h1>🚜 Симулятор налаштування системи автоводіння · ЛР №3 · Завдання 3</h1>
+<div class="lay"><nav id="nv"></nav><main id="mn"></main><aside id="ds"></aside></div></div>
+<script>
+const $=i=>document.getElementById(i),n=x=>{const v=parseFloat(String(x).replace(',','.'));return isNaN(v)?null:v},cl=(x,a,b)=>Math.max(a,Math.min(b,x)),f1=x=>Math.round(x*10)/10,pen=(e,t,s)=>e<=t?0:Math.min(1,(e-t)/s);
+const KEY='lr3v2',RL={none:'НЕМАЄ',float:'ПЛАВАЮЧИЙ',fix:'ФІКС'};
+const AGG=[
+{t:'МТЗ-82.1 (Беларус)',wb:2450,st:'колісний',act:'підрулюючий пристрій',lock:40,im:'Культиватор просапний КРН-4,2',w:4.2,op:'міжрядна культивація',v:[6,9]},
+{t:'МТЗ-1221.3 (Беларус)',wb:2800,st:'колісний',act:'підрулюючий пристрій',lock:40,im:'Плуг ПЛН-5-35',w:1.75,op:'оранка',v:[6,9]},
+{t:'John Deere 6195R',wb:2900,st:'колісний',act:'гідророзподільник (AutoTrac)',lock:50,im:'Обприскувач Amazone UX 4201 (штанга 24 м)',w:24,op:'внесення ЗЗР',v:[10,14]},
+{t:'Fendt 724 Vario',wb:2900,st:'колісний',act:'гідророзподільник (Fendt Guide)',lock:50,im:'Культиватор Väderstad Carrier 500',w:5,op:'суцільний обробіток',v:[10,14]},
+{t:'Case IH Magnum 340',wb:3050,st:'колісний',act:'гідророзподільник (AccuGuide)',lock:48,im:'Сівалка Amazone Citan 12000',w:12,op:'сівба зернових',v:[8,12]},
+{t:'John Deere 8R 310',wb:3000,st:'колісний',act:'гідророзподільник (AutoTrac)',lock:48,im:'Дискова борона Horsch Joker 8 RT',w:8,op:'дискування',v:[10,14]},
+{t:'К-744Р (Кіровець)',wb:3200,st:'шарнірно-зчленований',act:'гідророзподільник САК',lock:38,im:'Плуг ПЛН-8-35',w:2.8,op:'оранка',v:[7,10]},
+{t:'Т-150К (ХТЗ)',wb:2860,st:'шарнірно-зчленований',act:'гідророзподільник САК',lock:38,im:'Дискова борона БДТ-7',w:7,op:'дискування стерні',v:[8,11]}];
+function hash(s){let h=2166136261;for(const c of s){h^=c.charCodeAt(0);h=Math.imul(h,16777619)}return h>>>0}
+function rng(a){return()=>{a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
+function mkV(r){const R=rng(hash([r.group,r.name,r.num].join('|').toLowerCase().replace(/\s+/g,' '))),pk=a=>a[Math.floor(R()*a.length)],ri=(a,b)=>Math.round(a+R()*(b-a));
+const a=pk(AGG),d1=ri(8,28),d2=ri(10,50),W=Math.round(a.w*100);
+return{a,W,lon:ri(-30,60),lat:pk([0,-12,8,15,-20,0]),implOff:pk([0,0,-15,10,20,-10]),overlap:pk(W>=800?[10,20,30]:W>=400?[5,10,15]:[3,5,8]),base:pk([1,2,3]),sats:ri(14,22),nets:R()<.5?[d1,d2]:[d2,d1],slope:ri(0,80)/10,hant:ri(28,34)/10,z0:ri(12,38)/10*(R()<.5?-1:1),fieldL:ri(400,1400),fieldW:ri(300,900),shape:pk(['пряма','пряма','пряма','пряма','крива','коло']),odd:r.num%2==1,id:'В-'+(hash(r.group+r.name+r.num)%900+100)}}
+const blank=()=>({reg:null,step:0,c:{antenna:0,computer:0,actuator:0,display:0,gsm:0,imu:0},net:0,rtk:null,wb:'',lon:'',lat:'',st:'колісний',iw:'',io:'',ov:'',ang:0,cal:{},ln:{type:'пряма',len:60,set:0,name:''},md:'паралельне',sh:'',tr:{v:'',sp:6,si:0,sd:2,n:0,last:null},es:0});
+let S;try{S=JSON.parse(localStorage.getItem(KEY))}catch(e){}if(!S||!S.tr)S=blank();
+const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}};
+let V=S.reg?mkV(S.reg):null;
+const TT=['Реєстрація й варіант','1. Живлення й RTK','2. Параметри агрегату','3. Параметри знаряддя','4. Калібрування датчика','5. Лінія А-В','6. Режим і перекриття','7. Пробний прохід','Підсумковий протокол'];
+const gsm=()=>V.base+(S.c.gsm?2:0);
+function conn(){S.rtk='wait';R();setTimeout(()=>{const c=S.c,ok=c.antenna&&c.computer&&c.display,b=gsm(),d=V.nets[S.net];S.rtk=!ok||b<3?'none':(d<=30&&b>=4?'fix':'float');save();R()},1400)}
+function tg(k,v){S.c[k]=v?1:0;S.rtk=null;save();R()}
+function bias(){const lat=(n(S.lat)??0)-V.lat,io=(n(S.io)??0)-V.implOff,lo=.08*((n(S.lon)??0)-V.lon),ro=S.c.imu?0:V.hant*V.slope;return{lat,io,lo,ro,t:lat+io+lo+ro}}
+const sgl=()=>({fix:.01,float:.05,none:.5}[S.rtk==='wait'||!S.rtk?'none':S.rtk]);
+const drift=()=>V.fieldL*1.4*sgl()/S.ln.len*100;
+const inR=v=>v>=V.a.v[0]&&v<=V.a.v[1];
+function sim(q){const dt=.1,v=q.v/3.6,N=Math.round(300/v/dt),G=()=>(Math.random()+Math.random()+Math.random()-1.5)*1.15;let y=.6,psi=0,I=0,del=0,pd=0,ja=0;const buf=Array(Math.round(q.td/dt)).fill(0),o=[];
+for(let i=0;i<N;i++){const t=i*dt,x=v*t,ym=y+q.b+q.dr*Math.sin(t*.157)+q.sg*G(),pm=psi+.004*G();I=cl(I+ym*dt,-40,40);let k=cl(-(q.Kp*ym+q.Kd*pm+q.Ki*I),-.1,.1);
+const c=cl(Math.atan(q.Le*k)*q.gn,-q.lock,q.lock);buf.push(c);del+=(buf.shift()-del)*dt/q.tau;psi+=v*Math.tan(del+q.d0)/q.L*dt;y+=v*Math.sin(psi)*dt;ja+=((del-pd)/dt*57.3)**2;pd=del;o.push([f1(x),f1(y*100)])}
+const a=o.filter(p=>p[0]>100),rms=Math.sqrt(a.reduce((s,p)=>s+p[1]**2,0)/a.length),mean=a.reduce((s,p)=>s+p[1],0)/a.length;let zc=0;for(let i=1;i<a.length;i++)if((a[i][1]-mean)*(a[i-1][1]-mean)<0)zc++;
+return{tr:o.filter((p,i)=>i%3==0),rms:f1(rms),mx:f1(Math.max(...a.map(p=>Math.abs(p[1])))),mean:f1(mean),zc,jerk:f1(Math.sqrt(ja/N))}}
+function run(){const t=S.tr,v=n(t.v),c=S.c,a=V.a;if(!v||v<=0)return alert('Вкажіть швидкість тестування, км/год.');
+if(!(c.antenna&&c.computer&&c.actuator&&c.display))return alert('Автопілот не вмикається: не всі вузли ввімкнено (крок 1).');
+const k=S.rtk&&S.rtk!=='wait'?S.rtk:'none',B=bias(),cal=S.cal,ok=cal.L&&cal.R&&cal.N,h=a.act[0]=='г';
+const r=sim({v,L:a.wb/1000,Le:(n(S.wb)??250)/100,gn:(S.st==a.st?1:.55)*(ok?(Math.abs(cal.L.a)+Math.abs(cal.R.a))/2/a.lock:.6),lock:a.lock*Math.PI/180,tau:h?.2:.4,td:h?.1:.3,sg:{fix:.008,float:.03,none:.15}[k],dr:{fix:.01,float:.06,none:.5}[k],b:B.t/100,d0:(ok?cal.N.a:V.z0)*Math.PI/180,Kp:.0008*t.sp*t.sp,Ki:.002*t.si,Kd:.045*t.sd});
+t.last={...r,v,sp:t.sp,si:t.si,sd:t.sd};t.n++;S.es=0;save();R()}
+const MX=[10,15,10,15,10,10,30],NM=['Живлення й RTK','Параметри агрегату','Параметри знаряддя','Калібрування датчика','Лінія А-В','Режим і перекриття','Пробний прохід'];
+function score(){const a=V.a,c=S.c,k=S.cal,r=[],e=(x,t)=>Math.abs((n(S[x])??-1e3)-t);
+r[0]=5*Object.values(c).filter(Boolean).length/6+({fix:5,float:2.5}[S.rtk]||0);
+r[1]=15*(1-(pen(e('wb',a.wb/10),1,20)+pen(e('lon',V.lon),2,20)+pen(e('lat',V.lat),1,10))/3)*(S.st==a.st?1:.3);
+r[2]=10*(1-(pen(e('iw',V.W),1,20)+pen(e('io',V.implOff),1,20)+pen(e('ov',V.overlap),0,5))/3);
+r[3]=k.L&&k.R&&k.N?15*(1-(pen(a.lock-Math.abs(k.L.a),.3,5)+pen(a.lock-Math.abs(k.R.a),.3,5)+pen(Math.abs(k.N.a),.3,3))/3):0;
+r[4]=S.ln.set?(S.ln.type==V.shape?4:0)+6*(1-pen(drift(),10,40)):0;
+r[5]=(S.md==(V.shape=='коло'?'кругове':'паралельне')?4:0)+(n(S.sh)==null?0:6*(1-pen(Math.abs(n(S.sh)-(V.W-V.overlap)),1,20)));
+const l=S.tr.last;r[6]=l?22*cl(1-(l.rms-3)/27,0,1)*(l.jerk>1.8?.8:1)+(inR(l.v)?3:0)+(S.es?5:0):0;
+return r.map(x=>Math.max(0,Math.round(x*10)/10))}
+function diag(){const d=[],l=S.tr.last,B=bias(),k=S.cal,a=V.a;
+if(S.rtk!=='fix')d.push('Втрата точності / режим без RTK-фіксу: слабкий GSM або далека базова станція (крок 1).');
+if(Math.abs(B.lat+B.io)>3)d.push('Стабільне бокове зміщення від лінії: неправильно введено зміщення антени (крок 2) або знаряддя (крок 3).');
+if(!S.c.imu&&V.slope>=2)d.push('Система «тягне» вбік на схилі '+V.slope+' %: не ввімкнено IMU (крок 1).');
+if(S.st!=a.st||Math.abs((n(S.wb)??0)-a.wb/10)>2)d.push('Хибна кінематика регулятора: перевірте тип рульового керування та колісну базу (крок 2).');
+if(!(k.L&&k.R&&k.N)||Math.abs(k.N.a)>.5||a.lock-Math.abs(k.L.a)>1||a.lock-Math.abs(k.R.a)>1)d.push('Похибка калібрування датчика кута: нейтраль не збігається з прямим положенням коліс або крайні положення знято не до упору (крок 4).');
+if(l){if(l.rms>6&&l.zc>=6)d.push('«Змійка» навколо лінії: завищений Kp або недостатній Kd.');if(l.jerk>1.8)d.push('Різкі ривки керма: завищена диференціальна складова Kd.');if(Math.abs(l.mean+B.t)>3)d.push('Постійне зміщення від лінії не усунуте: підвищте Ki або перевірте нейтраль датчика; за дуже малого Kp трактор не встигає вийти на лінію.')}
+return d}
+function rec(i){const c=S.c,o=x=>x?'увімк.':'ВИМК.',m=(x,u)=>x===''||x==null?'—':x+u,k=S.cal,l=S.tr.last,q=x=>x?f1(x.raw)+'°':'—';
+return[0,`Антена ${o(c.antenna)}, бортовий комп’ютер ${o(c.computer)}, GSM-модем ${o(c.gsm)}, дисплей ${o(c.display)} (виконавчий механізм ${o(c.actuator)}, IMU ${o(c.imu)}); GSM: ${gsm()}/5; RTK: ${S.rtk&&S.rtk!='wait'?RL[S.rtk]:'не підключено'}`,
+`База ${m(S.wb,' см')}; антена: поздовжнє ${m(S.lon,' см')}, поперечне ${m(S.lat,' см')}; керування: ${S.st}`,
+`Захват ${m(S.iw,' см')}; зміщення знаряддя ${m(S.io,' см')}; перекриття ${m(S.ov,' см')}`,
+`Ліво ${q(k.L)}; право ${q(k.R)}; нейтраль ${q(k.N)}`,
+S.ln.set?`${S.ln.type==='пряма'?'пряма А-В':S.ln.type}; «${S.ln.name||'без назви'}»; довжина А-В ${S.ln.len} м; похибка напряму на кінці гону ${f1(drift())} см`:'не записано',
+`${S.md}; зсув між проходами ${m(S.sh,' см')}; проходів: ${n(S.sh)>0?Math.ceil(V.fieldW*100/n(S.sh)):'—'}`,
+l?`${l.v} км/год; Kp=${l.sp}, Ki=${l.si}, Kd=${l.sd}; відхилення: СКВ ${l.rms} см, макс. ${l.mx} см; аварійне вимкнення: ${S.es?'Так':'не перевірено'}`:'не виконано'][i]}
+const rb=i=>`<div class="rb np"><b>Запишіть у таблицю методички (рядок ${i}, «Фактичне значення»):</b><br>${rec(i)}<br><span class="note">У колонці «Логіка» поясніть своїми словами, чому саме такі значення й на що вони впливають.</span></div>`;
+const nav=(p,nx)=>`<div class="nb np"><button class="g" onclick="go(${p})" ${p<0?'disabled':''}>Назад</button><button class="p" onclick="go(${nx})">Далі</button></div>`;
+const pass=()=>{const a=V.a;return`<details class="np"><summary>Паспорт вашого варіанта ${V.id}</summary><table class="t2">
+<tr><th>Трактор</th><td>${a.t}; колісна база ${a.wb} мм; рульове керування: ${a.st}; виконавчий механізм: ${a.act}</td></tr>
+<tr><th>Антена (схема монтажу)</th><td>від центру трактора: поздовжнє ${V.lon} см (+ уперед), поперечне ${V.lat} см (+ праворуч); висота антени ${V.hant} м</td></tr>
+<tr><th>Знаряддя</th><td>${a.im}; операція: ${a.op}; робоча ширина ${a.w} м; зміщення від осі трактора ${V.implOff} см (+ праворуч); задане перекриття ${V.overlap} см; рекомендована швидкість ${a.v[0]}–${a.v[1]} км/год</td></tr>
+<tr><th>Поле</th><td>гін ${V.fieldL} м, ширина ${V.fieldW} м, контур: ${V.shape}, ухил ${V.slope} %</td></tr></table></details>`};
+function s0(){if(V){const a=V.a;return`<h2>Ваш персональний варіант ${V.id}</h2><p class="hint">${S.reg.name}, група ${S.reg.group}, № ${S.reg.num}. Варіант однозначно визначається цими даними — повторний вхід дає ті самі вихідні дані.</p>
+<table class="t2"><tr><th>Трактор</th><td>${a.t}</td></tr><tr><th>Знаряддя</th><td>${a.im} (${a.op})</td></tr><tr><th>Поле</th><td>гін ${V.fieldL} м, контур: ${V.shape}, ухил ${V.slope} %</td></tr><tr><th>Розрахунок (Завдання 4)</th><td>Варіант ${V.odd?'А (непарний №)':'Б (парний №)'}</td></tr></table>
+<p class="note">Паспортні дані наближені до заводських і округлені для навчальних цілей. Повний паспорт (колісна база, схема антени, параметри знаряддя) — у розкритому блоці «Паспорт варіанта» на кроках 2–3: вихідні дані подано в паспортних одиницях (мм, м, см), перераховуйте їх уважно.</p>
+<button class="p" onclick="go(1)">Почати налаштування →</button> <button class="g" onclick="rs()">Інший студент / скинути</button>`}
+return`<h2>Реєстрація студента</h2><p class="hint">Введіть дані — симулятор видасть унікальний варіант: реальний трактор, знаряддя й умови поля.</p>
+<label>Група</label><input type="text" id="g" placeholder="напр. АІ-31"><label>ПІБ</label><input type="text" id="p" placeholder="Прізвище Ім’я По батькові"><label>Номер у списку групи</label><input type="number" id="nn" min="1" max="60">
+<p><button class="p" onclick="reg()">Отримати варіант</button></p>`}
+function reg(){const g=$('g').value.trim(),p=$('p').value.trim(),m=parseInt($('nn').value);if(g.length<2||p.length<5||!(m>=1&&m<=99))return alert('Заповніть групу, ПІБ і номер у списку (1–99).');S=blank();S.reg={group:g,name:p,num:m};V=mkV(S.reg);save();R()}
+function rs(){if(confirm('Скинути протокол і почати з новою реєстрацією?')){S=blank();V=null;save();R()}}
+function s1(){const c=S.c,b=gsm(),L={antenna:'Антена ГНСС',computer:'Бортовий комп’ютер (контролер)',actuator:'Підрулюючий пристрій / гідророзподільник',display:'Дисплей-курсовказівник',gsm:'Подовжувач GSM-сигналу (модем/антена)',imu:'Модуль IMU (крен, нахил)'},ok=c.antenna&&c.computer&&c.display,d=V.nets[S.net];
+let st='';if(S.rtk==='wait')st='⏳ Пошук поправок…';else if(S.rtk){st=`<span class="bd ${S.rtk=='fix'?'':'w'}">RTK: ${RL[S.rtk]}</span> <span class="note">${!ok?'Не ввімкнено антену/комп’ютер/дисплей.':b<3?'Слабкий GSM — поправки не надходять.':d>30?'Базова станція надто далеко (>30 км) — лише плаваюче рішення.':b<4?'Нестабільний канал GSM — рішення не зафіксоване.':'Фіксоване рішення, точність ≈2 см.'}</span>`}
+return`<h2>Крок 1. Перевірка комплектності та живлення</h2><p class="hint">Увімкніть вузли, оберіть мережу поправок і підключіться. Якість RTK задає точність усіх наступних кроків.</p>`+
+Object.keys(L).map(k=>`<label class="il"><input type="checkbox" ${c[k]?'checked':''} onchange="tg('${k}',this.checked)"> ${L[k]}</label>`).join('')+
+`<label>Мережа RTK-поправок</label><select onchange="S.net=+this.value;S.rtk=null;save();R()">${['Ukrpos (державна мережа)','Комерційна NTRIP-мережа'].map((x,i)=>`<option value="${i}" ${S.net==i?'selected':''}>${x} — до базової станції ${V.nets[i]} км</option>`).join('')}</select>
+<p class="note">Рівень GSM у кабіні: ${'▮'.repeat(b)}${'▯'.repeat(5-b)} (${b}/5). Видимих супутників: ${V.sats}.</p><button class="p" onclick="conn()">Підключитись до RTK</button> ${st}${rb(1)}`+nav(0,2)}
+function s2(){return`<h2>Крок 2. Параметри агрегату</h2><p class="hint">Перенесіть геометрію трактора з паспорта в систему. Зверніть увагу на одиниці: у системі — сантиметри.</p>${pass()}
+<label>Колісна база, см</label><input type="number" value="${S.wb}" oninput="u('wb',this.value)">
+<div class="r2"><div><label>Поздовжнє зміщення антени, см</label><input type="number" value="${S.lon}" oninput="u('lon',this.value)"></div><div><label>Поперечне зміщення антени, см</label><input type="number" value="${S.lat}" oninput="u('lat',this.value)"></div></div>
+<label>Тип рульового керування</label><select onchange="u('st',this.value)"><option ${S.st=='колісний'?'selected':''}>колісний</option><option ${S.st!='колісний'?'selected':''}>шарнірно-зчленований</option></select>${rb(2)}`+nav(1,3)}
+function s3(){const sh=n(S.iw)!=null&&n(S.ov)!=null?n(S.iw)-n(S.ov):null;return`<h2>Крок 3. Параметри знаряддя</h2><p class="hint">Ширину захвату в паспорті подано в метрах — введіть у сантиметрах.</p>${pass()}
+<label>Ширина захвату, см</label><input type="number" value="${S.iw}" oninput="u('iw',this.value)">
+<div class="r2"><div><label>Зміщення знаряддя від осі трактора, см</label><input type="number" value="${S.io}" oninput="u('io',this.value)"></div><div><label>Перекриття суміжних проходів, см</label><input type="number" value="${S.ov}" oninput="u('ov',this.value)"></div></div>
+<p class="note">Ці значення знадобляться на кроці 6 для розрахунку зсуву між проходами.</p>${rb(3)}`+nav(2,4)}
+function s4(){const k=S.cal,mid=k.L&&k.R?f1((k.L.raw+k.R.raw)/2):null,w=a=>`<g id="${a}" transform="rotate(0 ${a=='wl'?60:180} 60)"><rect x="${(a=='wl'?60:180)-6}" y="42" width="12" height="36" rx="2" fill="var(--ink)"/></g>`;
+const bt=(x,t)=>`<button class="g" onclick="fx('${x}')">${t}${k[x]?' ✓ '+f1(k[x].raw)+'°':''}</button>`;
+return`<h2>Крок 4. Калібрування датчика кута повороту коліс</h2><p class="hint">Поверніть колеса до упору вліво й вправо (показання перестануть зростати) і зафіксуйте значення. Потім виставте нейтраль — пряме положення. Датчик має власний нуль, тому показання ≠ реальному куту.</p>
+<svg class="ch" viewBox="0 0 240 120"><line x1="60" y1="60" x2="180" y2="60" stroke="var(--sub)" stroke-width="3"/><line x1="120" y1="10" x2="120" y2="110" stroke="var(--sub)" stroke-dasharray="4 4"/>${w('wl')}${w('wr')}</svg>
+<div class="big" id="raw">—</div><p class="note">Показання датчика</p>
+<input type="range" id="sl" min="-60" max="60" step="0.1" value="${S.ang}" oninput="mv(this.value)"><div class="nb"><button class="g" onclick="mv(+S.ang-0.1)">−0,1°</button><button class="g" onclick="mv(+S.ang+0.1)">+0,1°</button></div>
+<div>${bt('L','Зафіксувати ліво')}${bt('R','Зафіксувати право')}${bt('N','Зафіксувати нейтраль')}</div>
+<p class="note">${mid!==null?`Підказка: нуль датчика лежить посередині між крайніми значеннями: (Л+П)/2 = ${mid}°. Саме це показання має бути в «нейтралі».`:'Спершу зафіксуйте обидва крайні положення — з них визначається середина діапазону.'}</p>${rb(4)}`+nav(3,5)}
+function mv(v){S.ang=+(+v).toFixed(1);const a=cl(S.ang,-V.a.lock,V.a.lock);$('raw').textContent=f1(a+V.z0)+'°';$('sl').value=S.ang;['wl','wr'].forEach(i=>$(i).setAttribute('transform',`rotate(${a} ${i=='wl'?60:180} 60)`));save()}
+function fx(k){const a=cl(S.ang,-V.a.lock,V.a.lock);S.cal[k]={raw:f1(a+V.z0),a};save();R()}
+function s5(){const t=S.ln,sh=V.shape,p=t.type=='пряма'?'M30,110 L230,30':t.type=='крива'?'M20,120 Q130,10 240,100':'M130,70 m-55,0 a55,55 0 1,0 110,0 a55,55 0 1,0 -110,0',c=sh=='пряма'?'M20,120 L240,30':sh=='крива'?'M20,110 Q130,0 240,100':'M130,70 m-55,0 a55,55 0 1,0 110,0 a55,55 0 1,0 -110,0';
+return`<h2>Крок 5. Запис базової лінії А-В</h2><p class="hint">Контур поля — ${sh}. Оберіть відповідний тип лінії, проїдьте від точки А до точки В вручну й зафіксуйте. Що довша базова лінія, то точніше визначено напрям.</p>
+<svg class="ch" viewBox="0 0 260 140"><rect x="3" y="3" width="254" height="134" fill="none" stroke="var(--sub)"/><path d="${c}" fill="none" stroke="var(--sub)" stroke-width="12" opacity=".25"/><path d="${p}" fill="none" stroke="var(--ac)" stroke-width="3" stroke-dasharray="6 5"/></svg>
+<label>Тип лінії</label><select onchange="S.ln.type=this.value;S.ln.set=0;save();R()">${['пряма','крива','коло'].map(x=>`<option value="${x}" ${t.type==x?'selected':''}>${x=='пряма'?'пряма А-В':x}</option>`).join('')}</select>
+<label>Відстань між точками А і В: <b id="lv">${t.len}</b> м</label><input type="range" min="20" max="400" step="10" value="${t.len}" oninput="S.ln.len=+this.value;S.ln.set=0;$('lv').textContent=this.value;$('dr').textContent=f1(drift());save();ds()">
+<p class="note">Похибка напряму на кінці гону (${V.fieldL} м) за поточної якості RTK: <b id="dr">${f1(drift())}</b> см.</p>
+<label>Назва лінії</label><input type="text" value="${t.name}" placeholder="напр. Поле 3 — Лінія 1" oninput="S.ln.name=this.value;save()"><button class="p" onclick="S.ln.set=1;save();R()">Записати лінію А-В</button> ${t.set?'<span class="bd">записано</span>':''}${rb(5)}`+nav(4,6)}
+function s6(){const sh=n(S.sh);return`<h2>Крок 6. Вибір режиму водіння та перекриття</h2><p class="hint">Режим залежить від контуру поля (${V.shape}). Зсув між проходами розрахуйте самі за даними кроку 3 (ширина захвату мінус перекриття) і введіть у систему.</p>
+<label>Режим водіння</label><select onchange="u('md',this.value)"><option ${S.md=='паралельне'?'selected':''}>паралельне</option><option ${S.md=='кругове'?'selected':''}>кругове</option></select>
+<label>Зсув між суміжними проходами, см</label><input type="number" value="${S.sh}" oninput="u('sh',this.value);$('np').textContent=this.value>0?Math.ceil(V.fieldW*100/this.value):'—'">
+<p class="note">Кількість проходів на полі шириною ${V.fieldW} м: <b id="np">${sh>0?Math.ceil(V.fieldW*100/sh):'—'}</b></p>${rb(6)}`+nav(5,7)}
+function s7(){const t=S.tr,l=t.last,sl=(k,x,h)=>`<label>${x}: <b id="v${k}">${t[k]}</b></label><input type="range" min="0" max="10" step="0.5" value="${t[k]}" oninput="S.tr.${k}=+this.value;$('v${k}').textContent=this.value;save()"><div class="note">${h}</div>`;
+return`<h2>Крок 7. Перевірка та пробний прохід</h2><p class="hint">Задайте швидкість і налаштуйте ПІД-регулятор. Мета — вийти на лінію й утримувати її з відхиленням ≤3 см. Рекомендована швидкість для цього знаряддя: ${V.a.v[0]}–${V.a.v[1]} км/год.</p>
+<label>Швидкість тестування, км/год</label><input type="number" value="${t.v}" oninput="S.tr.v=this.value;save()">
+${sl('sp','Kp — чутливість до відхилення','більше — різкіше повертає кермо до лінії')}${sl('si','Ki — інтегральна складова','усуває постійне зміщення (схил, нейтраль, важке знаряддя)')}${sl('sd','Kd — випередження','гасить коливання; завелике — ривки керма')}
+<button class="p" onclick="run()">${l?'Повторити прохід':'Почати пробний прохід'}</button> <span class="note">спроб: ${t.n}</span>${l?res():''}
+<div class="np"><button class="g" onclick="S.es=1;save();R()" ${l?'':'disabled'}>Перехопити кермо (перевірка аварійного вимкнення)</button> ${S.es?'<span class="bd">керування передано трактористу — Так (0,3 с)</span>':''}</div>${rb(7)}`+nav(6,8)}
+function chart(l){const T=l.tr,m=cl(Math.max(...T.map(p=>Math.abs(p[1]))),20,100),X=x=>30+x*1.8,Y=y=>100-y/m*85,d=T.map((p,i)=>(i?'L':'M')+X(p[0]).toFixed(0)+','+Y(p[1]).toFixed(1)).join('');
+return`<svg class="ch" viewBox="0 0 580 200"><rect x="30" y="${Y(5)}" width="540" height="${Y(-5)-Y(5)}" fill="var(--ac)" opacity=".18"/><line x1="30" x2="570" y1="100" y2="100" stroke="var(--sub)" stroke-dasharray="3 3"/><path class="pl" pathLength="1" d="${d}" fill="none" stroke="var(--ac)" stroke-width="2"/>
+<g fill="var(--sub)" font-size="11"><text x="2" y="14">+${Math.round(m)} см</text><text x="2" y="196">−${Math.round(m)} см</text>${[0,100,200,300].map(x=>`<text x="${X(x)-8}" y="198">${x} м</text>`).join('')}<text x="34" y="${Y(5)-3}">±5 см</text></g></svg>`}
+function res(){const l=S.tr.last;return`<div style="margin-top:14px"><span class="big">${l.rms} см</span> <span class="note">СКВ відхилення після виходу на лінію (макс. ${l.mx} см; ривки керма ${l.jerk} °/с)</span> <span class="bd ${l.rms<=3?'':'w'}">${l.rms<=3?'норма':'потребує налаштування'}</span>${chart(l)}</div>`}
+function strips(){const W=V.W,sh=n(S.sh)??W-V.overlap,k=540/(4*sh+W),g=sh-W;let r='';for(let i=0;i<5;i++)r+=`<rect x="${30+i*sh*k}" y="20" width="${W*k}" height="46" fill="var(--ac)" opacity=".5"/>`;
+return`<svg class="ch" viewBox="0 0 580 100">${r}<text x="30" y="90" font-size="12" fill="var(--sub)">${g<0?'Перекриття':'Недобір'} між проходами: ${Math.abs(f1(g))} см (задано перекриття ${V.overlap} см)</text></svg>`}
+function s8(){const r=score(),tot=Math.round(r.reduce((a,b)=>a+b,0)),dg=diag(),code=hash(JSON.stringify([S.reg,S.wb,S.lon,S.lat,S.iw,S.io,S.ov,S.sh,tot,S.tr.n])).toString(36).toUpperCase().slice(0,7),gr=tot>=90?'відмінно':tot>=75?'добре':tot>=60?'задовільно':'потребує повторного налаштування';
+return`<h2>Підсумковий протокол налаштування</h2><table class="t2"><tr><th>Студент</th><td>${S.reg.name}, група ${S.reg.group}, № ${S.reg.num}</td></tr><tr><th>Варіант</th><td>${V.id}: ${V.a.t} + ${V.a.im}; поле: гін ${V.fieldL} м, контур ${V.shape}, ухил ${V.slope} %</td></tr><tr><th>Результат</th><td><span class="big">${tot} / 100</span> — ${gr}; спроб на кроці 7: ${S.tr.n}; код протоколу: <b>${code}</b></td></tr></table>
+<table class="t2"><tr><th>Крок</th><th style="width:auto">Фактичне значення (для таблиці методички)</th><th style="width:70px">Бали</th></tr>${[1,2,3,4,5,6,7].map(i=>`<tr><td>${i}. ${NM[i-1]}</td><td>${rec(i)}</td><td>${r[i-1]} / ${MX[i-1]}</td></tr>`).join('')}</table>
+${r.map((x,i)=>`<div class="bar"><span>${NM[i]}</span><i style="width:${x/MX[i]*220}px"></i> ${Math.round(x/MX[i]*100)}%</div>`).join('')}
+<h3>Відхилення від лінії на пробному проході</h3>${S.tr.last?chart(S.tr.last):'<p class="note">Прохід не виконано.</p>'}<h3>Перекриття суміжних проходів</h3>${strips()}
+<h3>Діагностика (зіставте з таблицею 3.2 методички)</h3>${dg.length?'<ul>'+dg.map(x=>`<li>${x}</li>`).join('')+'</ul>':'<p><span class="bd">Зауважень немає — налаштування виконано якісно.</span></p>'}
+<div class="nb np"><button class="g" onclick="go(7)">До кроку 7</button><button class="p" onclick="window.print()">Друк / зберегти як PDF</button></div>`}
+function u(k,v){S[k]=v;save();ds()}
+function go(i){S.step=i;save();R();scrollTo(0,0)}
+function ds(){if(!V){$('ds').innerHTML='<div class="t">ДИСПЛЕЙ САК</div><div class="d"><span>Очікування</span><span>—</span></div>';return}
+const k=S.cal,l=S.tr.last,r=[['Варіант',V.id],['RTK',S.rtk&&S.rtk!='wait'?RL[S.rtk]:'—'],['GSM / супутн.',gsm()+'/5 · '+V.sats],['Колісна база',S.wb?S.wb+' см':'—'],['Захват',S.iw?S.iw+' см':'—'],['Кут Л/П',(k.L?f1(k.L.raw):'—')+'° / '+(k.R?f1(k.R.raw):'—')+'°'],['Лінія',S.ln.set?S.ln.type+' '+S.ln.len+' м':'—'],['Зсув проходів',S.sh?S.sh+' см':'—'],['Відхилення',l?l.rms+' см':'—']];
+$('ds').innerHTML='<div class="t">ДИСПЛЕЙ САК — ЖИВІ ПОКАЗАННЯ</div>'+r.map(x=>`<div class="d"><span>${x[0]}</span><span>${x[1]}</span></div>`).join('')}
+function R(){if(!V)S.step=0;$('nv').innerHTML=TT.map((t,i)=>`<button class="${i==S.step?'on':''}" ${!V&&i?'disabled':''} onclick="go(${i})">${t}</button>`).join('');
+$('mn').innerHTML=[s0,s1,s2,s3,s4,s5,s6,s7,s8][S.step]();if(S.step==4)mv(S.ang);ds()}
+R();
+</script></body></html>
