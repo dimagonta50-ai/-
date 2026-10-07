@@ -1,0 +1,461 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="utf-8">
+<title>ЛР 2 · Симулятор зубчастих передач</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<style>
+/* Макет: шапка з двома вкладками; у кожній — вузька колонка вхідних даних і широка колонка «креслення → результат». */
+:root{
+  --bg:#f3f5f8; --surface:#ffffff; --ink:#17212b; --muted:#566475; --line:#d2d9e1; --field:#f7f9fb;
+  --pin:#1f5f8b; --pin-fill:#d6e6f3; --wheel:#b4541c; --wheel-fill:#f8e1d1;
+  --ok:#1a7745; --bad:#b3261e; --clash:#d32f2f; --code:#edf1f5;
+  --font:"Segoe UI",system-ui,-apple-system,Roboto,"Helvetica Neue",Arial,sans-serif;
+  --mono:ui-monospace,"Cascadia Mono",Consolas,"DejaVu Sans Mono",monospace;
+  box-sizing:border-box; padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0f151b; --surface:#18212a; --ink:#e6ecf2; --muted:#9aa8b6; --line:#2b3743; --field:#111921;
+  --pin:#78b6e4; --pin-fill:#22465f; --wheel:#e79c69; --wheel-fill:#553726;
+  --ok:#5fc88e; --bad:#ff8f85; --clash:#ff5a4f; --code:#111a22; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0f151b; --surface:#18212a; --ink:#e6ecf2; --muted:#9aa8b6; --line:#2b3743; --field:#111921;
+  --pin:#78b6e4; --pin-fill:#22465f; --wheel:#e79c69; --wheel-fill:#553726;
+  --ok:#5fc88e; --bad:#ff8f85; --clash:#ff5a4f; --code:#111a22; color-scheme:dark}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 var(--font)}
+main{max-width:1080px;margin:0 auto;padding-inline:16px;padding-block:18px 28px;display:flex;flex-direction:column;gap:16px}
+.eyebrow{margin:0;font-size:.78rem;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+h1{margin:2px 0 4px;font-size:1.5rem;line-height:1.2;text-wrap:balance}
+.lead{margin:0;color:var(--muted);max-width:68ch}
+h2{margin:0;font-size:1rem}
+sub{font-size:.72em;line-height:0}
+.tabs{display:flex;gap:6px;margin-top:12px;flex-wrap:wrap}
+.tabs button{font:inherit;font-weight:600;padding:8px 16px;border:1px solid var(--line);border-radius:999px;background:var(--surface);color:var(--muted);cursor:pointer}
+.tabs button[aria-selected="true"]{background:var(--pin);border-color:var(--pin);color:var(--surface)}
+.pane{display:grid;grid-template-columns:minmax(0,300px) minmax(0,1fr);gap:16px;align-items:start}
+@media(max-width:800px){.pane{grid-template-columns:minmax(0,1fr)}}
+.col{display:flex;flex-direction:column;gap:16px;min-width:0}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:14px;display:flex;flex-direction:column;gap:10px;min-width:0}
+.fields{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.fields .wide{grid-column:1/-1}
+label{display:block;font-size:.84rem;color:var(--muted)}
+label>input,label>select{display:block;margin-top:3px}
+input[type=number],select{width:100%;padding:7px 8px;border:1px solid var(--line);border-radius:6px;background:var(--field);color:var(--ink);font:inherit;font-variant-numeric:tabular-nums}
+input[type=range]{width:100%;accent-color:var(--pin)}
+button.btn{font:inherit;font-size:.9rem;padding:7px 12px;border:1px solid var(--line);border-radius:6px;background:var(--field);color:var(--ink);cursor:pointer}
+button.btn[aria-pressed="true"]{background:var(--pin);border-color:var(--pin);color:var(--surface)}
+:focus-visible{outline:2px solid var(--pin);outline-offset:2px}
+.hint{margin:0;font-size:.82rem;color:var(--muted)}
+.stage svg{display:block;width:100%;height:auto;max-height:440px;background:var(--field);border-radius:8px}
+.row{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center}
+.row .grow{flex:1 1 180px;min-width:0}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:6px;overflow:hidden}
+.seg button{font:inherit;font-size:.9rem;padding:6px 12px;border:0;background:var(--field);color:var(--ink);cursor:pointer}
+.seg button[aria-pressed="true"]{background:var(--pin);color:var(--surface)}
+label.check{display:flex;align-items:center;gap:6px;color:var(--ink);font-size:.9rem}
+label.check>input{margin:0}
+.status{margin:0;padding:8px 10px;border-radius:6px;background:var(--field);font-weight:600;border-left:4px solid var(--ok);color:var(--ok)}
+.status.bad{border-left-color:var(--bad);color:var(--bad)}
+.tablewrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:.92rem;font-variant-numeric:tabular-nums}
+th,td{padding:5px 8px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+th{font-size:.8rem;color:var(--muted);font-weight:600}
+td.num,th.num{text-align:right;white-space:nowrap}
+.checks{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:3px;font-size:.92rem}
+.checks .ok{color:var(--ok)} .checks .bad{color:var(--bad)}
+pre{margin:0;padding:10px;background:var(--code);border-radius:6px;font:.86rem/1.5 var(--mono);overflow-x:auto}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chips button{font:inherit;font-size:.82rem;line-height:1.25;padding:5px 8px;border:1px solid var(--line);border-radius:6px;background:var(--field);color:var(--ink);cursor:pointer;text-align:center;font-variant-numeric:tabular-nums}
+.chips button small{display:block;color:var(--muted)}
+.chips button[aria-pressed="true"]{border-color:var(--pin);box-shadow:inset 0 0 0 1px var(--pin)}
+.chips button.best small{color:var(--ok);font-weight:600}
+.chips button.fail{opacity:.55}
+footer{font-size:.82rem;color:var(--muted);max-width:90ch}
+.svg-ink{fill:var(--ink)} .svg-muted{fill:var(--muted)}
+</style>
+</head>
+<body>
+<main>
+<header>
+  <p class="eyebrow">Деталі машин та ПТМ · лабораторна робота № 2</p>
+  <h1>Симулятор зубчастих передач</h1>
+  <p class="lead">Самоперевірка розрахунку. Введіть свої дані — числа мають збігтися з Excel-шаблоном. Зараз підставлено приклад із методичних вказівок.</p>
+  <div class="tabs" role="tablist">
+    <button type="button" role="tab" id="tabA" aria-controls="paneA" aria-selected="true">А. Циліндрична</button>
+    <button type="button" role="tab" id="tabB" aria-controls="paneB" aria-selected="false">Б. Конічна</button>
+  </div>
+</header>
+
+<!-- ================= А. ЦИЛІНДРИЧНА ================= -->
+<section class="pane" id="paneA" role="tabpanel" aria-labelledby="tabA">
+  <div class="col">
+    <div class="card">
+      <h2>Вхідні дані</h2>
+      <div class="fields">
+        <label>M₂ колеса, Н·м<input id="aM" type="number" value="618.5" step="any" min="1"></label>
+        <label>u<input id="aU" type="number" value="4" step="any" min="1"></label>
+        <label>[σ<sub>H</sub>], МПа<input id="aS" type="number" value="500" step="10" min="100"></label>
+        <label>ψ<sub>ba</sub><input id="aPsi" type="number" value="0.4" step="0.05" min="0.1" max="1"></label>
+        <label>K<sub>Hβ</sub><input id="aK" type="number" value="1.1" step="0.05" min="1"></label>
+        <label>Модуль m, мм<select id="aMod"></select></label>
+        <label class="wide">Власне z₁ (зазвичай порожнє)<input id="aZ" type="number" placeholder="рекомендоване" min="10" step="1"></label>
+      </div>
+      <p class="hint" id="aModHint"></p>
+    </div>
+    <div class="card">
+      <h2>Навчальні дані за номером студента</h2>
+      <div class="row"><label class="grow">N<input id="aN" type="number" min="1" max="30" step="1" placeholder="1…30"></label>
+      <button type="button" class="btn" id="aNbtn">Підставити</button></div>
+      <p class="hint">M₂ = 250 + 10·N, u = 4,0. Лише якщо у вашій схемі немає циліндричної передачі (додаток Б).</p>
+    </div>
+  </div>
+  <div class="col">
+    <div class="card stage">
+      <svg id="aSvg" role="img" aria-label="Зачеплення шестірні й колеса"></svg>
+      <div class="row">
+        <button type="button" class="btn" id="aPlay" aria-pressed="false">▶ Обертати</button>
+        <label class="grow">Кут повороту шестірні<input id="aPhi" type="range" min="0" max="360" step="0.25" value="0"></label>
+      </div>
+      <div class="row">
+        <div class="seg" role="group" aria-label="Масштаб">
+          <button type="button" id="aViewAll" aria-pressed="true">Уся пара</button><button type="button" id="aViewMesh" aria-pressed="false">Зачеплення</button>
+        </div>
+        <label class="check"><input type="checkbox" id="aForces"> Показати сили на колесі</label>
+      </div>
+      <label>Дослід: зменшити міжосьову відстань на <b id="aDaVal">0,0 мм</b><input id="aDa" type="range" min="0" max="1.5" step="0.1" value="0"></label>
+      <p class="status" id="aStatus"></p>
+    </div>
+    <div class="card">
+      <h2>Результат</h2>
+      <div class="tablewrap"><table id="aOut"></table></div>
+      <ul class="checks" id="aChk"></ul>
+    </div>
+    <div class="card">
+      <div class="row"><h2 class="grow">Параметри для Fusion (таблиця 2.4)</h2><button type="button" class="btn" id="aCopy">Копіювати</button></div>
+      <pre id="aFp"></pre>
+    </div>
+  </div>
+</section>
+
+<!-- ================= Б. КОНІЧНА ================= -->
+<section class="pane" id="paneB" role="tabpanel" aria-labelledby="tabB" hidden>
+  <div class="col">
+    <div class="card">
+      <h2>Вхідні дані</h2>
+      <div class="fields">
+        <label>M₂ колеса, Н·м<input id="bM" type="number" value="161" step="any" min="1"></label>
+        <label>u<input id="bU" type="number" value="2.5" step="any" min="1"></label>
+        <label>[σ<sub>H</sub>], МПа<input id="bS" type="number" value="500" step="10" min="100"></label>
+        <label>K<sub>Hβ</sub><input id="bK" type="number" value="1.1" step="0.05" min="1"></label>
+        <label class="wide">Число зубців шестірні z₁ (17…25)<input id="bZ" type="number" value="20" min="10" max="40" step="1"></label>
+      </div>
+      <p class="hint">Як z₁ впливає на діаметр колеса d<sub>e2</sub>, мм. Натисніть, щоб вибрати:</p>
+      <div class="chips" id="bChips"></div>
+    </div>
+    <div class="card">
+      <h2>Навчальні дані за номером студента</h2>
+      <div class="row"><label class="grow">N<input id="bN" type="number" min="1" max="30" step="1" placeholder="1…30"></label>
+      <button type="button" class="btn" id="bNbtn">Підставити</button></div>
+      <p class="hint">M₂ = 100 + 5·N, u = 2,5. Якщо у вашій схемі немає конічної передачі (додаток Б).</p>
+    </div>
+  </div>
+  <div class="col">
+    <div class="card stage">
+      <svg id="bSvg" role="img" aria-label="Осьовий переріз конічної пари"></svg>
+      <p class="hint">Осьовий переріз у масштабі. Точки P1–P5 — заготовка шестірні; колесо будують за своїми точками так само, а в складанні повертають на 90°.</p>
+    </div>
+    <div class="card">
+      <h2>Результат</h2>
+      <div class="tablewrap"><table id="bOut"></table></div>
+      <ul class="checks" id="bChk"></ul>
+    </div>
+    <div class="card">
+      <h2>Точки заготовки (x; r), мм</h2>
+      <div class="tablewrap"><table id="bPts"></table></div>
+      <h2>Трапеції западини, мм</h2>
+      <div class="tablewrap"><table id="bTrap"></table></div>
+      <p class="hint">X — відстань площини від площини YZ; r — відстань від осі колеса до основи трапеції, s — довжина основи; «н» — коротка основа, «в» — довга.</p>
+    </div>
+    <div class="card">
+      <div class="row"><h2 class="grow">Параметри для Fusion (таблиця 2.4)</h2><button type="button" class="btn" id="bCopy">Копіювати</button></div>
+      <pre id="bFp"></pre>
+    </div>
+  </div>
+</section>
+
+<footer>
+  Спрощений навчальний розрахунок за контактною міцністю: a<sub>w,min</sub> = 49,5·(u+1)·∛(M₂·K<sub>Hβ</sub>·10³/(ψ<sub>ba</sub>·u²·[σ<sub>H</sub>]²)); d<sub>e2,min</sub> = 165·∛(u·M₂·10³·K<sub>Hβ</sub>/[σ<sub>H</sub>]²). Зубці на рисунку евольвентні, з бічним зазором 0,1 мм. Об'єм перетину — оцінка: площа перекриття зубців у торцевому перерізі, помножена на ширину колеса. У Fusion значення буде того самого порядку, але не таким самим.
+</footer>
+</main>
+
+<script>
+/* ============================== РОЗРАХУНОК (без DOM) ============================== */
+var SIM = (function () {
+  const MODS = [1, 1.25, 1.5, 2, 2.5, 3, 4, 5, 6, 8, 10];
+  const RA40 = [10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 24, 25, 26, 28, 30, 32, 34, 36, 38, 40, 42, 45, 48, 50, 53, 56, 60, 63, 67, 71, 75, 80, 85, 90, 95, 100, 105, 110, 120, 125, 130, 140, 150, 160];
+  const AL = 20 * Math.PI / 180, TAU = 25, BACKLASH = 0.1;
+  const rnd = x => Math.floor(x + 0.5);
+  const nextUp = (x, list) => { const v = list.find(v => v >= x - 1e-9); return v === undefined ? Math.ceil(x) : v; };
+  const nearestMod = x => MODS.reduce((p, c) => Math.abs(c - x) < Math.abs(p - x) - 1e-12 ? c : p);
+  const bore = M => nextUp(Math.cbrt(16 * M * 1000 / (Math.PI * TAU)), RA40);
+
+  function cyl(i) {
+    const r = {};
+    r.awmin = 49.5 * (i.u + 1) * Math.cbrt(i.M2 * i.KH * 1000 / (i.psi * i.u * i.u * i.sH * i.sH));
+    r.mMin = 0.01 * r.awmin; r.mMax = 0.02 * r.awmin; r.mRec = nearestMod(0.015 * r.awmin);
+    const m = r.m = i.m || r.mRec;
+    r.z1rec = Math.ceil(2 * r.awmin / (m * (i.u + 1)) - 1e-9);
+    const z1 = r.z1 = i.z1 || r.z1rec, z2 = r.z2 = rnd(i.u * z1);
+    r.ud = z2 / z1; r.du = Math.abs(r.ud - i.u) / i.u * 100;
+    r.a = m * (z1 + z2) / 2; r.b2 = rnd(i.psi * r.a); r.b1 = r.b2 + 5;
+    r.d1 = m * z1; r.d2 = m * z2; r.da1 = m * (z1 + 2); r.da2 = m * (z2 + 2); r.df1 = m * (z1 - 2.5); r.df2 = m * (z2 - 2.5);
+    r.Ft = 2000 * i.M2 / r.d2; r.Fr = r.Ft * Math.tan(AL); r.Fn = r.Ft / Math.cos(AL);
+    r.M1 = i.M2 / (r.ud * 0.97); r.dv1 = bore(r.M1); r.dv2 = bore(i.M2);
+    r.checks = [[z1 >= 17, "z₁ ≥ 17 (зуб не підрізається)"], [r.du <= 4, "відхилення u не більше 4 %"],
+      [m >= r.mMin - 1e-9 && m <= r.mMax + 1e-9, "модуль у межах (0,01…0,02)·a<sub>w,min</sub>"], [r.a >= r.awmin - 1e-9, "a<sub>w</sub> ≥ a<sub>w,min</sub> (міцність забезпечено)"],
+      [(r.df1 - r.dv1) / 2 >= 2.5 * m, "стінка шестірні: (d<sub>f1</sub> − d<sub>в1</sub>)/2 ≥ 2,5·m"]];
+    return r;
+  }
+
+  function bevel(i) {
+    const r = {}, z1 = r.z1 = i.z1;
+    r.de2min = 165 * Math.cbrt(i.u * i.M2 * 1000 * i.KH / (i.sH * i.sH));
+    const z2 = r.z2 = rnd(i.u * z1); r.ud = z2 / z1; r.du = Math.abs(r.ud - i.u) / i.u * 100;
+    r.meMin = r.de2min / z2; const me = r.me = nextUp(r.meMin, MODS);
+    r.de1 = me * z1; r.de2 = me * z2;
+    const d1 = Math.atan(z1 / z2); r.delta1 = d1 * 180 / Math.PI; r.delta2 = 90 - r.delta1;
+    const Re = r.Re = 0.5 * me * Math.hypot(z1, z2), b = r.b = rnd(0.285 * Re), Ri = Re - b, ki = Ri / Re;
+    const ta = Math.atan(me / Re), tf = Math.atan(1.2 * me / Re);
+    r.dm1 = r.de1 * (1 - 0.5 * b / Re); r.dm2 = r.de2 * (1 - 0.5 * b / Re);
+    r.Ft = 2000 * i.M2 / r.dm2; r.Fr1 = r.Ft * Math.tan(AL) * Math.cos(d1); r.Fa1 = r.Ft * Math.tan(AL) * Math.sin(d1);
+    const s0 = Math.PI * me / 2, sa = s0 + 2 * me * Math.tan(AL), sf = r.sf = s0 - 2.4 * me * Math.tan(AL);
+    r.P = []; r.trap = [];
+    [d1, Math.PI / 2 - d1].forEach(dg => {
+      const da = dg + ta, df = dg - tf;
+      const xTi = Ri * Math.cos(dg) - me * ki * Math.sin(dg), rTi = Ri * Math.sin(dg) + me * ki * Math.cos(dg);
+      const xTe = Re * Math.cos(dg) - me * Math.sin(dg), rTe = Re * Math.sin(dg) + me * Math.cos(dg);
+      const xAe = Re / Math.cos(dg), xB = xTe + 0.25 * b, rB = rTe * (xAe - xB) / (xAe - xTe);
+      r.P.push([[xTi, 0], [xTi, rTi], [xTe, rTe], [xB, rB], [xB, 0]]);
+      const xp = Re * Math.cos(dg), ra = xp * Math.tan(da), rf = xp * Math.tan(df), rtop = ra + 0.3 * me, stop = sa + (sa - sf) / (ra - rf) * (rtop - ra);
+      r.trap.push([xB / xp + 0.05, xTi / xp - 0.05].map(k => ({ X: k * xp, rb: k * rf, sb: k * sf, rt: k * rtop, st: k * stop })));
+    });
+    r.M1 = i.M2 / (r.ud * 0.96); r.dv1 = bore(r.M1); r.dv2 = bore(i.M2);
+    r.checks = [[z1 >= 17 && z1 <= 25, "17 ≤ z₁ ≤ 25"], [r.du <= 4, "відхилення u не більше 4 %"], [b <= Re / 3, "b ≤ R<sub>e</sub>/3"],
+      [sf > 0, "ширина западини біля дна більша за нуль"], [r.de2 >= r.de2min - 1e-9, "d<sub>e2</sub> ≥ d<sub>e2,min</sub> (міцність забезпечено)"]];
+    return r;
+  }
+
+  /* Евольвентний контур колеса: зуб № 0 дивиться вздовж осі +x. */
+  function gearPoly(z, m, backlash) {
+    const r = m * z / 2, rb = r * Math.cos(AL), ra = r + m, rf = r - 1.25 * m, inv = a => Math.tan(a) - a;
+    const psi = (Math.PI * m / 2 - backlash / 2) / (m * z);
+    const half = rho => psi + inv(AL) - (rho > rb ? inv(Math.acos(rb / rho)) : 0);
+    const r0 = Math.max(rb, rf), N = 9, fl = [];
+    if (rf < rb) fl.push([rf, half(rb)]);
+    for (let k = 0; k <= N; k++) { const rho = r0 + (ra - r0) * k / N; fl.push([rho, half(rho)]); }
+    const pts = [], pitch = 2 * Math.PI / z, rootA = fl[0][1];
+    for (let t = 0; t < z; t++) {
+      const c = t * pitch;
+      fl.forEach(([rho, th]) => pts.push([rho * Math.cos(c - th), rho * Math.sin(c - th)]));
+      pts.push([ra * Math.cos(c), ra * Math.sin(c)]);
+      for (let k = fl.length - 1; k >= 0; k--) pts.push([fl[k][0] * Math.cos(c + fl[k][1]), fl[k][0] * Math.sin(c + fl[k][1])]);
+      for (let k = 1; k <= 2; k++) { const an = c + rootA + (pitch - 2 * rootA) * k / 3; pts.push([rf * Math.cos(an), rf * Math.sin(an)]); }
+    }
+    return pts;
+  }
+  const place = (pts, ang, dx) => { const c = Math.cos(ang), s = Math.sin(ang); return pts.map(([x, y]) => [x * c - y * s + dx, x * s + y * c]); };
+  const phase2 = (phi1, z1, z2) => Math.PI - Math.PI / z2 - phi1 * z1 / z2;
+
+  /* Площа перекриття двох контурів у смузі |y| ≤ H: рядками, з точними межами по x. */
+  function overlapArea(p1, p2, H, rows) {
+    const band = p => { const e = []; for (let k = 0; k < p.length; k++) { const a = p[k], b = p[(k + 1) % p.length]; if (Math.max(a[1], b[1]) >= -H && Math.min(a[1], b[1]) <= H) e.push([a[0], a[1], b[0], b[1]]); } return e; };
+    const e1 = band(p1), e2 = band(p2), dy = 2 * H / rows; let area = 0;
+    const cuts = (edges, y) => { const xs = []; for (const [x1, y1, x2, y2] of edges) if ((y1 > y) !== (y2 > y)) xs.push(x1 + (y - y1) / (y2 - y1) * (x2 - x1)); return xs.sort((a, b) => a - b); };
+    for (let k = 0; k < rows; k++) {
+      const y = -H + (k + 0.5) * dy, A = cuts(e1, y), B = cuts(e2, y); let i = 0, j = 0;
+      while (i + 1 < A.length && j + 1 < B.length) {
+        const lo = Math.max(A[i], B[j]), hi = Math.min(A[i + 1], B[j + 1]);
+        if (hi > lo) area += (hi - lo) * dy;
+        if (A[i + 1] < B[j + 1]) i += 2; else j += 2;
+      }
+    }
+    return area;
+  }
+  /* Найменша й найбільша площа перекриття за один крок зубців. */
+  function clash(g, da) {
+    const a = g.a - da, ra1 = g.da1 / 2, ra2 = g.da2 / 2;
+    if (a >= ra1 + ra2) return { min: 0, max: 0 };
+    const x0 = (a * a + ra1 * ra1 - ra2 * ra2) / (2 * a), H = Math.sqrt(Math.max(ra1 * ra1 - x0 * x0, 0)) + 0.01;
+    const P1 = gearPoly(g.z1, g.m, BACKLASH), P2 = gearPoly(g.z2, g.m, BACKLASH); let mn = Infinity, mx = 0;
+    for (let k = 0; k < 8; k++) {
+      const phi = 2 * Math.PI / g.z1 * k / 8, ar = overlapArea(place(P1, phi, 0), place(P2, phase2(phi, g.z1, g.z2), a), H, 260);
+      mn = Math.min(mn, ar); mx = Math.max(mx, ar);
+    }
+    return { min: mn, max: mx };
+  }
+  return { MODS, cyl, bevel, gearPoly, place, phase2, overlapArea, clash, BACKLASH };
+})();
+
+/* ============================== ІНТЕРФЕЙС ============================== */
+if (typeof document !== "undefined") (function () {
+  const $ = id => document.getElementById(id);
+  const f = (x, d = 1) => x.toFixed(d).replace(".", ","), g = x => String(+x.toFixed(4)).replace(".", ",");
+  const row = (a, b) => `<tr><td>${a}</td><td class="num">${b}</td></tr>`;
+  const chk = list => list.map(([ok, t]) => `<li class="${ok ? "ok" : "bad"}">${ok ? "✔" : "✘"} ${t}</li>`).join("");
+  const val = id => parseFloat($(id).value);
+  const copy = (btn, pre) => btn.addEventListener("click", () => {
+    const done = () => { btn.textContent = "Скопійовано"; setTimeout(() => btn.textContent = "Копіювати", 1500); };
+    const sel = () => { const r = document.createRange(); r.selectNodeContents(pre); const s = getSelection(); s.removeAllRanges(); s.addRange(r); };
+    try { navigator.clipboard.writeText(pre.textContent).then(done, sel); } catch (e) { sel(); }
+  });
+
+  /* ---------- вкладки ---------- */
+  const tabs = { a: [$("tabA"), $("paneA")], b: [$("tabB"), $("paneB")] };
+  function show(k) { for (const key in tabs) { tabs[key][0].setAttribute("aria-selected", key === k); tabs[key][1].hidden = key !== k; } if (k === "b") stop(); }
+  $("tabA").addEventListener("click", () => show("a")); $("tabB").addEventListener("click", () => show("b"));
+
+  /* ---------- А: циліндрична ---------- */
+  $("aMod").innerHTML = SIM.MODS.map(x => `<option value="${x}">${String(x).replace(".", ",")}</option>`).join(""); $("aMod").value = "3";
+  let A = null, view = "all", playing = false, raf = 0, last = 0, autoMod = true;
+  const path = pts => "M" + pts.map(p => p[0].toFixed(3) + " " + p[1].toFixed(3)).join("L") + "Z";
+
+  function calcA(keepMod) {
+    const i = { M2: val("aM"), u: val("aU"), sH: val("aS"), psi: val("aPsi"), KH: val("aK"), m: val("aMod"), z1: parseInt($("aZ").value) || 0 };
+    if (!(i.M2 > 0 && i.u >= 1 && i.sH > 0 && i.psi > 0 && i.KH > 0)) return;
+    if (!keepMod && autoMod) { i.m = 0; const pre = SIM.cyl(i); $("aMod").value = String(pre.mRec); i.m = pre.mRec; }
+    A = SIM.cyl(i);
+    $("aModHint").textContent = `Рекомендований модуль — ${g(A.mRec)} мм` + (A.m === A.mRec ? "." : `; зараз вибрано ${g(A.m)} мм.`);
+    $("aOut").innerHTML = row("a<sub>w,min</sub>, мм", f(A.awmin)) + row("Діапазон модуля, мм", f(A.mMin, 2) + " … " + f(A.mMax, 2)) + row("Рекомендований модуль, мм", g(A.mRec)) +
+      row("z₁ / z₂", A.z1 + " / " + A.z2) + row("Дійсне u; відхилення", f(A.ud, 3) + "; " + f(A.du, 2) + " %") + row("Міжосьова відстань a<sub>w</sub>, мм", g(A.a)) +
+      row("b₁ / b₂, мм", A.b1 + " / " + A.b2) + row("d₁ / d₂, мм", g(A.d1) + " / " + g(A.d2)) + row("d<sub>a1</sub> / d<sub>a2</sub>, мм", g(A.da1) + " / " + g(A.da2)) +
+      row("d<sub>f1</sub> / d<sub>f2</sub>, мм", g(A.df1) + " / " + g(A.df2)) + row("Сили F<sub>t</sub> / F<sub>r</sub> / F<sub>n</sub>, Н", f(A.Ft, 0) + " / " + f(A.Fr, 0) + " / " + f(A.Fn, 0)) +
+      row("Момент шестірні M₁, Н·м", f(A.M1)) + row("Отвори d<sub>в1</sub> / d<sub>в2</sub>, мм", A.dv1 + " / " + A.dv2);
+    $("aChk").innerHTML = chk(A.checks);
+    $("aFp").textContent = `m_n  = ${A.m} mm\nz_1  = ${A.z1}\nz_2  = ${A.z2}\na_w  = ${A.a} mm\nb_1  = ${A.b1} mm\nb_2  = ${A.b2} mm\ndv_1 = ${A.dv1} mm\ndv_2 = ${A.dv2} mm`;
+    buildA(); clashA();
+  }
+
+  function buildA() {
+    const d1 = path(SIM.gearPoly(A.z1, A.m, SIM.BACKLASH)), d2 = path(SIM.gearPoly(A.z2, A.m, SIM.BACKLASH));
+    $("aSvg").innerHTML = `<defs><clipPath id="aClip"><path id="aC1" d="${d1}"/></clipPath>
+      ${[["I", "ink"], ["W", "wheel"], ["P", "pin"]].map(([k, c]) => `<marker id="arr${k}" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto"><path d="M0 0L10 5L0 10z" fill="var(--${c})"/></marker>`).join("")}</defs>
+      <path id="aG1" d="${d1}" fill="var(--pin-fill)" stroke="var(--pin)" vector-effect="non-scaling-stroke" stroke-width="1.2"/>
+      <path id="aG2" d="${d2}" fill="var(--wheel-fill)" stroke="var(--wheel)" vector-effect="non-scaling-stroke" stroke-width="1.2"/>
+      <g clip-path="url(#aClip)"><path id="aG2c" d="${d2}" fill="var(--clash)"/></g>
+      <g id="aAux" fill="none" stroke="var(--ink)" stroke-width="1" stroke-dasharray="7 3 1.5 3"></g>
+      <g id="aLab"></g>`;
+    frameA();
+  }
+
+  function frameA() {
+    if (!A) return;
+    const da = val("aDa"), a = A.a - da, phi = val("aPhi") * Math.PI / 180, p2 = SIM.phase2(phi, A.z1, A.z2), deg = x => x * 180 / Math.PI;
+    const t1 = `rotate(${deg(phi)})`, t2 = `translate(${a} 0) rotate(${deg(p2)})`, r1 = A.d1 / 2, r2 = A.d2 / 2, px = r1 - da / 2;
+    $("aG1").setAttribute("transform", t1); $("aC1").setAttribute("transform", t1); $("aG2").setAttribute("transform", t2); $("aG2c").setAttribute("transform", t2);
+    let vb;
+    if (view === "all") { const pad = A.m * 2 + 4, h = A.da2 / 2 + pad; vb = [-A.da1 / 2 - pad, -h, a + A.da2 / 2 + A.da1 / 2 + 2 * pad, 2 * h]; }
+    else { const w = 11 * A.m, h = 9 * A.m; vb = [px - w / 2, -h / 2, w, h]; }
+    $("aSvg").setAttribute("viewBox", vb.map(v => v.toFixed(2)).join(" "));
+    const u = vb[2] / 100;                                             // 1 % ширини виду
+    $("aAux").innerHTML = `<circle cx="0" cy="0" r="${r1}" vector-effect="non-scaling-stroke"/><circle cx="${a}" cy="0" r="${r2}" vector-effect="non-scaling-stroke"/>
+      <line x1="${-A.da1 / 2}" y1="0" x2="${a + A.da2 / 2}" y2="0" vector-effect="non-scaling-stroke"/>`;
+    const txt = (x, y, s, cls = "svg-ink", anchor = "middle") => `<text x="${x}" y="${y}" font-size="${3.1 * u}" text-anchor="${anchor}" class="${cls}" font-family="var(--font)">${s}</text>`;
+    let lab = "";
+    if (view === "all") {
+      lab += `<circle cx="0" cy="0" r="${0.7 * u}" class="svg-ink"/><circle cx="${a}" cy="0" r="${0.7 * u}" class="svg-ink"/>` +
+        txt(a, -4 * u, `колесо, z₂ = ${A.z2}`) + txt(vb[0] + 2 * u, vb[1] + 5 * u, `шестірня, z₁ = ${A.z1}`, "svg-ink", "start") + txt(vb[0] + 2 * u, vb[1] + vb[3] - 2.5 * u, `a = ${g(a)} мм`, "svg-muted", "start");
+    }
+    if ($("aForces").checked) {
+      const L = 0.34 * vb[3], T = Math.tan(20 * Math.PI / 180);
+      const F = (k, v) => `F<tspan dy="${0.8 * u}" font-size="${2.2 * u}">${k}</tspan><tspan dy="${-0.8 * u}"> = ${f(v, 0)} Н</tspan>`;
+      const ar = (dx, dy, k, col, w) => `<line x1="${px}" y1="0" x2="${px + dx}" y2="${dy}" stroke="var(--${col})" stroke-width="${w * u}" marker-end="url(#arr${k})"/>`;
+      lab += ar(L * T, L, "I", "ink", 0.4) + ar(0, L, "W", "wheel", 0.7) + ar(L * T, 0, "P", "pin", 0.7) + `<circle cx="${px}" cy="0" r="${0.8 * u}" class="svg-ink"/>` +
+        txt(px - 1.5 * u, L + 0.5 * u, F("t", A.Ft), "svg-ink", "end") + txt(px + L * T + 2 * u, -1.5 * u, F("r", A.Fr), "svg-ink", "start") + txt(px + L * T + 2 * u, L + 0.5 * u, F("n", A.Fn), "svg-ink", "start");
+    }
+    $("aLab").innerHTML = lab;
+  }
+
+  function clashA() {
+    const da = val("aDa"), c = SIM.clash(A, da), st = $("aStatus"), n = x => x < 10 ? f(x, 1) : f(x, 0);
+    $("aDaVal").textContent = f(da) + " мм";
+    if (c.max < 0.005) { st.className = "status"; st.textContent = `a = ${g(A.a - da)} мм: зубці лежать у западинах, перетину немає.`; }
+    else {
+      const lo = c.min * A.b2, hi = c.max * A.b2;
+      st.className = "status bad"; st.textContent = `a = ${g(A.a - da)} мм: зубці перетинаються (червоне). Об'єм перетину ≈ ${hi - lo > 0.1 * hi ? n(lo) + "…" + n(hi) : n(hi)} мм³, залежно від положення зубців.`;
+    }
+  }
+
+  function tick(t) {
+    if (!playing) return;
+    const dt = Math.min((t - last) / 1000, 0.1); last = t;
+    $("aPhi").value = (val("aPhi") + 360 / A.z1 / 1.2 * dt) % 360;      // один крок зубців за 1,2 с
+    frameA(); raf = requestAnimationFrame(tick);
+  }
+  function stop() { playing = false; cancelAnimationFrame(raf); $("aPlay").setAttribute("aria-pressed", "false"); $("aPlay").textContent = "▶ Обертати"; }
+  $("aPlay").addEventListener("click", () => {
+    if (playing) return stop();
+    playing = true; last = performance.now(); $("aPlay").setAttribute("aria-pressed", "true"); $("aPlay").textContent = "❚❚ Зупинити"; raf = requestAnimationFrame(tick);
+  });
+  const setView = v => { view = v; $("aViewAll").setAttribute("aria-pressed", v === "all"); $("aViewMesh").setAttribute("aria-pressed", v === "mesh"); frameA(); };
+  $("aViewAll").addEventListener("click", () => setView("all")); $("aViewMesh").addEventListener("click", () => setView("mesh"));
+  $("aPhi").addEventListener("input", frameA); $("aForces").addEventListener("input", frameA);
+  $("aDa").addEventListener("input", () => { if (val("aDa") > 0 && view === "all") setView("mesh"); frameA(); clashA(); });
+  ["aM", "aU", "aS", "aPsi", "aK"].forEach(id => $(id).addEventListener("input", () => calcA(false)));
+  $("aMod").addEventListener("input", () => { autoMod = false; calcA(true); }); $("aZ").addEventListener("input", () => calcA(true));
+  $("aNbtn").addEventListener("click", () => { const n = parseInt($("aN").value); if (n >= 1 && n <= 30) { $("aM").value = 250 + 10 * n; $("aU").value = 4; $("aZ").value = ""; autoMod = true; calcA(false); } });
+  copy($("aCopy"), $("aFp"));
+
+  /* ---------- Б: конічна ---------- */
+  function calcB() {
+    const i = { M2: val("bM"), u: val("bU"), sH: val("bS"), KH: val("bK"), z1: parseInt($("bZ").value) || 0 };
+    if (!(i.M2 > 0 && i.u >= 1 && i.sH > 0 && i.KH > 0 && i.z1 >= 10 && i.z1 <= 40)) return;
+    const B = SIM.bevel(i), all = [];
+    for (let z = 17; z <= 25; z++) { const r = SIM.bevel(Object.assign({}, i, { z1: z })); all.push({ z, de2: r.de2, ok: r.checks.every(c => c[0]) }); }
+    const best = Math.min.apply(null, all.filter(c => c.ok).map(c => c.de2));
+    $("bChips").innerHTML = all.map(c => `<button type="button" data-z="${c.z}" aria-pressed="${c.z === i.z1}" class="${c.ok ? (c.de2 === best ? "best" : "") : "fail"}"${c.ok ? "" : ' title="не проходить перевірку"'}>z₁ = ${c.z}<small>${g(c.de2)}</small></button>`).join("");
+    $("bOut").innerHTML = row("d<sub>e2,min</sub>, мм", f(B.de2min)) + row("z₁ / z₂", B.z1 + " / " + B.z2) + row("Дійсне u; відхилення", f(B.ud, 3) + "; " + f(B.du, 2) + " %") +
+      row("Модуль m<sub>e</sub>: найменший → стандартний, мм", f(B.meMin, 3) + " → " + g(B.me)) + row("d<sub>e1</sub> / d<sub>e2</sub>, мм", g(B.de1) + " / " + g(B.de2)) +
+      row("δ₁ / δ₂, град", f(B.delta1, 3) + " / " + f(B.delta2, 3)) + row("Конусна відстань R<sub>e</sub>, мм", f(B.Re, 2)) + row("Ширина вінця b, мм", B.b) +
+      row("Середні діаметри d<sub>m1</sub> / d<sub>m2</sub>, мм", f(B.dm1, 2) + " / " + f(B.dm2, 2)) + row("Колова сила F<sub>t</sub>, Н", f(B.Ft, 0)) +
+      row("F<sub>r1</sub> = F<sub>a2</sub>, Н", f(B.Fr1, 1)) + row("F<sub>a1</sub> = F<sub>r2</sub>, Н", f(B.Fa1, 1)) + row("Отвори d<sub>в1</sub> / d<sub>в2</sub>, мм", B.dv1 + " / " + B.dv2);
+    $("bChk").innerHTML = chk(B.checks);
+    const p = (k, n) => f(B.P[k][n][0], 2) + "; " + f(B.P[k][n][1], 2);
+    $("bPts").innerHTML = `<tr><th>Точка</th><th class="num">Шестірня</th><th class="num">Колесо</th></tr>` + [0, 1, 2, 3, 4].map(n => `<tr><td>P${n + 1}</td><td class="num">${p(0, n)}</td><td class="num">${p(1, n)}</td></tr>`).join("");
+    const names = [["X", "X"], ["rb", "r<sub>н</sub>"], ["sb", "s<sub>н</sub>"], ["rt", "r<sub>в</sub>"], ["st", "s<sub>в</sub>"]];
+    $("bTrap").innerHTML = `<tr><th>Розмір</th><th class="num">Шестірня, зовн.</th><th class="num">Шестірня, внутр.</th><th class="num">Колесо, зовн.</th><th class="num">Колесо, внутр.</th></tr>` +
+      names.map(([k, t]) => `<tr><td>${t}</td>` + [[0, 0], [0, 1], [1, 0], [1, 1]].map(([gI, s]) => `<td class="num">${f(B.trap[gI][s][k], 2)}</td>`).join("") + "</tr>").join("");
+    $("bFp").textContent = `zk_1  = ${B.z1}\nzk_2  = ${B.z2}\ndvk_1 = ${B.dv1} mm\ndvk_2 = ${B.dv2} mm`;
+    drawB(B);
+  }
+  function drawB(B) {
+    const P1 = B.P[0], P2 = B.P[1].map(([x, r]) => [r, x]), W = Math.max(P1[4][0], P2[2][0]) * 1.14, Hh = Math.max(P2[4][1], P1[2][1]) * 1.3, u = W / 100, pad = 7 * u;
+    const Y = y => -y, poly = pts => pts.map(p => p[0].toFixed(2) + "," + Y(p[1]).toFixed(2)).join(" ");
+    const txt = (x, y, s, cls = "svg-ink", anchor = "middle") => `<text x="${x}" y="${Y(y)}" font-size="${3 * u}" text-anchor="${anchor}" class="${cls}" font-family="var(--font)">${s}</text>`;
+    const d1 = B.delta1 * Math.PI / 180, ex = B.Re * Math.cos(d1), ey = B.Re * Math.sin(d1), k = 1 - B.b / B.Re, dash = `stroke="var(--ink)" stroke-width="${.25 * u}" stroke-dasharray="${3 * u} ${u} ${.5 * u} ${u}"`;
+    let s = `<line x1="${-pad * .6}" y1="0" x2="${W}" y2="0" ${dash}/><line x1="0" y1="${pad * .6}" x2="0" y2="${Y(Hh)}" ${dash}/>
+      <polygon points="${poly(P2)}" fill="var(--wheel-fill)" stroke="var(--wheel)" stroke-width="${.45 * u}"/>
+      <polygon points="${poly(P1)}" fill="var(--pin-fill)" stroke="var(--pin)" stroke-width="${.45 * u}"/>
+      <line x1="0" y1="0" x2="${ex * 1.08}" y2="${Y(ey * 1.08)}" stroke="var(--ink)" stroke-width="${.25 * u}" stroke-dasharray="${2 * u} ${u}"/>
+      <line x1="${ex * k}" y1="${Y(ey * k)}" x2="${ex}" y2="${Y(ey)}" stroke="var(--ok)" stroke-width="${1.1 * u}"/>
+      <circle cx="0" cy="0" r="${.9 * u}" class="svg-ink"/>`;
+    const off = [[0, -3.6], [-2, 1.2], [0, 1.6], [3, 0], [0, -3.6]], anc = ["middle", "end", "middle", "start", "middle"];
+    P1.forEach((p, n) => { s += `<circle cx="${p[0]}" cy="${Y(p[1])}" r="${.8 * u}" fill="var(--pin)"/>` + txt(p[0] + off[n][0] * u, p[1] + off[n][1] * u, "P" + (n + 1), "svg-ink", anc[n]); });
+    s += txt(-2.5 * u, -3.6 * u, "O") + txt(6 * u, -3.6 * u, "вісь шестірні (X)", "svg-muted", "start") + txt(1.5 * u, Hh - 3 * u, "вісь колеса", "svg-muted", "start") +
+      txt((P1[0][0] + P1[4][0]) / 2, P1[1][1] * 0.35, "шестірня") + txt(P2[1][0] * 0.5, (P2[0][1] + P2[4][1]) / 2 - u, "колесо") +
+      txt(ex * 0.45, ey * 0.45 + 2.5 * u, `δ₁ = ${f(B.delta1, 1)}°`, "svg-muted", "end") + txt(ex * (1 + k) / 2 + 2 * u, ey * (1 + k) / 2 - 3.8 * u, `b = ${B.b}`, "svg-muted", "start");
+    const sv = $("bSvg"); sv.setAttribute("viewBox", `${-pad} ${Y(Hh)} ${W + pad} ${Hh + pad}`); sv.innerHTML = s;
+  }
+  ["bM", "bU", "bS", "bK", "bZ"].forEach(id => $(id).addEventListener("input", calcB));
+  $("bChips").addEventListener("click", e => { const b = e.target.closest("button"); if (b) { $("bZ").value = b.dataset.z; calcB(); } });
+  $("bNbtn").addEventListener("click", () => { const n = parseInt($("bN").value); if (n >= 1 && n <= 30) { $("bM").value = 100 + 5 * n; $("bU").value = 2.5; $("bZ").value = 20; calcB(); } });
+  copy($("bCopy"), $("bFp"));
+
+  calcA(true); calcB();
+  if (location.hash === "#b") show("b");
+})();
+</script>
+</body>
+</html>
