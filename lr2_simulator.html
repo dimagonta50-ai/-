@@ -107,9 +107,9 @@ footer{font-size:.82rem;color:var(--muted);max-width:90ch}
     </div>
     <div class="card">
       <h2>Навчальні дані за номером студента</h2>
-      <div class="row"><label class="grow">N<input id="aN" type="number" min="1" max="30" step="1" placeholder="1…30"></label>
+      <div class="row"><label class="grow">№ у списку групи<input id="aN" type="number" min="1" max="30" step="1" placeholder="1…30"></label>
       <button type="button" class="btn" id="aNbtn">Підставити</button></div>
-      <p class="hint">M₂ = 250 + 10·N, u = 4,0. Лише якщо у вашій схемі немає циліндричної передачі (додаток Б).</p>
+      <p class="hint">M₂ = 250 + 10·№, u = 4,0. Лише якщо у вашій схемі немає циліндричної передачі (додаток Б).</p>
     </div>
   </div>
   <div class="col">
@@ -157,9 +157,9 @@ footer{font-size:.82rem;color:var(--muted);max-width:90ch}
     </div>
     <div class="card">
       <h2>Навчальні дані за номером студента</h2>
-      <div class="row"><label class="grow">N<input id="bN" type="number" min="1" max="30" step="1" placeholder="1…30"></label>
+      <div class="row"><label class="grow">№ у списку групи<input id="bN" type="number" min="1" max="30" step="1" placeholder="1…30"></label>
       <button type="button" class="btn" id="bNbtn">Підставити</button></div>
-      <p class="hint">M₂ = 100 + 5·N, u = 2,5. Якщо у вашій схемі немає конічної передачі (додаток Б).</p>
+      <p class="hint">M₂ = 100 + 5·№, u = 2,5. Якщо у вашій схемі немає конічної передачі (додаток Б).</p>
     </div>
   </div>
   <div class="col">
@@ -177,7 +177,7 @@ footer{font-size:.82rem;color:var(--muted);max-width:90ch}
       <div class="tablewrap"><table id="bPts"></table></div>
       <h2>Трапеції западини, мм</h2>
       <div class="tablewrap"><table id="bTrap"></table></div>
-      <p class="hint">X — відстань площини від площини YZ; r — відстань від осі колеса до основи трапеції, s — довжина основи; «н» — коротка основа, «в» — довга.</p>
+      <p class="hint">X — відстань площини від площини YZ; r — відстань від осі колеса до основи трапеції, s — довжина основи; індекс «к» — коротка основа, «д» — довга.</p>
     </div>
     <div class="card">
       <div class="row"><h2 class="grow">Параметри для Fusion (таблиця 2.4)</h2><button type="button" class="btn" id="bCopy">Копіювати</button></div>
@@ -424,7 +424,7 @@ if (typeof document !== "undefined") (function () {
     $("bChk").innerHTML = chk(B.checks);
     const p = (k, n) => f(B.P[k][n][0], 2) + "; " + f(B.P[k][n][1], 2);
     $("bPts").innerHTML = `<tr><th>Точка</th><th class="num">Шестірня</th><th class="num">Колесо</th></tr>` + [0, 1, 2, 3, 4].map(n => `<tr><td>P${n + 1}</td><td class="num">${p(0, n)}</td><td class="num">${p(1, n)}</td></tr>`).join("");
-    const names = [["X", "X"], ["rb", "r<sub>н</sub>"], ["sb", "s<sub>н</sub>"], ["rt", "r<sub>в</sub>"], ["st", "s<sub>в</sub>"]];
+    const names = [["X", "X"], ["rb", "r<sub>к</sub>"], ["sb", "s<sub>к</sub>"], ["rt", "r<sub>д</sub>"], ["st", "s<sub>д</sub>"]];
     $("bTrap").innerHTML = `<tr><th>Розмір</th><th class="num">Шестірня, зовн.</th><th class="num">Шестірня, внутр.</th><th class="num">Колесо, зовн.</th><th class="num">Колесо, внутр.</th></tr>` +
       names.map(([k, t]) => `<tr><td>${t}</td>` + [[0, 0], [0, 1], [1, 0], [1, 1]].map(([gI, s]) => `<td class="num">${f(B.trap[gI][s][k], 2)}</td>`).join("") + "</tr>").join("");
     $("bFp").textContent = `zk_1  = ${B.z1}\nzk_2  = ${B.z2}\ndvk_1 = ${B.dv1} mm\ndvk_2 = ${B.dv2} mm`;
