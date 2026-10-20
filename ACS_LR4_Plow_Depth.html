@@ -1,0 +1,648 @@
+<!DOCTYPE html>
+<html lang="uk"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Симулятор налаштування EHR (глибина оранки) — ЛР №4</title>
+<style>
+:root{--bg:#ECEFE8;--pn:#FFFFFF;--pn2:#F5F7F2;--ink:#1C231D;--sub:#56635A;--ln:#D3DBD0;--ac:#2F6B3A;--aci:#FFFFFF;--wn:#B4412C;--am:#A66A00;--sky:#DDEAF0;--trk:#3F7D49;--trk2:#2C5B34;--plg:#B4412C;--stl:#59646B;--tyre:#22262A;--rim:#C9CFC6;--gls:#A9C9D6;--db:#14180F;--df:#FFB000;--dd:#8A6300;--soilink:#2B2118;--plowed:#5A4433;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#12150F;--pn:#1C2118;--pn2:#161A12;--ink:#ECEFE7;--sub:#A5AF9F;--ln:#343D2D;--ac:#77B76B;--aci:#0E130B;--wn:#E3705A;--am:#E2A93B;--sky:#18222A;--trk:#5E9E62;--trk2:#3F7446;--plg:#D2604B;--stl:#8C979D;--tyre:#0B0D0E;--rim:#7E877C;--gls:#3C5B68;--db:#0B0D08;--df:#FFC233;--dd:#6E4E00;--plowed:#3C2D22}}
+:root[data-theme="dark"]{--bg:#12150F;--pn:#1C2118;--pn2:#161A12;--ink:#ECEFE7;--sub:#A5AF9F;--ln:#343D2D;--ac:#77B76B;--aci:#0E130B;--wn:#E3705A;--am:#E2A93B;--sky:#18222A;--trk:#5E9E62;--trk2:#3F7446;--plg:#D2604B;--stl:#8C979D;--tyre:#0B0D0E;--rim:#7E877C;--gls:#3C5B68;--db:#0B0D08;--df:#FFC233;--dd:#6E4E00;--plowed:#3C2D22}
+html{scroll-padding-top:env(safe-area-inset-top,0px);height:100%}*{box-sizing:border-box}
+body{margin:0;min-height:100%;background:var(--bg);color:var(--ink);font:15px/1.5 -apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;-webkit-text-size-adjust:100%}
+.w{max-width:1240px;margin:0 auto;padding:14px 14px 48px}
+.top{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:10px}
+.top h1{font-size:1.12rem;line-height:1.25;margin:0;font-weight:700;letter-spacing:-.01em}.top h1 small{display:block;font-weight:400;font-size:.8rem;color:var(--sub);letter-spacing:0}
+.tools{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.chip{font-size:.78rem;border:1px solid var(--ln);border-radius:99px;padding:3px 10px;color:var(--sub);background:var(--pn)}
+.bn{border:1px solid var(--am);background:color-mix(in srgb,var(--am) 12%,var(--pn));border-radius:10px;padding:10px 14px;margin-bottom:12px;font-size:.9rem;display:flex;gap:10px 16px;align-items:center;justify-content:space-between;flex-wrap:wrap}
+.lay{display:grid;grid-template-columns:212px minmax(0,1fr) 232px;gap:14px;align-items:start}
+@media(max-width:1020px){.lay{grid-template-columns:200px minmax(0,1fr)}aside{grid-column:1/-1;position:static!important}}
+@media(max-width:760px){.lay{grid-template-columns:minmax(0,1fr)}}
+nav{display:flex;flex-direction:column;gap:4px;position:sticky;top:10px}
+@media(max-width:760px){nav{flex-direction:row;overflow-x:auto;position:static;padding-bottom:4px}}
+nav button{border:1px solid var(--ln);background:var(--pn);color:var(--sub);padding:7px 9px;border-radius:8px;font:inherit;font-size:.8rem;text-align:left;cursor:pointer;white-space:nowrap;display:flex;gap:7px;align-items:center}
+nav button i{flex:none;width:9px;height:9px;border-radius:50%;border:1.5px solid var(--sub);display:block}
+nav button i.ok{background:var(--ac);border-color:var(--ac)}nav button i.pt{background:linear-gradient(90deg,var(--am) 50%,transparent 50%);border-color:var(--am)}
+nav button.on{border-color:var(--ac);color:var(--ink);font-weight:700;box-shadow:inset 3px 0 0 var(--ac)}nav button:disabled{opacity:.4;cursor:not-allowed}
+nav button.lab{margin-top:8px;border-style:dashed}
+main{background:var(--pn);border:1px solid var(--ln);border-radius:12px;padding:18px 20px;min-height:340px;min-width:0}
+@media(max-width:760px){main{padding:14px 12px}}
+main h2{margin:0 0 4px;font-size:1.1rem;line-height:1.3}main h3{font-size:.98rem;margin:20px 0 6px}
+.hint,.note{color:var(--sub);font-size:.86rem;margin:4px 0 12px}.note{margin:6px 0}
+label{display:block;font-size:.84rem;margin:11px 0 3px;color:var(--sub)}
+input[type=text],input[type=number],select{width:100%;padding:8px 10px;border:1px solid var(--ln);border-radius:8px;background:var(--pn2);color:var(--ink);font:inherit;font-size:.95rem}
+input[type=range]{width:100%;accent-color:var(--ac);margin:2px 0}
+input[type=checkbox]{accent-color:var(--ac);width:16px;height:16px}
+:focus-visible{outline:2px solid var(--ac);outline-offset:2px}
+.r2{display:grid;grid-template-columns:1fr 1fr;gap:12px}.r3{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+@media(max-width:560px){.r3{grid-template-columns:1fr 1fr}}
+button.p,button.g{border:1px solid var(--ac);border-radius:8px;padding:8px 14px;font:inherit;font-size:.9rem;cursor:pointer;margin:4px 4px 4px 0}
+button.p{background:var(--ac);color:var(--aci);font-weight:600}button.g{background:none;color:var(--ac)}button:disabled{opacity:.4;cursor:not-allowed}
+button.sm{padding:4px 10px;font-size:.8rem;margin:0}button.g.on{background:color-mix(in srgb,var(--ac) 16%,transparent);font-weight:600}
+.nb{display:flex;justify-content:space-between;margin-top:20px}
+aside{background:var(--db);border-radius:12px;padding:13px 15px;font:.8rem/1.6 ui-monospace,SFMono-Regular,Consolas,monospace;color:var(--df);position:sticky;top:10px}
+aside .d{display:flex;justify-content:space-between;gap:8px;border-bottom:1px dashed var(--dd);padding:2px 0}aside .t{color:var(--dd);font-size:.7rem;margin-bottom:6px;letter-spacing:.04em}
+aside .d span:last-child{text-align:right}
+.t2{width:100%;border-collapse:collapse;font-size:.86rem;margin:8px 0}.t2 th,.t2 td{border:1px solid var(--ln);padding:6px 8px;text-align:left;vertical-align:top}.t2 th{width:32%;background:var(--pn2);font-weight:600}
+.t2.c td,.t2.c th{text-align:center;width:auto}.tw{overflow-x:auto}
+.rb{border:1px dashed var(--ac);border-radius:8px;padding:9px 12px;margin-top:14px;font-size:.86rem}
+.bd{display:inline-block;padding:2px 9px;border-radius:99px;font-size:.78rem;font-weight:600;background:color-mix(in srgb,var(--ac) 18%,transparent);color:var(--ac)}.bd.w{background:color-mix(in srgb,var(--wn) 18%,transparent);color:var(--wn)}.bd.a{background:color-mix(in srgb,var(--am) 20%,transparent);color:var(--am)}
+.big{font-size:1.5rem;font-weight:700;color:var(--ac);font-variant-numeric:tabular-nums}
+.fig{background:var(--pn2);border:1px solid var(--ln);border-radius:10px;margin:8px 0;overflow:hidden}.fig svg{display:block;width:100%;height:auto}
+.cap{font-size:.78rem;color:var(--sub);padding:5px 10px 7px;border-top:1px solid var(--ln)}
+.ch{position:relative;margin:8px 0;background:var(--pn2);border:1px solid var(--ln);border-radius:10px;touch-action:pan-y}.ch svg{display:block;width:100%;cursor:crosshair}
+.ch text,.fig text{font-family:inherit}
+.tip{position:absolute;top:6px;pointer-events:none;background:var(--pn);border:1px solid var(--ln);border-radius:6px;padding:4px 8px;font-size:.74rem;line-height:1.35;white-space:nowrap;box-shadow:0 2px 8px rgba(0,0,0,.15);display:none;z-index:2}
+.gs{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:0 0 8px}@media(max-width:420px){.gs{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.gt{border:1px solid var(--ln);border-radius:8px;padding:6px 8px;background:var(--pn2);min-width:0}.gt b{display:block;font-size:1.05rem;font-variant-numeric:tabular-nums;white-space:nowrap}.gt span{display:block;font-size:.7rem;color:var(--sub);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mt{position:relative;height:7px;background:var(--ln);border-radius:4px;margin-top:4px;overflow:hidden}.mt i{position:absolute;top:0;bottom:0;left:0;background:var(--ac);border-radius:4px}.mt u{position:absolute;top:0;bottom:0;width:2px;background:var(--ink)}.mt s{position:absolute;top:0;bottom:0;background:color-mix(in srgb,var(--ac) 35%,transparent)}
+.pvw{display:grid;grid-template-columns:236px minmax(0,1fr);gap:10px;align-items:start}.pvw .fig{margin:0}@media(max-width:640px){.pvw{grid-template-columns:minmax(0,1fr)}.pvw .fig.lp{max-width:300px}}
+.pc{display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin:6px 0}.pc input[type=range]{flex:1;min-width:120px}.pc select{width:auto;padding:4px 8px;font-size:.82rem}
+.bar{display:flex;align-items:center;gap:8px;font-size:.84rem;margin:3px 0}.bar i{display:block;height:9px;background:var(--ac);border-radius:5px}.bar span{width:190px;flex:none}@media(max-width:560px){.bar span{width:120px}}
+details{margin-bottom:10px;font-size:.86rem}summary{cursor:pointer;color:var(--ac)}
+.inf{border-left:3px solid var(--ac);background:var(--pn2);border-radius:0 8px 8px 0;padding:6px 14px;margin:10px 0 14px;font-size:.87rem}.inf summary{font-weight:700;color:var(--ac);margin-bottom:4px}.inf p,.inf ul{margin:6px 0}.inf ul{padding-left:20px}
+.gg{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin:10px 0}@media(max-width:700px){.gg{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.gc{border:1px solid var(--ln);border-radius:10px;padding:8px;background:var(--pn2);text-align:center}.gc svg{width:100%;height:auto;display:block}.gc b{font-size:.84rem;display:block;margin:2px 0}.gc small{color:var(--sub);display:block;font-size:.74rem;margin-bottom:6px}.gc select{font-size:.84rem;padding:5px 6px}
+.sb{display:flex;gap:14px;align-items:stretch;flex-wrap:wrap}.sb .fig{flex:1 1 300px;margin:0}
+.vb{flex:none;width:92px;display:flex;flex-direction:column;align-items:center;gap:4px;font-size:.74rem;color:var(--sub)}.vb .col{position:relative;width:26px;flex:1;min-height:150px;background:var(--ln);border-radius:5px;overflow:hidden}.vb .col i{position:absolute;left:0;right:0;bottom:0;background:var(--am)}
+.mix{display:flex;height:22px;border-radius:6px;overflow:hidden;font-size:.74rem;font-weight:600;color:#fff;margin:4px 0}.mix i{display:flex;align-items:center;justify-content:center;font-style:normal;overflow:hidden;white-space:nowrap}.mix i:first-child{background:var(--wn)}.mix i:last-child{background:var(--ac);color:var(--aci)}
+.lab-g{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:4px 18px}@media(max-width:620px){.lab-g{grid-template-columns:minmax(0,1fr)}}
+.lab-g label{margin:6px 0 0}.kv{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin:10px 0}@media(max-width:620px){.kv{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.kv div{border:1px solid var(--ln);border-radius:8px;padding:6px 8px;background:var(--pn2)}.kv b{display:block;font-size:1.05rem;font-variant-numeric:tabular-nums}.kv span{font-size:.72rem;color:var(--sub)}.kv em{font-style:normal;font-size:.74rem;display:block}.up{color:var(--wn)}.dn{color:var(--ac)}
+.concl{border-radius:8px;padding:9px 12px;background:color-mix(in srgb,var(--ac) 10%,var(--pn));border:1px solid color-mix(in srgb,var(--ac) 40%,var(--ln));font-size:.9rem;margin:8px 0}.concl ul{margin:4px 0;padding-left:18px}
+.ok{color:var(--ac);font-weight:700}.no{color:var(--wn);font-weight:700}
+.wm{display:none}
+@media print{nav,.nb,aside,.np,.top .tools,.bn{display:none!important}.tw{overflow:visible}.tw svg{min-width:0!important}.lay{display:block}main{border:0;padding:0}body{background:#fff;color:#000}.wm{display:block;font-size:1.3rem;font-weight:700;color:#B4412C;border:2px solid #B4412C;padding:6px 12px;margin:0 0 10px;text-align:center}.ch,.fig,.tw,.bar,tr{break-inside:avoid}h2,h3{break-after:avoid}*{-webkit-print-color-adjust:exact;print-color-adjust:exact}details>summary{list-style:none}}
+@media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important}}
+</style></head><body><div class="w">
+<header class="top"><h1>Симулятор налаштування EHR<small>Керування глибиною оранки. Лабораторна робота №4, завдання 3</small></h1>
+<div class="tools"><span class="chip" id="chip"></span><button class="g sm" id="thb" onclick="theme()" title="Перемкнути тему">Тема: авто</button></div></header>
+<div id="bn"></div>
+<div class="lay"><nav id="nv" aria-label="Кроки налаштування"></nav><main id="mn"></main><aside id="ds" aria-label="Дисплей EHR"></aside></div></div>
+<script>
+/* ===== Модель (без змін відносно попередньої версії: ті самі варіанти, бали й коди протоколів) ===== */
+const cl=(x,a,b)=>Math.max(a,Math.min(b,x)),f1=x=>Math.round(x*10)/10,n=x=>{const v=parseFloat(String(x).replace(',','.'));return isNaN(v)?null:v};
+function hash(s){let h=2166136261;for(const c of s){h^=c.charCodeAt(0);h=Math.imul(h,16777619)}return h>>>0}
+function rng(a){return()=>{a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
+const AGG=[
+{t:'МТЗ-1221.3 (Беларус)',P:96,M:4900,pl:'ПЛН-5-35',n:5,bw:35,pm:800,mt:'навісний',cat:'2',h:[20,24]},
+{t:'John Deere 6195R',P:143,M:7300,pl:'Lemken Juwel 7',n:7,bw:40,pm:2000,mt:'навісний',cat:'3',h:[22,27]},
+{t:'Fendt 724 Vario',P:176,M:8500,pl:'Lemken Juwel 8',n:8,bw:40,pm:2300,mt:'навісний',cat:'3',h:[22,28]},
+{t:'Claas Axion 960',P:294,M:12500,pl:'Lemken Diamant 11',n:8,bw:50,pm:5200,mt:'напівнавісний',cat:'4N',h:[25,30]},
+{t:'Case IH Magnum 340',P:250,M:13000,pl:'Lemken Diamant 11',n:8,bw:50,pm:5200,mt:'напівнавісний',cat:'4N',h:[25,30]},
+{t:'John Deere 8R 310',P:228,M:12000,pl:'Lemken Titan 11',n:9,bw:45,pm:6000,mt:'напівнавісний',cat:'4N',h:[25,30]},
+{t:'К-744Р (Кіровець)',P:221,M:13500,pl:'ПЛН-8-35',n:8,bw:35,pm:2300,mt:'навісний',cat:'4N',h:[24,28]},
+{t:'Т-150К (ХТЗ)',P:121,M:8100,pl:'ПЛН-6-35',n:6,bw:35,pm:1250,mt:'навісний',cat:'3',h:[22,26]}];
+function mkV(r){const R=rng(hash([r.group,r.name,r.num].join('|').toLowerCase().replace(/\s+/g,' '))),pk=a=>a[Math.floor(R()*a.length)],ri=(a,b)=>Math.round(a+R()*(b-a)),rf=(a,b)=>a+R()*(b-a);
+const a=pk(AGG),L=ri(40,120)*10,het=pk([.07,.13,.2,.28]),zr=f1(rf(.8,3)),ns=ri(3,4),kb=pk([50,55,60]),hag=ri(a.h[0],a.h[1]);
+let cuts=[0],u=[],w=[];for(let i=0;i<ns;i++){u.push(rf(-1,1));w.push(f1(rf(.9,1.1)*100)/100)}
+const ws=Array.from({length:ns},()=>rf(.6,1.4)),ts=ws.reduce((s,x)=>s+x,0);let acc=0;for(const x of ws){acc+=x/ts*L;cuts.push(Math.round(acc))}cuts[ns]=L;
+const secs=Array.from({length:ns},(_,i)=>({x0:cuts[i],x1:cuts[i+1],k:Math.round(kb*(1+het*u[i])),w:w[i]}));
+const km=secs.reduce((s,q)=>s+q.k*(q.x1-q.x0),0)/L;
+const f1_=rf(8,16),f2_=rf(22,40),p1=rf(0,6.28),p2=rf(0,6.28);
+const k=[],wa=[],z=[],stone=[];let wk=0;for(let x=0;x<L;x++){const s=secs.find(q=>x>=q.x0&&x<q.x1)||secs[ns-1];wk=.9*wk+.04*(R()-.5);k.push(s.k*(1+wk));wa.push(s.w);z.push(zr*(.55*Math.sin(2*Math.PI*x/f1_+p1)+.35*Math.sin(2*Math.PI*x/f2_+p2)+.1*(R()-.5)*2));stone.push(0)}
+for(let j=ri(0,3);j>0;j--){const sx=ri(80,L-80);for(let q=0;q<3;q++)stone[sx+q]=1}
+const V={a,L,het,zr,secs,km,k,w:wa,z,stone,hag,id:'Г-'+(hash(r.group+r.name+r.num)%900+100),hmax:40,pOff:ri(5,15),pG:f1(rf(.8,.9)*100)/100,hneed:ri(80,90),
+fl:{press:R()<.35?pk([14.2,15.5,23.5]):0,temp:R()<.25?ri(82,92):0,cable:R()<.3?pk(['обрив','коротке замикання']):0,pos:R()<.2?1:0},
+S:ri(150,500),G0:ri(18,26),C:ri(52,60),CE:ri(12,18)*10000,tau:f1(rf(.75,.85)*100)/100,tz:ri(8,10),odd:r.num%2==1,
+rd:{p:Math.round(rf(19.4,20.6)*10)/10,t:ri(50,62),r:350+ri(-3,3),v:f1(rf(2.4,3)*10)/10}};
+const b_=a.n*a.bw/100,R0_=.12*a.pm*9.81/1000,Rm=km*b_*hag/100+R0_,sm=100*(.02+.2*Math.pow(Rm/(.8*a.M*9.81/1000),2.2));V.vc=cl(Math.floor(.82*.6*a.P/(Rm*(1-sm/100))*3.6*2)/2,5,10);V.vr=[V.vc-1,V.vc+1];
+V.alOpt=optAlpha(V);return V}
+function sim4(V,Q){const dt=.1,a=V.a,vt=Q.v/3.6,b=a.n*a.bw/100,R0=.12*a.pm*9.81/1000,G=.8*a.M*9.81/1000,Nmax=.6*a.P,Rref=V.km*(Q.bEnt||b)*Q.hset/100+R0,fl=Q.fl;
+const dly=Math.round(.35*(fl.press?1.6:1)*(fl.temp?1.4:1)/dt),buf=Array(dly).fill(0),tau=.35*(fl.temp?1.6:1),rup=8*(fl.press?.5:1),rdn=6*Q.vdn/100*(fl.press?.6:1),rg=rng(Q.seed),gs=()=>(rg()+rg()+rg()-1.5)*1.15;
+let x=0,hh=0,rate=0,ep=0,ed=0,nx=0;const o=[];
+while(x<V.L){const i=Math.min(V.L-1,Math.floor(x)),depth=cl(hh-V.z[i],0,60);let Rr=V.k[i]*b*depth/100+R0;if(V.stone[i])Rr*=1.5;
+const sl=100*(.02+.2*Math.pow(Rr/G,2.2))*(1+3*(V.w[i]-1));let vf=vt*(1-sl/100);const ld=Rr*vf/Nmax;if(ld>1)vf/=ld;
+const Fm=fl.cable?0:Rr+Q.dF+.015*Rref*gs(),raw=V.pOff+V.pG*100*(1-hh/V.hmax)+.2*gs(),he=V.hmax*(Q.recUp-raw)/(Q.recUp-Q.recDown);
+const al=fl.cable?0:fl.pos?1:Q.al,eF=fl.cable?0:(Fm-Rref)/Rref,eP=fl.pos?0:(he-Q.hset)/Q.hset;let e=al*eF+(1-al)*eP;const sm=sl+.5*gs();if(sm>Q.thr)e+=.06*(sm-Q.thr);
+const dd=(e-ep)/dt;ep=e;ed+=(dd-ed)*dt/.3;const c=-1.6*Q.Gs*Q.Gs*(e+.06*Q.Dd*ed);buf.push(c);const cd=buf.shift();
+rate+=(cl(cd,-rup,rdn)-rate)*dt/tau;hh=cl(hh+rate*dt,0,V.hmax);x+=vf*dt;if(x>=nx){o.push([Math.round(x),depth,ld*100,sl,vf*3.6,Math.abs(rate)]);nx+=2}}
+return o}
+function optAlpha(V){const a=V.a,b=a.n*a.bw/100,R0=.12*a.pm*9.81/1000,G=.8*a.M*9.81/1000,Nmax=.6*a.P,h=V.hag,Rref=V.km*b*h/100+R0,v=V.vc/3.6;let best=0,bc=1e9;
+for(let al=0;al<=1.001;al+=.05){let s=0,ov=0;for(let x=0;x<V.L;x+=2){const k=V.k[x],z=V.z[x],hh=(1-al*(R0-k*b*z/100)/Rref)/(al*k*b/(100*Rref)+(1-al)/h),d=hh-z,Rr=k*b*d/100+R0,sl=100*(.02+.2*Math.pow(Rr/G,2.2))*(1+3*(V.w[x]-1)),ld=Rr*v*(1-sl/100)/Nmax;s+=(d-h)**2;if(ld>1)ov++}
+const c=Math.sqrt(s/(V.L/2))+(ov/(V.L/2)>.02?50:0);if(c<bc){bc=c;best=al}}return Math.round(best*100)}
+function stats(o,hs){const a=o.filter(p=>p[0]>40),m=a.reduce((s,p)=>s+p[1],0)/a.length,sd=Math.sqrt(a.reduce((s,p)=>s+(p[1]-m)**2,0)/a.length);
+return{m:f1(m),sd:f1(sd),cv:f1(sd/m*100),inb:Math.round(a.filter(p=>Math.abs(p[1]-hs)<=2).length/a.length*100),ov:Math.round(a.filter(p=>p[2]>100).length/a.length*100),sm:f1(Math.max(...a.map(p=>p[3]))),ld:f1(a.reduce((s,p)=>s+p[2],0)/a.length),v:f1(a.reduce((s,p)=>s+p[4],0)/a.length),mad:f1(a.reduce((s,p)=>s+Math.abs(p[1]-hs),0)/a.length),ch:f1(a.reduce((s,p)=>s+p[5],0)/a.length)}}
+const pen=(e,t,s)=>e<=t?0:Math.min(1,(e-t)/s),kcol=k=>`hsl(28,45%,${Math.round(82-(k-35)*.7)}%)`,soil=k=>k<45?'піщаний / супіщаний':k<65?'середній суглинок':'важкий суглинок';
+const rdg=()=>({p:String(V.fl.press||V.rd.p).replace('.',','),t:V.fl.temp||V.rd.t,c:V.fl.cable||V.rd.r+' Ом',s:V.fl.pos?'0,0 В':String(Math.round(V.rd.v*100)/100).replace('.',',')+' В'});
+const fe=()=>({press:S.ck.p==='Несправність'?0:V.fl.press,temp:S.ck.t==='Несправність'?0:V.fl.temp,cable:S.ck.c==='Несправність'?0:V.fl.cable,pos:S.ck.s==='Несправність'?0:V.fl.pos});
+const rawU=()=>V.pOff+V.pG*100,rawD=()=>V.pOff,recs=()=>S.cal.U&&S.cal.D?[S.cal.U.raw,S.cal.D.raw]:[100,0];
+const bT=()=>V.a.n*V.a.bw/100,g_=9.81/1000;
+function dFo(){const m=V.a.pm;let d=0;if(!S.tare)d=.55*m*g_;else if(S.tare.st=='down')d=.45*m*g_;return d+.55*g_*(m-(n(S.pm)??0))}
+function Q(o){const[ru,rd]=recs();return{v:n(S.tr.v)||V.vc,Gs:S.tr.Gs,Dd:S.tr.Dd,al:S.al/100,thr:S.thr,hset:n(S.hz)||V.hag,vdn:S.vd,recUp:ru,recDown:rd,dF:dFo(),fl:fe(),bEnt:(n(S.w)??0)/100||bT(),seed:hash(V.id)+S.tr.n,...o}}
+function own(){const m=S.tr.m.map(p=>p[1]);if(!m.length)return null;const mu=m.reduce((a,b)=>a+b,0)/m.length,ss=m.reduce((a,b)=>a+(b-mu)**2,0),s1=Math.sqrt(ss/Math.max(1,m.length-1)),s0=Math.sqrt(ss/m.length);return{k:m.length,mu,s1,s0,v1:s1/mu*100,v0:s0/mu*100,inb:Math.round(m.filter(h=>Math.abs(h-V.hag)<=2).length/m.length*100)}}
+function ms(x){const l=S.tr.last;if(!l)return;x=cl(Math.round(x),10,V.L-5);const p=l.o.find(q=>q[0]>=x)||l.o[l.o.length-1],r=rng(hash(V.id+'m'+x+S.tr.n)),e=(r()+r()-1)*.7;S.tr.m.push([x,Math.round((p[1]+e)*2)/2]);S.tr.m.sort((a,b)=>a[0]-b[0]);save()}
+function score(){const a=V.a,r=[],c=S.cal,fl=V.fl;
+r[0]=[['p',fl.press],['t',fl.temp],['c',fl.cable],['s',fl.pos]].reduce((s,[k,f])=>s+((f&&S.ck[k]==='Несправність')||(!f&&S.ck[k]==='Норма')?2:0),0);
+const w=n(S.w),pm=n(S.pm);r[1]=(S.ty==a.mt?2:0)+(n(S.n)==a.n?2:0)+(w!=null?3*(1-pen(Math.abs(w-a.n*a.bw),1,20)):0)+(pm!=null?2*(1-pen(Math.abs(pm-a.pm)/a.pm*100,2,10)):0)+(S.cat==a.cat?1:0);
+r[2]=c.U&&c.D?12*(1-(pen(100-c.U.p,1,20)+pen(c.D.p,1,20))/2):0;
+r[3]=S.tare?(S.tare.st=='up'?15:5):0;
+r[4]=10*(1-pen(Math.abs(S.al-V.alOpt),15,30))+5*(1-pen(Math.max(0,12-S.thr,S.thr-20),0,10));
+const hz=n(S.hz),vd=S.vd;r[5]=(hz!=null?5*(1-pen(Math.abs(hz-V.hag),.5,3)):0)+3*(1-pen(Math.max(0,40-vd,vd-80),0,30))+(S.ul>=V.hneed&&S.ul<=V.hneed+10?2:0);
+const l=S.tr.last;r[6]=0;if(l){const s=l.st,o=own(),ok=o&&o.k>=12&&o.k<=15?[Math.abs(n(S.tr.mean)-o.mu)<=.15,Math.min(Math.abs(n(S.tr.sd)-o.s1),Math.abs(n(S.tr.sd)-o.s0))<=.15,Math.min(Math.abs(n(S.tr.cv)-o.v1),Math.abs(n(S.tr.cv)-o.v0))<=.5].filter(Boolean).length:0;
+r[6]=12*cl((s.inb-50)/35,0,1)+5*(1-pen(Math.abs(s.m-V.hag),1,3))+4*(1-pen(s.cv,6,6))+5*ok/3+(l.v>=V.vr[0]&&l.v<=V.vr[1]?2:0)+(s.ov<=5?2:0)}
+return r.map(x=>Math.max(0,Math.round(x*10)/10))}
+const INF=[
+`<p><b>Ідея.</b> EHR — замкнена система: <i>задана глибина → порівняння із фактичною → команда клапану → підйом/опускання плуга → нова глибина → датчики знову вимірюють</i>. Сама глибина датчиком не вимірюється, тому система «бачить» її опосередковано двома сигналами:</p>
+<ul><li><b>Сила на нижніх тягах F</b> (тензопальці). Тяговий опір плуга R = k · b · h, де k — питомий опір ґрунту (кПа), b — ширина захвату (м), h — глибина (м). Отже F несе інформацію про глибину, але залежить і від твердості ґрунту k.</li>
+<li><b>Положення навіски p</b> (датчик кута підйомного вала). Воно показує, наскільки опущено плуг відносно трактора, але не знає про нерівності поля й нахил трактора.</li></ul>
+<p><b>Збурення:</b> змінюється ґрунт (k), мікрорельєф, трапляються камені. Завдання регулятора — компенсувати їх. <b>Як працювати:</b> сім кроків, і кожен вносить свою потенційну похибку (помилка в даних, калібруванні чи режимі). Усі вони проявляться на кроці 7, в профілі глибини.</p>`,
+`<p><b>Принцип.</b> Електрогідравліка працює лише тоді, коли гідросистема і датчики справні. Несправність або спотворює сигнал, або уповільнює виконання команди.</p>
+<p><b>Що відбувається в системі.</b> Низький чи високий тиск — клапан і циліндр працюють повільніше. Перегріта олива змінює в'язкість — росте запізнення. Обрив кабелю тензопальця — сигнал сили зникає, система «сліпа» до навантаження. Несправний датчик положення — немає позиційного сигналу.</p>
+<p><b>Що робимо.</b> Порівняйте кожне показання з орієнтиром і вкажіть «Норма» або «Несправність» (після цього несправність усувається). <b>Типова помилка:</b> пропустити показання, що виходить за орієнтир.</p>`,
+`<p><b>Принцип.</b> Контролер не знає, який плуг причеплено. З введених даних він рахує очікуваний опір <b>R<sub>ref</sub> = k<sub>ср</sub> · b · h<sub>зад</sub></b> і порівнює його з виміряним. Хибна ширина — хибний R<sub>ref</sub> — глибина систематично зміщується.</p>
+<p><b>Що ще враховується.</b> Маса плуга: його вага діє на тензопальці й має бути врахована, інакше сигнал сили завищений.</p>
+<p><b>Що робимо.</b> Кількість корпусів × ширина корпуса = ширина захвату (<i>у сантиметрах</i>); масу переведіть із тонн у кілограми. <b>Типова помилка:</b> ввести метри замість сантиметрів чи тонни замість кілограмів.</p>`,
+`<p><b>Принцип.</b> Датчик положення видає сигнал у %, але він не збігається з фізичним ходом навіски: є зміщення й масштаб. Щоб контролер знав, що таке «вгорі» і «внизу», ви показуєте йому два реперні положення, і він будує шкалу: <b>p = (U − U<sub>низ</sub>) / (U<sub>верх</sub> − U<sub>низ</sub>)</b>.</p>
+<p><b>Що відбувається, якщо помилитися.</b> Якщо репер знято не до упору, шкала стиснута або зсунута — в позиційному режимі глибина буде систематично іншою, ніж задана.</p>
+<p><b>Що робимо.</b> Доведіть навіску до упору (показання перестає змінюватися) і зафіксуйте. <b>Типова помилка:</b> зафіксувати «десь близько до краю».</p>`,
+`<p><b>Принцип.</b> Тензопальці вимірюють усе зусилля, зокрема вагу плуга, що висить. Для керування потрібне лише зусилля від ґрунту. Тарування — «обнулення»: у стані, коли ґрунт не діє, запам'ятовується поточний сигнал, і надалі він віднімається.</p>
+<p><b>Що відбувається, якщо помилитися.</b> Якщо тарувати з плугом на ґрунті, частина ваги лишається в сигналі: контролер вважає опір більшим, ніж він є, і піднімає плуг — глибина менша за задану, особливо в силовому режимі.</p>
+<p><b>Що робимо.</b> Спершу підніміть плуг, зніміть показання (≈ 2,5 В — «нуль» датчика плюс вага плуга), виконайте тарування й перевірте, що показання стало 2,50 В. <b>Типова помилка:</b> тарувати опущений плуг або взагалі пропустити.</p>`,
+`<p><b>Принцип.</b> Система має два «порадники». <b>Силовий</b> бачить опір: захищає двигун, але на твердій ділянці приймає зростання опору за надлишок глибини й піднімає плуг (виглиблення). <b>Позиційний</b> тримає положення навіски: добре копіює задану глибину, але на нерівностях глибина «гуляє», а опір не обмежується.</p>
+<p><b>Mix α</b> змішує обидва сигнали: <b>e = α · e<sub>F</sub> + (1 − α) · e<sub>p</sub></b>. Відхилення глибини приблизно дорівнює <b>α · (зміна твердості ґрунту) + (1 − α) · (мікрорельєф)</b>. Звідси правило: сильна різниця k між ділянками — зменшуйте α; слабка різниця, але сильний рельєф — збільшуйте; на важких ділянках двигун має витримувати навантаження (інакше α збільшують).</p>
+<p><b>Slip.</b> Радар вимірює швидкість, система порівнює її з теоретичною. Якщо буксування перевищує поріг, плуг трохи піднімається — опір падає, колеса менше буксують. Занадто низький поріг дає часті підйоми, занадто високий — втрати палива й ущільнення.</p>
+<p><b>Типова помилка:</b> ставити 100 % силового «для безпеки» — глибина «плаває».</p>`,
+`<p><b>Принцип.</b> Три налаштування задають ціль і динаміку. <b>h<sub>зад</sub></b> — глибина за агровимогою. <b>Швидкість опускання</b> — з якою швидкістю плуг входить у ґрунт на початку гону: занадто швидко — удар і перерегулювання (глибше, ніж треба), занадто повільно — довго не виходить на глибину. <b>Верхній ліміт</b> обмежує підйом, щоб не перевантажувати механізм і карданні вали.</p>
+<p><b>Що робимо.</b> Задайте h<sub>зад</sub> із паспорта варіанта (агровимога), помірну швидкість опускання, ліміт, достатній для розвороту. <b>Типова помилка:</b> брати h<sub>зад</sub> «як у сусіда» замість агровимоги; ліміт 100 % «на всяк випадок».</p>`,
+`<p><b>Принцип.</b> Клапан отримує команду, пропорційну похибці. <b>Чутливість</b> — наскільки сильно клапан реагує на похибку. Гідравліка має запізнення, тому при завеликій чутливості плуг «перескакує» ціль і виникають автоколивання. <b>Демпфування</b> враховує швидкість зміни похибки й гасить коливання, але завелике дає ривки клапана від шуму датчиків.</p>
+<p><b>Заміри.</b> Глибину фактично перевіряють лінійкою в борозні. Якість визначають за вибіркою: <b>h<sub>ср</sub> = Σh<sub>i</sub> / n</b>; <b>σ = √[ Σ(h<sub>i</sub> − h<sub>ср</sub>)² / (n − 1) ]</b>; <b>V = σ / h<sub>ср</sub> · 100 %</b>. Допуск: ±2 см від агровимоги, V ≤ 10 %.</p>
+<p><b>Порядок.</b> 1) Швидкість у рекомендованому діапазоні. 2) Стартові значення: чутливість 4–6, демпфування 3–5. 3) Прохід і аналіз блоку «Що показав прохід». 4) Змінюйте <i>один</i> параметр за раз і порівнюйте з попередньою спробою.</p>`,
+`<p><b>Як читати протокол.</b> <i>Профіль глибини</i> показує, де і чому глибина виходила за допуск (ґрунтові ділянки позначено тлом). <i>Навантаження й буксування</i> — чи не перевантажено двигун. <i>Розподіл глибини</i> — наскільки вузький «пік» навколо агровимоги. <i>Блок-схема</i> — яка частина контуру налаштована гірше. <i>Діагностика</i> — зіставлення з табл. 1.4 методички.</p>`];
+
+/* ===== Стан, збереження, прохід, протокол ===== */
+const $=i=>document.getElementById(i);
+const KEY='lr4v1',TKEY='lr4theme',RN={p:'Тиск у гідросистемі',t:'Температура масла',c:'Тензопальці (кабель)',s:'Датчик положення'};
+/* Приклад із методички: цей «студент» дає демо-варіант, з яким симулятор відкривається вперше */
+const DEMO={group:'Приклад',name:'Приклад із методички',num:51},DEMO_SET={thr:15,dv:0,Gs:5,Dd:3};
+/* Число для показу: десяткова кома, мінус як «−» */
+const F=(x,d)=>{if(x===''||x==null||(typeof x=='number'&&isNaN(x)))return'—';const s=d==null?String(x):Number(x).toFixed(d);return s.replace('.',',').replace('-','−')};
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const blank=()=>({reg:null,step:0,ck:{},ty:'',n:'',w:'',pm:'',cat:'',pos:50,cal:{},tare:null,al:50,thr:25,hz:'',vd:60,ul:90,tr:{v:'',Gs:5,Dd:3,n:0,last:null,m:[],mean:'',sd:'',cv:''}});
+let S=null;try{S=JSON.parse(localStorage.getItem(KEY))}catch(e){}if(!S||!S.tr)S=null;
+const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}};
+let V=S&&S.reg?mkV(S.reg):null,AN=0;
+const TT=['Реєстрація й варіант','1. Комплектність і гідросистема','2. Параметри агрегату','3. Положення навіски','4. Тарування нуля','5. Режим і поріг буксування','6. Глибина і опускання','7. Пробний прохід','Підсумковий протокол','Досліди «що буде, якщо…»'];
+const MX=[8,10,12,15,15,10,30],NM=['Комплектність і гідросистема','Параметри агрегату','Положення навіски','Тарування нуля','Режим і Slip','Глибина і опускання','Пробний прохід'];
+const LAB=9;
+
+/* Пробний прохід: ті самі виклики моделі, що й у попередній версії симулятора */
+function runCore(){const t=S.tr,v=n(t.v);
+const o=sim4(V,Q({})),st=stats(o,V.hag),bs=stats(sim4(V,Q({al:1,Gs:5,Dd:3,thr:100,hset:V.hag,vdn:60,recUp:rawU(),recDown:rawD(),dF:0,fl:{press:0,temp:0,cable:0,pos:0},bEnt:bT(),seed:7})),V.hag);
+S.prev=t.last?t.last.o.map(p=>[p[0],p[1]]):null;
+t.last={o:o.map(p=>[p[0],f1(p[1]),Math.round(p[2]),f1(p[3]),f1(p[4])]),st,bs,v,Gs:t.Gs,Dd:t.Dd,al:S.al,thr:S.thr};t.n++;t.m=[];
+(S.hist=S.hist||[]).push({n:t.n,v,Gs:t.Gs,Dd:t.Dd,al:S.al,thr:S.thr,hz:n(S.hz)||V.hag,inb:st.inb,m:st.m,sd:st.sd,cv:st.cv,ov:st.ov,sm:st.sm,ch:st.ch});if(S.hist.length>12)S.hist.shift()}
+function run(){const v=n(S.tr.v);if(!v||v<=0)return alert('Вкажіть швидкість, км/год.');runCore();AN=1;save();R()}
+function mx(){const x=n($('mx').value);if(x==null)return alert('Вкажіть відстань від початку гону, м.');ms(x);R()}
+function mauto(){S.tr.m=[];for(let i=0;i<12;i++)ms(60+i*(V.L-120)/11);R()}
+function mclr(){S.tr.m=[];save();R()}
+
+/* Стан «приклад із методички»: усе заповнено правильно, дві спроби (типова помилка і виправлення) */
+function demoState(){S=blank();S.demo=1;S.reg={...DEMO};V=mkV(S.reg);const a=V.a,g=a.pm*g_;
+for(const[k,f]of[['p',V.fl.press],['t',V.fl.temp],['c',V.fl.cable],['s',V.fl.pos]])S.ck[k]=f?'Несправність':'Норма';
+S.ty=a.mt;S.n=String(a.n);S.w=String(a.n*a.bw);S.pm=String(a.pm);S.cat=a.cat;S.pos=100;
+S.cal={U:{raw:f1(V.pOff+V.pG*100),p:100},D:{raw:f1(V.pOff),p:0}};S.hsq='up';S.tare={st:'up',vb:(2.5+.02*.55*g).toFixed(2),va:'2,50'};
+S.thr=DEMO_SET.thr;S.hz=String(V.hag);S.vd=60;S.ul=V.hneed+5;S.tr.v=String(V.vc+DEMO_SET.dv);S.tr.Gs=DEMO_SET.Gs;S.tr.Dd=DEMO_SET.Dd;
+S.al=100;runCore();S.al=V.alOpt;runCore();
+S.tr.m=[];for(let i=0;i<12;i++)ms(60+i*(V.L-120)/11);const o=own();S.tr.mean=o.mu.toFixed(1);S.tr.sd=o.s1.toFixed(1);S.tr.cv=o.v1.toFixed(1);
+S.step=0;return S}
+
+/* Рядки «Запишіть у таблицю методички» */
+function rec(i){const R_=rdg(),k=S.ck,c=S.cal,t=S.tr,l=t.last,m=(x,u)=>x===''||x==null?'—':String(x).replace('.',',')+u,o=own();
+return[0,`Тиск ${R_.p} МПа (${k.p||'—'}); олива ${R_.t} °C (${k.t||'—'}); тензопальці ${R_.c} (${k.c||'—'}); датчик положення ${R_.s} (${k.s||'—'})`,
+`${S.ty||'—'}; корпусів ${m(S.n,'')}; ширина захвату ${m(S.w,' см')}; маса ${m(S.pm,' кг')}; категорія ${S.cat||'—'}`,
+`Верх ${c.U?F(c.U.raw)+' %':'—'}; низ ${c.D?F(c.D.raw)+' %':'—'}; робочий хід ${c.U&&c.D?F(f1(c.U.raw-c.D.raw))+' %':'—'}`,
+S.tare?`Нуль до тарування ${F(S.tare.vb)} В, після ${S.tare.va} В (плуг ${S.tare.st=='up'?'піднятий':'опущений на ґрунт'})`:'не виконано',
+`Mix: ${S.al} % силового / ${100-S.al} % позиційного; поріг Slip ${S.thr} %`,
+`h_зад ${m(S.hz,' см')}; швидкість опускання ${S.vd} %; верхній ліміт ${S.ul} %`,
+l?`${m(t.v,' км/год')} (факт. ${F(l.st.v,1)}); чутливість ${F(t.Gs)}, демпфування ${F(t.Dd)}; h_ср ${m(t.mean,' см')}, σ ${m(t.sd,' см')}, V ${m(t.cv,' %')}; у допуску ${o?o.inb+' %':'—'}; буксування макс. ${F(l.st.sm,1)} %; спроб ${t.n}`:'не виконано'][i]}
+
+/* Чи заповнено крок (для позначок у меню): 1 — так, .5 — частково, 0 — ні */
+function done(i){if(!V)return 0;const c=S.ck,t=S.tr;switch(i){
+case 0:return 1;
+case 1:{const k=['p','t','c','s'].filter(x=>c[x]&&c[x]!='—').length;return k==4?1:k?.5:0}
+case 2:{const k=[S.ty&&S.ty!='—',S.cat&&S.cat!='—',S.n,S.w,S.pm].filter(Boolean).length;return k==5?1:k?.5:0}
+case 3:return S.cal.U&&S.cal.D?1:S.cal.U||S.cal.D?.5:0;
+case 4:return S.tare?1:0;
+case 5:return S.v5?1:0;
+case 6:return S.hz?1:0;
+case 7:return t.last?(t.m.length>=12&&t.mean!==''&&t.sd!==''&&t.cv!==''?1:.5):0;
+default:return 0}}
+
+/* Розрахунок Завдання 4.2 за формулами методички (для самоперевірки) */
+function calc42(){const l=S.tr.last;if(!l)return null;const h=n(S.hz)||V.hag,d0=l.bs.mad,d1=l.st.mad,p1=d0/h*100,p2=d1/h*100,dG=V.G0*(p1-p2)/100,E=V.S*dG*V.C,T=E>0?V.CE/E:null,
+B=bT(),v2=l.st.v,v1=v2*(h+d1)/(h+d0),W1=.1*B*v1*V.tau,W2=.1*B*v2*V.tau,dW=(W2-W1)/W1*100,D1=V.S/(W1*V.tz),D2=V.S/(W2*V.tz);
+return{h,d0,d1,p1,p2,dG,E,T,B,v1,v2,W1,W2,dW,D1,D2}}
+
+/* ===== Графіки з курсором ===== */
+function drawChart(el,c){if(!el)return;
+const W=Math.max(280,Math.round(el.clientWidth||640)),ml=40,mr=12,lg=[];let lx=ml,ly=13;for(const q of c.leg||[]){const w=28+q[0].length*6.1;if(lx+w>W-4&&lx>ml){lx=ml;ly+=15}lg.push([lx,ly,q]);lx+=w}
+const mt=c.leg?ly+13:10,H=(c.h||170)+(c.leg?ly-13:0),mb=24,x1=c.xMax,pw=W-ml-mr,ph=H-mt-mb;
+const X=x=>ml+x/x1*pw,Y=y=>{const f=(cl(y,c.y0,c.y1)-c.y0)/(c.y1-c.y0);return mt+(c.inv?f:1-f)*ph};
+let s='';
+if(c.secs)for(const q of c.secs)s+=`<rect x="${X(q.x0).toFixed(1)}" y="${mt}" width="${(X(q.x1)-X(q.x0)).toFixed(1)}" height="${ph}" fill="${kcol(q.k)}" opacity=".5"/>`;
+for(const b of c.bands||[]){const ya=Y(b[0]),yb=Y(b[1]);s+=`<rect x="${ml}" y="${Math.min(ya,yb)}" width="${pw}" height="${Math.abs(yb-ya)}" fill="${b[2]||'var(--ac)'}" opacity="${b[3]||.25}"/>`}
+const nt=c.ticks||4;for(let k=0;k<=nt;k++){const v=c.y0+(c.y1-c.y0)*k/nt,y=Y(v);s+=`<line x1="${ml}" x2="${W-mr}" y1="${y}" y2="${y}" stroke="var(--ln)" stroke-width="1" opacity=".8"/><text x="${ml-5}" y="${y+3.5}" text-anchor="end" font-size="10.5" fill="var(--sub)">${F(Math.round(v*10)/10)}</text>`}
+const nx=W<430?2:4;for(let k=0;k<=nx;k++){const v=x1*k/nx;s+=`<text x="${X(v)}" y="${H-7}" text-anchor="${k==0?'start':k==nx?'end':'middle'}" font-size="10.5" fill="var(--sub)">${Math.round(v)}${k==nx?' м':''}</text>`}
+for(const h of c.hl||[])s+=`<line x1="${ml}" x2="${W-mr}" y1="${Y(h[0])}" y2="${Y(h[0])}" stroke="${h[1]}" stroke-width="1.2" stroke-dasharray="5 4"/>`+(h[2]?`<text x="${W-mr-3}" y="${Y(h[0])-3}" text-anchor="end" font-size="10" fill="${h[1]}">${h[2]}</text>`:'');
+for(const q of c.ser)if(q.p&&q.p.length)s+=`<path d="${q.p.map((p,i)=>(i?'L':'M')+X(p[0]).toFixed(1)+','+Y(p[1]).toFixed(1)).join('')}" fill="none" stroke="${q.c}" stroke-width="${q.w||1.9}" ${q.d?`stroke-dasharray="${q.d}"`:''} stroke-linejoin="round"/>`;
+for(const x of c.marks||[])s+=`<path d="M${X(x)-4.5},${mt+ph} l4.5,-8 l4.5,8z" fill="var(--stl)" stroke="var(--pn)" stroke-width="1"/>`;
+for(const p of c.dots||[])s+=`<circle cx="${X(p[0])}" cy="${Y(p[1])}" r="4.2" fill="var(--ink)" stroke="var(--pn)" stroke-width="1.6"/>`;
+for(const[lx,ly,q]of lg)s+=(q[2]=='band'?`<rect x="${lx}" y="${ly-5}" width="16" height="9" fill="${q[1]}" opacity=".3"/>`:q[2]=='dot'?`<circle cx="${lx+8}" cy="${ly-.5}" r="4" fill="${q[1]}"/>`:`<line x1="${lx}" x2="${lx+16}" y1="${ly}" y2="${ly}" stroke="${q[1]}" stroke-width="2.4" ${q[2]?`stroke-dasharray="${q[2]}"`:''}/>`)+`<text x="${lx+20}" y="${ly+3.5}" font-size="10.5" fill="var(--ink)">${q[0]}</text>`;
+s+=`<line class="cur" x1="0" x2="0" y1="${mt}" y2="${mt+ph}" stroke="var(--ink)" stroke-width="1.3" opacity="0"/>`;
+el.innerHTML=`<svg viewBox="0 0 ${W} ${H}" height="${H}" role="img" aria-label="${c.aria||'Графік'}">${s}</svg><div class="tip"></div>`;
+el._c=Object.assign({},c,{X,W,ml,pw});
+if(!el._b){el._b=1;const fx=e=>{const k=el._c,r=el.getBoundingClientRect();return cl((e.clientX-r.left-k.ml)/k.pw*k.xMax,0,k.xMax)};
+el.addEventListener('pointermove',e=>{const k=el._c,x=fx(e);chartCur(el,x,1);if(e.buttons&&k.scrub&&!(k.click&&PV.rul))k.scrub(x)});
+el.addEventListener('pointerdown',e=>{const k=el._c,x=fx(e);if(k.click&&PV.rul)k.click(x);else if(k.scrub)k.scrub(x)});
+el.addEventListener('pointerleave',()=>{const k=el._c;el.querySelector('.tip').style.display='none';if(k.pin==null)el.querySelector('.cur').setAttribute('opacity',0);else chartCur(el,k.pin,0)})}}
+function chartCur(el,x,tip){const c=el&&el._c;if(!c)return;const l=el.querySelector('.cur');if(!l)return;const px=c.X(x);l.setAttribute('x1',px);l.setAttribute('x2',px);l.setAttribute('opacity',.75);
+const t=el.querySelector('.tip');if(tip&&c.tip){t.innerHTML=c.tip(x);t.style.display='block';t.style.left=cl(px+10,4,c.W-t.offsetWidth-4)+'px'}}
+function chartPin(id,x){const el=$(id);if(el&&el._c){el._c.pin=x;chartCur(el,x,0)}}
+
+/* ===== Геометрія агрегату (м), вид збоку в масштабі ===== */
+function geom(){const a=V.a,art=AGG.indexOf(a)>=6,Mt=a.M/1000,rr=art?.86:cl(.70+.024*Mt,.8,1.02),rf=art?rr:rr*.74,wb=art?3.05:2.5+.055*Mt,
+sp=a.bw>=45?1.05:a.bw>=40?1:.86,xb=[];for(let j=0;j<a.n;j++)xb.push(-(rr+1.2)-j*sp);
+const xl=xb[a.n-1];return{art,rr,rf,wb,sp,xb,xl,x0:xl-1.75,x1:wb+rf+1.2,cab:rr*3.1+.15,xB:-(rr+.38),by:.78,semi:a.mt!='навісний'}}
+const r3=x=>Math.round(x*1000)/1000;
+function wheelG(cx,r,id){const sp=[0,72,144,216,288].map(d=>`<line x1="${cx}" y1="${r}" x2="${r3(cx+r*.56*Math.cos(d*Math.PI/180))}" y2="${r3(r+r*.56*Math.sin(d*Math.PI/180))}" stroke="var(--tyre)" stroke-width="${r3(r*.07)}"/>`).join('');
+return`<g ${id?`id="${id}"`:''}><circle cx="${cx}" cy="${r}" r="${r}" fill="var(--tyre)"/><circle cx="${cx}" cy="${r}" r="${r3(r*.9)}" fill="none" stroke="var(--stl)" stroke-width="${r3(r*.1)}" stroke-dasharray="${r3(r*.16)} ${r3(r*.15416)}" opacity=".75"/><circle cx="${cx}" cy="${r}" r="${r3(r*.58)}" fill="var(--rim)"/>${sp}<circle cx="${cx}" cy="${r}" r="${r3(r*.16)}" fill="var(--tyre)"/></g>`}
+function arcPts(cx,cy,R,a0,a1,k){const p=[];for(let i=0;i<=k;i++){const a=(a0+(a1-a0)*i/k)*Math.PI/180;p.push(r3(cx+R*Math.cos(a))+','+r3(cy+R*Math.sin(a)))}return p}
+function tractorG(g,wid){const{rr,rf,wb,cab}=g,ht=r3(rr*1.7);
+const fend=arcPts(0,rr,rr*1.12,178,62,10).concat(arcPts(0,rr,rr*.99,62,178,10)).join(' ');
+return`<path d="M-.5,${r3(rr*.78)} L${r3(wb+.72)},${r3(rf*.95)} L${r3(wb+.72)},${r3(rf*1.3)} L-.5,${r3(rr*1.1)}Z" fill="var(--stl)"/>
+<path d="M1.02,${r3(rr*1.02)} L1.02,${ht} L${r3(wb+.45)},${r3(ht-.1)} Q${r3(wb+.88)},${r3(ht-.14)} ${r3(wb+.88)},${r3(ht-.5)} L${r3(wb+.88)},${r3(rf*1.12)}Z" fill="var(--trk)"/>
+<line x1="${r3(wb+.5)}" y1="${r3(rf*1.2)}" x2="${r3(wb+.5)}" y2="${r3(ht-.14)}" stroke="var(--trk2)" stroke-width=".04"/>
+<path d="M-.5,${r3(rr*1.5)} L-.36,${r3(cab)} L.98,${r3(cab)} L1.2,${r3(ht+.04)} L1.2,${r3(rr*1.04)} L-.5,${r3(rr*1.04)}Z" fill="var(--gls)" stroke="var(--trk2)" stroke-width=".07" stroke-linejoin="round"/>
+<line x1=".34" y1="${r3(rr*1.04)}" x2=".3" y2="${r3(cab)}" stroke="var(--trk2)" stroke-width=".05"/>
+<rect x="-.5" y="${r3(cab)}" width="1.62" height=".13" rx=".04" fill="var(--trk2)"/>
+<rect x="1.3" y="${ht}" width=".09" height="${r3(cab-ht-.05)}" fill="var(--stl)"/>
+<rect x="${r3(wb+.88)}" y="${r3(rf*.95)}" width=".3" height="${r3(rf*.62)}" rx=".03" fill="var(--stl)"/>
+${wheelG(wb,rf,wid&&wid+'f')}${wheelG(0,rr,wid&&wid+'r')}<polygon points="${fend}" fill="var(--trk)"/>`}
+function ploughG(g){const{xb,xl,by,xB}=g;let s=`<path d="M${r3(xB)},.72 L${r3(xB-.06)},1.38 L${r3(xb[0]+.72)},${by+.08} L${r3(xb[0]+.72)},${by-.08}Z" fill="var(--plg)"/><line x1="${r3(xb[0]+.75)}" y1="${by}" x2="${r3(xl-.45)}" y2="${by}" stroke="var(--plg)" stroke-width=".14" stroke-linecap="round"/>`;
+for(const x of xb)s+=`<path d="M${r3(x-.03)},${by} L${r3(x+.07)},${by} L${r3(x+.02)},.3 L${r3(x-.1)},.3Z" fill="var(--stl)"/><path d="M${r3(x+.36)},0 L${r3(x-.12)},0 Q${r3(x-.46)},.12 ${r3(x-.4)},.5 L${r3(x-.02)},.44 Q${r3(x+.02)},.16 ${r3(x+.36)},0Z" fill="var(--plg)" stroke="var(--trk2)" stroke-width=".015"/>`;return s}
+function stones(){const a=[];for(let x=0;x<PV.V.L;x++)if(PV.V.stone[x]&&!PV.V.stone[x-1])a.push(x);return a}
+
+/* Сцена: трактор і плуг у масштабі 1:1 по обох осях; ґрунт рухається під агрегатом */
+function sceneBuild(el,stat){if(stat||!PV.V)PV.V=V;const g=geom(),W=720,s=(W-16)/(g.x1-g.x0),top=10,Yg=Math.round(top+(g.cab+.3)*s),fs=PV.fs=cl(11.5*W/Math.max(260,el.clientWidth||W),10,26),H=Math.round(Yg+Math.max(.78*s,.42*s+fs*1.55)),ox=8-g.x0*s;
+const st=stones().map(x=>`<ellipse cx="${x+1.5}" cy="-.2" rx=".17" ry=".12" fill="#8B8F8A" stroke="#5c605b" stroke-width=".02"/>`).join('');
+el.innerHTML=`<svg id="sc_svg" viewBox="0 0 ${W} ${H}" role="img" aria-label="Трактор із плугом у роботі, вид збоку"><defs>
+<pattern id="sc_tx" width=".5" height=".22" patternUnits="userSpaceOnUse"><circle cx=".1" cy=".06" r=".018" fill="#2B2118" opacity=".35"/><circle cx=".34" cy=".15" r=".022" fill="#2B2118" opacity=".3"/></pattern>
+<pattern id="sc_pl" width=".42" height=".2" patternUnits="userSpaceOnUse"><path d="M0,.14 q.1,.1 .21,0 t.21,0" fill="none" stroke="#1d1510" stroke-width=".035" opacity=".55"/></pattern>
+<clipPath id="sc_cp"><rect x="0" y="0" width="${W}" height="${H}"/></clipPath></defs>
+<rect width="${W}" height="${Yg}" fill="var(--sky)"/>
+<g clip-path="url(#sc_cp)"><g transform="translate(${r3(ox)},${Yg}) scale(${r3(s)},${-r3(s)})">
+<g id="sc_w"><rect x="-60" y="-2" width="${PV.V.L+120}" height="2" fill="#B9B28F"/>${PV.V.secs.map(q=>`<rect x="${q.x0}" y="-2" width="${q.x1-q.x0}" height="2" fill="${kcol(q.k)}"/>`).join('')}<rect x="-60" y="-2" width="${PV.V.L+120}" height="2" fill="url(#sc_tx)"/>${st}
+<path id="sc_pz" d="" fill="var(--plowed)"/><path id="sc_pz2" d="" fill="url(#sc_pl)"/><path id="sc_fb" d="" fill="none" stroke="#F2E6C8" stroke-width=".025" stroke-dasharray=".12 .08"/>
+<line x1="0" y1="-.7" x2="0" y2=".5" stroke="var(--ink)" stroke-width=".04" stroke-dasharray=".1 .08"/><line x1="${PV.V.L}" y1="-.7" x2="${PV.V.L}" y2=".5" stroke="var(--ink)" stroke-width=".04" stroke-dasharray=".1 .08"/></g>
+<line x1="${g.x0-1}" y1="0" x2="${g.x1+1}" y2="0" stroke="#2B2118" stroke-width=".03" opacity=".6"/>
+<g stroke="var(--stl)" stroke-width=".07" stroke-linecap="round" fill="none"><line id="sc_ll" x1="-.15" y1="${r3(g.rr*.55)}" x2="${g.xB}" y2=".47"/><line id="sc_tl" x1="-.2" y1="${r3(g.rr*1.22)}" x2="${g.xB-.06}" y2="1.13"/><line id="sc_lr" x1="${r3(-g.rr*.75)}" y1="${r3(g.rr*1.45)}" x2="${r3(g.xB*.72)}" y2=".5"/></g>
+<line id="sc_st" x1="${r3(g.xl-.95)}" y1=".33" x2="${r3(g.xl-.45)}" y2=".53" stroke="var(--stl)" stroke-width=".07"/>${wheelG(r3(g.xl-.95),.33,'sc_pw')}
+<g id="sc_pg">${ploughG(g)}</g>
+${tractorG(g,'sc_w')}
+<g id="sc_ar"><line x1="0" y1="0" x2="-1" y2="0" stroke="#8E1F12" stroke-width=".085"/><path d="M0,0 l.3,.14 l0,-.28z" fill="#8E1F12"/></g>
+</g></g>
+<text id="sc_t1" x="10" y="20" fill="var(--ink)"></text><text id="sc_t2" x="10" y="36" fill="var(--sub)"></text><text id="sc_t3" x="0" y="0" fill="#5E130A" font-weight="700" paint-order="stroke" stroke="#F2E6C8" stroke-width="3"></text>
+</svg>`;
+PV.g=g;PV.s=s;PV.ox=ox;PV.Yg=Yg;PV.W=W;['sc_t1','sc_t2','sc_t3'].forEach(i=>$(i).setAttribute('font-size',fs.toFixed(1)));$('sc_t1').setAttribute('y',(8+fs).toFixed(0));$('sc_t2').setAttribute('y',(8+fs*2.3).toFixed(0));
+if(stat)sceneUpd({x:-8,d:stat.d,ld:0,sl:0,v:0,th:0,R:0},1)}
+function sceneUpd(q,stat){const g=PV.g,h=q.d/100,sw=$('sc_w');if(!sw)return;
+sw.setAttribute('transform',`translate(${r3(g.xl-q.x)},0)`);$('sc_pg').setAttribute('transform',`translate(0,${r3(-h)})`);
+$('sc_ll').setAttribute('y2',r3(.72-h));$('sc_tl').setAttribute('y2',r3(1.38-h));$('sc_lr').setAttribute('y2',r3(.74-h*.72));$('sc_st').setAttribute('y2',r3(g.by-h));
+const deg=-(q.th||0)*180/Math.PI;$('sc_wr').setAttribute('transform',`rotate(${r3(deg)} 0 ${g.rr})`);$('sc_wf').setAttribute('transform',`rotate(${r3(deg*g.rr/g.rf)} ${g.wb} ${g.rf})`);$('sc_pw').setAttribute('transform',`rotate(${r3(-q.x/.33*180/Math.PI)} ${r3(g.xl-.95)} .33)`);
+/* зорана смуга позаду останнього корпуса: від поверхні до дна борозни (справжня глибина) */
+if(!stat&&PV.o){const xa=Math.max(0,q.x-(g.xl-g.x0)-1),xe=Math.max(0,Math.min(q.x-.1,PV.V.L)),top=[],bot=[];if(xe>xa){for(let x=xa;x<xe;x+=.5){top.push(r3(x)+',.05');bot.push(r3(x)+','+r3(-pvDepth(x)/100))}top.push(r3(xe)+',.05');bot.push(r3(xe)+','+r3(-pvDepth(xe)/100));
+const d='M'+top.join('L')+'L'+bot.reverse().join('L')+'Z';$('sc_pz').setAttribute('d',d);$('sc_pz2').setAttribute('d',d);$('sc_fb').setAttribute('d','M'+bot.join('L'))}else{$('sc_pz').setAttribute('d','');$('sc_pz2').setAttribute('d','');$('sc_fb').setAttribute('d','')}}
+const ar=$('sc_ar'),len=q.R>0?cl(q.R/PV.Rref*1.9,.25,3.6):0,xm=g.xb[Math.floor(g.xb.length/2)]-.25;if(len){ar.setAttribute('transform',`translate(${r3(xm-len)},-.42)`);ar.firstChild.setAttribute('x2',r3(len));ar.firstChild.setAttribute('x1',.25);ar.style.display=''}else ar.style.display='none';
+const t3=$('sc_t3');if(len){t3.setAttribute('x',r3(Math.max(4,PV.ox+(xm-len)*PV.s)));t3.setAttribute('y',r3(PV.Yg+.42*PV.s+PV.fs*1.2));t3.textContent='R = '+F(q.R,1)+' кН'}else t3.textContent='';
+if(!stat){const i=cl(Math.floor(q.x),0,PV.V.L-1),k=PV.V.k[i];$('sc_t1').textContent=q.x<0?'Перед початком гону':`x = ${Math.round(q.x)} м із ${PV.V.L} м`;$('sc_t2').textContent=`ґрунт: ${soil(k)}, k ≈ ${Math.round(k)} кПа${PV.V.stone[i]?' · камінь':''}`}}
+
+/* Лупа: останній корпус у збільшеному вертикальному масштабі */
+const LP={sH:52,sV:3.4,y0:44,W:210,H:215};
+const zAt=x=>{x=cl(x,0,PV.V.L-1);const i=Math.floor(x),j=Math.min(PV.V.L-1,i+1);return PV.V.z[i]+(PV.V.z[j]-PV.V.z[i])*(x-i)};
+function lupeUpd(q){const el=$('lp');if(!el)return;const{sH,sV,y0,W,H}=LP,FV=PV.V,xa=q.x-2.2,X=x=>(x-xa)*sH,hs=PV.hs,sf=[],bn1=[],bn2=[],bt=[],tp=[];
+for(let x=xa;x<=xa+W/sH+.01;x+=.2){const z=x<0||x>FV.L?0:zAt(x),y=y0+z*sV;sf.push(r3(X(x))+','+r3(y));bn1.push(r3(X(x))+','+r3(y+(hs-2)*sV));bn2.push(r3(X(x))+','+r3(y+(hs+2)*sV))}
+for(let x=Math.max(0,xa);x<=Math.min(q.x,FV.L)+.001;x+=.2){bt.push(r3(X(x))+','+r3(y0+(pvDepth(x)+zAt(x))*sV));tp.push(r3(X(x))+','+r3(y0+(zAt(x)-1.5)*sV))}
+const xc=X(q.x),zc=q.x<0?0:zAt(q.x),ys=y0+zc*sV,yb=ys+q.d*sV,k=PV.cfg&&PV.cfg.kOf?PV.cfg.kOf(q.x):FV.k[cl(Math.floor(q.x),0,FV.L-1)];let tk='';for(let c=0;c<=q.d+.01;c+=5)tk+=`<line x1="${xc+30}" x2="${xc+(c%10?35:39)}" y1="${r3(ys+c*sV)}" y2="${r3(ys+c*sV)}" stroke="var(--soilink)" stroke-width="1.1"/>`;
+const pl=bt.length>1?`<polygon points="${bt.join(' ')} ${tp.slice().reverse().join(' ')}" fill="var(--plowed)" opacity=".85"/><polyline points="${bt.join(' ')}" fill="none" stroke="#F2E6C8" stroke-width="1.6"/>`:'';
+el.innerHTML=`<rect width="${W}" height="${H}" fill="var(--sky)"/><polygon points="${sf.join(' ')} ${W},${H} 0,${H}" fill="${kcol(k)}"/>
+<polygon points="${bn1.join(' ')} ${bn2.slice().reverse().join(' ')}" fill="var(--ac)" opacity=".4"/>${pl}
+<polyline points="${sf.join(' ')}" fill="none" stroke="var(--soilink)" stroke-width="1.4"/>
+<rect x="${r3(xc-9)}" y="0" width="7" height="${r3(Math.max(0,yb-30))}" fill="var(--stl)"/><path d="M${r3(xc+17)},${r3(yb)} L${r3(xc-9)},${r3(yb)} Q${r3(xc-25)},${r3(yb-8)} ${r3(xc-21)},${r3(yb-36)} L${r3(xc-2)},${r3(yb-32)} Q${r3(xc)},${r3(yb-13)} ${r3(xc+17)},${r3(yb)}Z" fill="var(--plg)" stroke="var(--soilink)" stroke-width=".8"/>
+<line x1="${r3(xc+30)}" x2="${r3(xc+30)}" y1="${r3(ys)}" y2="${r3(yb)}" stroke="var(--soilink)" stroke-width="1.6"/>${tk}
+<text x="${r3(xc+44)}" y="${r3((ys+yb)/2+4)}" font-size="13" font-weight="700" fill="var(--soilink)" paint-order="stroke" stroke="#F2E6C8" stroke-width="3">${F(q.d,1)} см</text>
+<text x="5" y="${r3(y0-9)}" font-size="10.5" fill="var(--ink)">поверхня поля</text><text x="5" y="${r3(y0+hs*sV+4)}" font-size="10.5" fill="#12351a" font-weight="600" paint-order="stroke" stroke="#F2E6C8" stroke-width="2.5">допуск ±2 см</text>`}
+
+/* Навіска великим планом (кроки 3, 4, 6): триточковий механізм у масштабі 1 м = 100 поділок */
+function hitchSVG(p,o){o=o||{};const s=100,gx=330,gy=232,W=430,H=290,X=x=>r3(gx+x*s),Y=y=>r3(gy-y*s),rr=.95;
+const yt=-.40+.0075*p,yB=yt+.75,A=[-.15,.6],Ll=1.05,dy=yB-A[1],B=[A[0]-Math.sqrt(Ll*Ll-dy*dy),yB],M=[A[0]+(B[0]-A[0])*.62,A[1]+(B[1]-A[1])*.62],C=[-.3,1.56],La=.5,Lr=.8;
+/* перетин кіл (C, La) і (M, Lr) — верхній шарнір підйомної тяги */
+const dx=M[0]-C[0],dyy=M[1]-C[1],d=Math.hypot(dx,dyy),a=(La*La-Lr*Lr+d*d)/(2*d),hh=Math.sqrt(Math.max(0,La*La-a*a)),px=C[0]+a*dx/d,py=C[1]+a*dyy/d,D1=[px+hh*dyy/d,py-hh*dx/d],D2=[px-hh*dyy/d,py+hh*dx/d],D=D1[1]>D2[1]?D1:D2;
+const E=[-.2,1.1],Fp=[B[0]-.04,yB+.66],by=yt+.78,xb=[B[0]-.85,B[0]-1.85,B[0]-2.85],
+ln=(a,b,w,c)=>`<line x1="${X(a[0])}" y1="${Y(a[1])}" x2="${X(b[0])}" y2="${Y(b[1])}" stroke="${c||'var(--stl)'}" stroke-width="${w||6}" stroke-linecap="round"/>`,
+pin=(a,r,c)=>`<circle cx="${X(a[0])}" cy="${Y(a[1])}" r="${r||4.5}" fill="${c||'var(--pn)'}" stroke="var(--ink)" stroke-width="1.5"/>`,
+mk=(a,b,t,f,ox,oy)=>{const x=r3(X(a[0])+(X(b[0])-X(a[0]))*f+ox),y=r3(Y(a[1])+(Y(b[1])-Y(a[1]))*f+oy);return`<circle cx="${x}" cy="${y}" r="8.5" fill="var(--pn)" stroke="var(--ink)" stroke-width="1.2"/><text x="${x}" y="${r3(y+3.8)}" font-size="11" font-weight="700" text-anchor="middle" fill="var(--ink)">${t}</text>`},
+lab=(x,y,t,an)=>`<text x="${x}" y="${y}" font-size="11.5" fill="var(--ink)" text-anchor="${an||'start'}" paint-order="stroke" stroke="var(--pn2)" stroke-width="3.5">${t}</text>`;
+const cyA=[.1,1.0],cyB=[C[0]+(D[0]-C[0])*.6,C[1]+(D[1]-C[1])*.6],cm=[cyA[0]+(cyB[0]-cyA[0])*.58,cyA[1]+(cyB[1]-cyA[1])*.58];
+let bodies='';for(const x of xb)bodies+=`<path d="M${X(x-.03)},${Y(by)} L${X(x+.07)},${Y(by)} L${X(x+.02)},${Y(yt+.3)} L${X(x-.1)},${Y(yt+.3)}Z" fill="var(--stl)"/><path d="M${X(x+.36)},${Y(yt)} L${X(x-.12)},${Y(yt)} Q${X(x-.46)},${Y(yt+.12)} ${X(x-.4)},${Y(yt+.5)} L${X(x-.02)},${Y(yt+.44)} Q${X(x+.02)},${Y(yt+.16)} ${X(x+.36)},${Y(yt)}Z" fill="var(--plg)"/>`;
+const stop=o.stops?`<path d="M${X(-.95)},${Y(2.02)} l-9,-10 l18,0z" fill="var(--wn)" opacity="${p>=100?1:.3}"/>${lab(X(-.95)+13,Y(2.02)-3,'верхній упор')}<path d="M${X(B[0]+.02)},${Y(.27)} l-9,10 l18,0z" fill="var(--wn)" opacity="${p<=0?1:.3}"/>${lab(X(B[0]+.02)-13,Y(.27)+12,'нижній упор','end')}`:'';
+const yn=o.need!=null?Y(-.40+.0075*o.need):0,need=o.need!=null?`<line x1="0" x2="${X(-.75)}" y1="${yn}" y2="${yn}" stroke="var(--am)" stroke-width="1.8" stroke-dasharray="7 4"/>${lab(6,yn+14,'рівень носків корпусів, потрібний для розвороту')}`:'';
+const gA=o.pin?`<circle cx="${X(A[0])}" cy="${Y(A[1])}" r="13" fill="none" stroke="var(--am)" stroke-width="3"/>${lab(X(A[0])+18,Y(A[1])+24,'тензопалець')}<line x1="${X(B[0]-1.4)}" y1="${Y(by)+8}" x2="${X(B[0]-1.4)}" y2="${Y(by)+(o.G?66:26)}" stroke="var(--wn)" stroke-width="3.2"/><path d="M${X(B[0]-1.4)-6.5},${Y(by)+(o.G?66:26)} l6.5,12 l6.5,-12z" fill="var(--wn)"/>${lab(X(B[0]-1.4)+11,Y(by)+(o.G?60:32),o.G?'вага плуга G — уся на тягах':'вагу плуга тримає ґрунт')}`:'';
+return`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Задня навіска трактора з плугом"><defs><pattern id="hx" width="26" height="13" patternUnits="userSpaceOnUse"><circle cx="5" cy="4" r="1" fill="#2B2118" opacity=".3"/><circle cx="17" cy="9" r="1.2" fill="#2B2118" opacity=".28"/></pattern></defs>
+<rect width="${W}" height="${gy}" fill="var(--sky)"/><rect y="${gy}" width="${W}" height="${H-gy}" fill="${kcol(55)}"/><rect y="${gy}" width="${W}" height="${H-gy}" fill="url(#hx)"/>
+<rect x="${X(-.3)}" y="${Y(2.9)}" width="${W}" height="${r3(.86*s)}" fill="var(--gls)" stroke="var(--trk2)" stroke-width="5"/><rect x="${X(-.4)}" y="${Y(2.04)}" width="${W}" height="${r3(.8*s)}" fill="var(--trk)"/><rect x="${X(-.44)}" y="${Y(1.24)}" width="${W}" height="${r3(.66*s)}" fill="var(--stl)"/>
+<circle cx="${X(0)}" cy="${Y(rr)}" r="${rr*s}" fill="var(--tyre)" opacity=".16"/><circle cx="${X(0)}" cy="${Y(rr)}" r="${rr*s}" fill="none" stroke="var(--tyre)" stroke-width="2" stroke-dasharray="7 5" opacity=".55"/><circle cx="${X(0)}" cy="${Y(rr)}" r="${rr*s*.15}" fill="var(--tyre)" opacity=".45"/>
+${need}<line x1="${X(xb[0]+.7)}" y1="${Y(by)}" x2="-10" y2="${Y(by)}" stroke="var(--plg)" stroke-width="13" stroke-linecap="round"/><path d="M${X(B[0])},${Y(yB)} L${X(Fp[0])},${Y(Fp[1])} L${X(xb[0]+.68)},${Y(by+.08)} L${X(xb[0]+.68)},${Y(by-.08)}Z" fill="var(--plg)"/>${bodies}
+${ln(cyA,cm,11,'var(--trk2)')}${ln(cm,cyB,5,'var(--rim)')}${ln(A,B,8)}${ln(C,D,9,'var(--trk)')}${ln(D,M,5)}${ln(E,Fp,6)}${pin(A)}${pin(B)}${pin(C,6.5,o.sens?'var(--am)':0)}${pin(D,3.5)}${pin(M,3.5)}${pin(E)}${pin(Fp)}${stop}${gA}
+${o.lbl?mk(A,B,1,.5,5,17)+mk(E,Fp,2,.3,8,-15)+mk(C,D,3,.8,-4,-18)+mk(D,M,4,.55,-18,0)+mk(cyA,cyB,5,.3,18,4):''}
+<line x1="0" x2="${W}" y1="${gy}" y2="${gy}" stroke="#2B2118" stroke-width="1.2"/></svg>`}
+
+/* Стрілковий прилад (крок 1) */
+function gauge(v,mn,mx,z0,z1,txt){const cx=80,cy=74,r=58,ang=x=>Math.PI*(1-cl((x-mn)/(mx-mn),0,1)),pt=(x,rr)=>[cx+rr*Math.cos(ang(x)),cy-rr*Math.sin(ang(x))],arc=(a,b,c,w)=>{const p=pt(a,r),q=pt(b,r);return`<path d="M${p[0].toFixed(1)},${p[1].toFixed(1)} A${r},${r} 0 0 1 ${q[0].toFixed(1)},${q[1].toFixed(1)}" fill="none" stroke="${c}" stroke-width="${w}"/>`};
+let tk='';for(let i=0;i<=4;i++){const x=mn+(mx-mn)*i/4,p=pt(x,r+11);tk+=`<text x="${p[0].toFixed(1)}" y="${(p[1]+3).toFixed(1)}" font-size="9" text-anchor="middle" fill="var(--sub)">${F(Math.round(x*10)/10)}</text>`}
+const nd=v==null?null:pt(v,r-8);
+return`<svg viewBox="0 0 160 98" role="img" aria-label="Прилад: ${txt}">${arc(mn,mx,'var(--ln)',9)}${arc(z0,z1,'var(--ac)',9)}${tk}${nd?`<line x1="${cx}" y1="${cy}" x2="${nd[0].toFixed(1)}" y2="${nd[1].toFixed(1)}" stroke="var(--ink)" stroke-width="2.6" stroke-linecap="round"/>`:''}<circle cx="${cx}" cy="${cy}" r="5" fill="var(--ink)"/><text x="${cx}" y="94" font-size="13" font-weight="700" text-anchor="middle" fill="var(--ink)">${txt}</text></svg>`}
+
+/* ===== Перегляд проходу: сцена + лупа + прилади + графіки, керування відтворенням ===== */
+const PV={o:null,p:1,play:false,dur:14,raf:0,rul:false,hs:25,Rref:30};
+const pvIdx=x=>{const o=PV.o;let i=cl(Math.floor(x/2),0,o.length-1);while(i>0&&o[i][0]>x)i--;while(i<o.length-1&&o[i+1][0]<=x)i++;return i};
+function pvAt(x,c){const o=PV.o,i=pvIdx(x),a=o[i],b=o[Math.min(o.length-1,i+1)],f=b[0]>a[0]?cl((x-a[0])/(b[0]-a[0]),0,1):0;return a[c]+(b[c]-a[c])*f}
+const pvDepth=x=>pvAt(x,1);
+function pvHTML(){return`<div class="fig"><div id="sc"></div><div class="cap">Вид збоку, масштаб однаковий по обох осях: глибина оранки тут справді в десятки разів менша за довжину агрегату. Стрілка R — тяговий опір плуга, її довжина пропорційна силі. Колеса обертаються швидше, ніж рухається ґрунт, рівно настільки, наскільки вони буксують.</div></div>
+<div class="pvw"><div class="fig lp"><svg id="lp" viewBox="0 0 ${LP.W} ${LP.H}" role="img" aria-label="Останній корпус плуга, збільшено"></svg><div class="cap">Лупа: останній корпус. По вертикалі збільшено, поділка лінійки 5 см.</div></div>
+<div><div class="gs"><div class="gt"><span>Глибина, см</span><b id="g_h">—</b><div class="mt"><s style="left:33.3%;width:33.3%"></s><u id="g_hm" style="left:50%"></u></div></div>
+<div class="gt"><span>Опір R, кН</span><b id="g_R">—</b><div class="mt"><i id="g_Rm"></i></div></div>
+<div class="gt"><span>Двигун, %</span><b id="g_ld">—</b><div class="mt"><i id="g_ldm"></i><u style="left:76.9%"></u></div></div>
+<div class="gt"><span>Букс. δ, %</span><b id="g_sl">—</b><div class="mt"><i id="g_slm"></i><u id="g_slt"></u></div></div>
+<div class="gt"><span>v, км/год</span><b id="g_v">—</b><div class="mt"><i id="g_vm"></i></div></div>
+<div class="gt"><span>Клапан</span><b id="g_vl">—</b><div class="mt"><i id="g_vlm" style="left:50%"></i><u style="left:50%"></u></div></div></div>
+<div class="pc np"><button class="p sm" id="pv_b" onclick="pvToggle()">▶ Пуск</button><button class="g sm" onclick="pvSeek(0)">На початок</button><button class="g sm" onclick="pvSeek(1)">У кінець</button><select id="pv_s" onchange="PV.dur=+this.value" aria-label="Швидкість перегляду"><option value="32">повільно</option><option value="14" selected>звичайно</option><option value="6">швидко</option></select></div>
+<input type="range" class="np" id="pv_r" min="0" max="1000" value="1000" oninput="pvSeek(this.value/1000)" aria-label="Положення агрегату на гоні">
+<p class="note np">Перетягніть повзунок або ведіть курсором по графіках — агрегат стане в цю точку гону.</p></div></div>
+<div class="ch" id="c1"></div><div class="ch" id="c2"></div>`}
+function pvBind(o,cfg){cancelAnimationFrame(PV.raf);PV.play=false;PV.o=o;PV.cfg=cfg=cfg||{};PV.V=cfg.V||V;PV.hs=cfg.hs||V.hag;PV.thr=cfg.thr==null?S.thr:cfg.thr;
+PV.b=cfg.b||bT();PV.R0=.12*V.a.pm*9.81/1000;PV.Rref=PV.V.km*PV.b*PV.hs/100+PV.R0;
+/* кут повороту ведучого колеса: за метр шляху колесо проходить 1/(1−δ) м по ободу — буксування видно на очах */
+const g=geom();PV.th=[0];for(let i=1;i<o.length;i++)PV.th.push(PV.th[i-1]+(o[i][0]-o[i-1][0])/(g.rr*(1-cl(o[i][3],0,90)/100)));
+sceneBuild($('sc'));pvCharts();pvSeek(cfg.auto&&!matchMedia('(prefers-reduced-motion:reduce)').matches?0:1);if(cfg.auto&&!matchMedia('(prefers-reduced-motion:reduce)').matches)pvToggle()}
+function pvCharts(){const o=PV.o,cfg=PV.cfg,hs=PV.hs,K=cfg.kOf||(x=>PV.V.k[cl(Math.floor(x),0,PV.V.L-1)]);
+drawChart($('c1'),{h:190,xMax:PV.V.L,y0:hs-8,y1:hs+8,inv:1,ticks:4,secs:PV.V.secs,bands:[[hs-2,hs+2]],aria:'Профіль глибини оранки вздовж гону',
+leg:[['глибина, см (нижче — глибше)','var(--wn)'],...(cfg.ghost?[[cfg.ghostName||'попередня спроба','var(--sub)','4 3']]:[]),['допуск ±2 см','var(--ac)','band'],...(cfg.dots&&cfg.dots.length?[['ваші заміри','var(--ink)','dot']]:[])],
+ser:[...(cfg.ghost?[{p:cfg.ghost,c:'var(--sub)',d:'4 3',w:1.4}]:[]),{p:o.map(p=>[p[0],p[1]]),c:'var(--wn)',w:2.1}],dots:cfg.dots,marks:cfg.noStones?[]:stones(),
+tip:x=>`<b>${Math.round(x)} м</b><br>глибина ${F(pvAt(x,1),1)} см<br>k ≈ ${Math.round(K(x))} кПа (${soil(K(x))})`,scrub:x=>pvSeekX(x),click:cfg.click});
+const mxl=Math.max(120,Math.ceil(Math.max(...o.map(p=>p[2]))/20)*20);
+drawChart($('c2'),{h:150,xMax:PV.V.L,y0:0,y1:mxl,ticks:mxl/20>7?4:mxl/20,secs:PV.V.secs,aria:'Завантаження двигуна і буксування вздовж гону',
+leg:[['завантаження двигуна, %','var(--ac)'],['буксування, %','var(--am)']],hl:[[100,'var(--wn)','межа 100 %'],[PV.thr,'var(--am)','поріг Slip']],
+ser:[{p:o.map(p=>[p[0],p[2]]),c:'var(--ac)'},{p:o.map(p=>[p[0],p[3]]),c:'var(--am)'}],
+tip:x=>`<b>${Math.round(x)} м</b><br>двигун ${Math.round(pvAt(x,2))} %<br>буксування ${F(pvAt(x,3),1)} %<br>швидкість ${F(pvAt(x,4),1)} км/год`,scrub:x=>pvSeekX(x)})}
+function pvSeekX(x){const o=PV.o,xe=o[o.length-1][0];pvSeek(cl(x/xe,0,1))}
+function pvSeek(p){PV.p=cl(+p,0,1);pvDraw()}
+function pvToggle(){if(!PV.o)return;if(PV.play){PV.play=false;cancelAnimationFrame(PV.raf)}else{if(PV.p>=1)PV.p=0;PV.play=true;PV.t0=0;PV.raf=requestAnimationFrame(pvTick)}pvBtn()}
+function pvBtn(){const b=$('pv_b');if(b)b.textContent=PV.play?'⏸ Пауза':'▶ Пуск'}
+function pvTick(t){if(!PV.play||!$('sc_svg'))return;if(PV.t0)PV.p=Math.min(1,PV.p+(t-PV.t0)/1000/PV.dur);PV.t0=t;pvDraw();if(PV.p>=1){PV.play=false;pvBtn()}else PV.raf=requestAnimationFrame(pvTick)}
+function pvDraw(){const o=PV.o;if(!o||!$('sc_svg'))return;const xe=o[o.length-1][0],x=PV.p*xe,i=pvIdx(x),a=o[i],b=o[Math.min(o.length-1,i+1)],f=b[0]>a[0]?cl((x-a[0])/(b[0]-a[0]),0,1):0,L=c=>a[c]+(b[c]-a[c])*f,
+d=L(1),ld=L(2),sl=L(3),v=L(4),th=PV.th[i]+(PV.th[Math.min(o.length-1,i+1)]-PV.th[i])*f,xi=cl(Math.floor(x),0,PV.V.L-1),K=PV.cfg.kOf?PV.cfg.kOf(x):PV.V.k[xi];
+let R=K*PV.b*d/100+PV.R0;if(PV.V.stone[xi]&&!PV.cfg.noStones)R*=1.5;
+/* напрям руху навіски: зміна положення плуга відносно трактора (глибина + рельєф) */
+const hh=x2=>pvDepth(x2)+zAt(x2),dh=hh(Math.min(xe,x+1))-hh(Math.max(0,x-1));
+const q={x,d,ld,sl,v,th,R};sceneUpd(q);lupeUpd(q);
+const set=(id,t)=>{const e=$(id);if(e)e.textContent=t},wd=(id,p,c)=>{const e=$(id);if(e){e.style.width=cl(p,0,100)+'%';if(c)e.style.background=c}},dv=d-PV.hs;
+set('g_h',F(d,1));const hm=$('g_hm');if(hm){hm.style.left=cl(50+dv/6*50,0,99)+'%';hm.style.background=Math.abs(dv)<=2?'var(--ac)':'var(--wn)'}
+set('g_R',F(R,1));wd('g_Rm',R/PV.Rref/1.6*100,R>PV.Rref*1.25?'var(--wn)':'var(--ac)');
+set('g_ld',Math.round(ld));wd('g_ldm',ld/130*100,ld>100?'var(--wn)':'var(--ac)');
+set('g_sl',F(sl,1));wd('g_slm',sl/40*100,sl>PV.thr?'var(--wn)':'var(--am)');const stt=$('g_slt');if(stt)stt.style.left=cl(PV.thr/40*100,0,99)+'%';
+set('g_v',F(v,1));wd('g_vm',v/12*100);
+const vl=$('g_vlm');set('g_vl',Math.abs(dh)<.12?'тримає':dh>0?'опускає':'піднімає');if(vl){const w=cl(Math.abs(dh)/2*50,0,50);vl.style.width=w+'%';vl.style.left=(dh>0?50:50-w)+'%';vl.style.background=dh>0?'var(--am)':'var(--ac)'}
+const r=$('pv_r');if(r&&document.activeElement!==r)r.value=Math.round(PV.p*1000);chartPin('c1',x);chartPin('c2',x)}
+
+/* ===== Екрани ===== */
+INF.push(`<p><b>Навіщо.</b> Тут можна безпечно «зламати» налаштування й побачити наслідок. Досліди не впливають на протокол і бали: система вважається справною й відкаліброваною, а ви змінюєте один параметр за раз.</p>
+<p><b>Як працювати.</b> 1) Оберіть дослід — симулятор підкаже, що змінювати і що записати. 2) Натисніть «Закріпити для порівняння» на вихідному стані. 3) Рухайте повзунок: графік і числа перераховуються одразу, сіра лінія — закріплений стан. 4) «Записати в журнал» додає рядок у таблицю, яку переносите в зошит.</p>`);
+const info=i=>`<div class="inf np"><details ${S.infc?'':'open'} ontoggle="S.infc=!this.open;save()"><summary>${i==0?'Як влаштована система EHR':i==8?'Як читати протокол':i==LAB?'Як користуватися дослідами':'Принцип і порядок дій'}</summary>${INF[i]}</details></div>`;
+const rb=i=>`<div class="rb np"><b>Запишіть у табл. 2.4 методички (рядок ${i}, «Фактичне значення»):</b><br>${rec(i)}<br><span class="note">У колонці «Логіка» поясніть своїми словами, чому саме такі значення й на що вони впливають.</span></div>`;
+const navb=(p,nx)=>`<div class="nb np"><button class="g" onclick="go(${p})">Назад</button><button class="p" onclick="go(${nx})">Далі</button></div>`;
+const vs=x=>esc(String(x??'').replace('.',','));
+const pass=()=>{const a=V.a;return`<details class="np"><summary>Паспорт варіанта ${V.id}</summary><table class="t2">
+<tr><th>Трактор</th><td>${a.t}; номінальна потужність ${a.P} кВт; експлуатаційна маса ${F(a.M/1000)} т; радар швидкості: є</td></tr>
+<tr><th>Плуг</th><td>${a.pl}: ${a.n} корпусів по ${a.bw} см; маса ${F(a.pm/1000)} т; навішування: ${a.mt}, категорія ${a.cat}</td></tr>
+<tr><th>Поле</th><td>гін ${V.L} м; ділянок ґрунту: ${V.secs.length}; мікрорельєф ±${F(V.zr)} см; можливі кам’яні включення</td></tr>
+<tr><th>Агровимога</th><td>глибина оранки ${V.hag} см (допуск ±2 см); для розвороту потрібен підйом навіски ≥ ${V.hneed} %; рекомендована швидкість ${F(V.vr[0])}–${F(V.vr[1])} км/год</td></tr></table></details>`};
+
+function s0(){if(V){const a=V.a;return`<h2>${S.demo?'Приклад із методички: варіант '+V.id:'Ваш персональний варіант '+V.id}</h2>
+<p class="hint">${S.demo?'Усі сім кроків уже заповнено так, як у прикладі з методички. Пройдіть їх по черзі, запустіть анімацію проходу, спробуйте досліди, а потім отримайте власний варіант.':`${esc(S.reg.name)}, група ${esc(S.reg.group)}, № ${S.reg.num}. Варіант однозначно визначається цими даними.`}</p>${info(0)}
+<div class="fig"><div id="sc"></div><div class="cap">Агрегат варіанта в масштабі: ${a.t} і ${a.pl} (${a.n} корпусів по ${a.bw} см, ${a.mt}). Плуг піднято над полем.</div></div>
+<table class="t2"><tr><th>Трактор</th><td>${a.t}, ${a.P} кВт, ${F(a.M/1000)} т</td></tr><tr><th>Плуг</th><td>${a.pl} (${a.n}×${a.bw} см), ${a.mt}</td></tr><tr><th>Поле</th><td>гін ${V.L} м, ділянок ґрунту ${V.secs.length}, глибина ${V.hag} см ±2</td></tr><tr><th>Розрахунок (Завдання 4.2)</th><td>${S.demo?'у прикладі показано обидва варіанти: А і Б':'Варіант '+(V.odd?'А (непарний №)':'Б (парний №)')}</td></tr></table>
+<p class="note">Паспортні дані наближені й округлені для навчальних цілей. Вихідні дані подано в паспортних одиницях (см, м, т, кН), перераховуйте їх уважно.</p>
+<button class="p" onclick="go(1)">${S.demo?'Переглянути приклад крок за кроком':'Почати налаштування'}</button> <button class="g" onclick="go(LAB)">Досліди «що буде, якщо…»</button> <button class="g" onclick="${S.demo?'newReg()':'rs()'}">${S.demo?'Отримати свій варіант':'Інший студент / скинути'}</button>`}
+return`<h2>Реєстрація студента</h2><p class="hint">Введіть дані — симулятор видасть унікальний варіант: трактор, плуг і поле. Ті самі дані завжди дають той самий варіант.</p>
+<label for="g">Група</label><input type="text" id="g" placeholder="напр. АІ-31" autocomplete="off"><label for="p">ПІБ</label><input type="text" id="p" placeholder="Прізвище Ім’я По батькові" autocomplete="name"><label for="nn">Номер у списку групи</label><input type="number" id="nn" min="1" max="99">
+<p><button class="p" onclick="reg()">Отримати варіант</button> <button class="g" onclick="demo()">Відкрити приклад із методички</button></p>`}
+function reg(){const g=$('g').value.trim(),p=$('p').value.trim(),m=parseInt($('nn').value);if(g.length<2||p.length<5||!(m>=1&&m<=99))return alert('Заповніть групу, ПІБ і номер у списку (1–99).');S=blank();S.reg={group:g,name:p,num:m};V=mkV(S.reg);save();R()}
+function rs(){if(confirm('Скинути протокол і почати з новою реєстрацією?')){S=blank();V=null;save();R()}}
+function newReg(){S=blank();V=null;save();R();scrollTo(0,0)}
+function demo(){demoState();save();R();scrollTo(0,0)}
+
+const FIX1={p:'тиск відрегульовано, гідросистему прокачано',t:'оливу охолоджено, радіатор очищено',c:'кабель тензопальця замінено',s:'датчик положення замінено'};
+const dyn1=()=>{const fx=Object.keys(FIX1).filter(k=>S.ck[k]=='Несправність');return(fx.length?`<p class="note">Позначено як несправність, виконано ремонт: ${fx.map(k=>FIX1[k]).join('; ')}.</p>`:'')+rb(1)};
+function set1(k,v){S.ck[k]=v;save();$('dyn1').innerHTML=dyn1();navR();ds()}
+function s1(){const r=rdg(),fl=V.fl,pv=fl.press||V.rd.p,tv=fl.temp||V.rd.t,cv=fl.cable?(fl.cable=='обрив'?null:0):V.rd.r,sv=fl.pos?0:V.rd.v,
+sel=k=>`<select onchange="set1('${k}',this.value)" aria-label="Ваш висновок">${['—','Норма','Несправність'].map(o=>`<option ${S.ck[k]==o?'selected':''}>${o}</option>`).join('')}</select>`,
+card=(k,t,g,nm)=>`<div class="gc">${g}<b>${t}</b><small>${nm}</small>${sel(k)}</div>`;
+return`<h2>Крок 1. Перевірка комплектності та гідросистеми</h2><p class="hint">Зніміть показання чотирьох приладів і для кожного вузла вкажіть висновок. Зелена дуга на шкалі — норма. Якщо позначите «Несправність», вузол ремонтують. Нерозпізнана несправність залишиться в роботі й проявиться на пробному проході.</p>${info(1)}
+<div class="gg">${card('p','Тиск у гідросистемі',gauge(pv,10,26,18,21,r.p+' МПа'),'норма 18–21 МПа')}${card('t','Температура масла',gauge(tv,20,110,20,80,r.t+' °C'),'норма до 80 °C')}${card('c','Тензопальці: опір моста',gauge(cv,0,700,330,370,r.c),'норма ≈ 350 Ом')}${card('s','Датчик положення: сигнал',gauge(sv,0,5,.5,4.5,r.s),'норма 0,5–4,5 В')}</div>
+<div id="dyn1">${dyn1()}</div>`+navb(0,2)}
+
+function s2(){const tin=(k,ph)=>`<input type="text" inputmode="decimal" value="${vs(S[k])}" placeholder="${ph||''}" oninput="u('${k}',this.value);live2()">`;
+return`<h2>Крок 2. Параметри агрегату</h2><p class="hint">Внесіть параметри плуга з паспорта. Зверніть увагу на одиниці: ширину захвату система приймає в сантиметрах, масу в кілограмах.</p>${info(2)}${pass()}
+<div class="r2"><div><label>Тип навішування</label><select onchange="u('ty',this.value)">${['—','навісний','напівнавісний'].map(o=>`<option ${S.ty==o?'selected':''}>${o}</option>`).join('')}</select></div><div><label>Категорія навіски (ISO 730)</label><select onchange="u('cat',this.value)">${['—','1','2','3','4','4N'].map(o=>`<option ${S.cat==o?'selected':''}>${o}</option>`).join('')}</select></div></div>
+<div class="r2"><div><label>Кількість корпусів</label>${tin('n')}</div><div><label>Ширина захвату плуга, см</label>${tin('w','корпусів × ширина корпуса')}</div></div>
+<label>Маса плуга, кг</label>${tin('pm')}
+<div class="concl" id="lv2"></div><p class="note">Ці дані задають модель тягового опору R = k · b · h і компенсацію ваги плуга в датчиках зусилля.</p>${rb(2)}`+navb(1,3)}
+function live2(){const e=$('lv2');if(!e)return;const w=n(S.w),pm=n(S.pm);let t='';
+if(w!=null&&w>0){const b=w/100,Rr=V.km*b*V.hag/100;t+=`Перевірка розмірності: b = ${F(w)} см = ${F(b,2)} м. Тоді очікуваний тяговий опір на глибині ${V.hag} см: R = k<sub>ср</sub> · b · h = ${F(V.km,1)} · ${F(b,2)} · ${F(V.hag/100,2)} = <b>${F(Rr,1)} кН</b>.${Rr<8||Rr>140?' <span class="no">Для орного агрегату це неправдоподібно — перевірте одиниці.</span>':''}`}
+if(pm!=null&&pm>0)t+=` Вага плуга: G = m · g = ${F(pm)} · 9,81 = <b>${F(pm*9.81/1000,1)} кН</b>.${pm<150?' <span class="no">Занадто мало: масу слід ввести в кілограмах.</span>':''}`;
+e.innerHTML=t||'Тут з’явиться перевірка розмірності, щойно ви введете ширину захвату й масу.'}
+
+function s3(){const c=S.cal,bt=(k,t)=>`<button class="g" onclick="fx('${k}')">${t}${c[k]?' ✓ '+F(c[k].raw)+' %':''}</button>`;
+return`<h2>Крок 3. Калібрування крайніх положень навіски</h2><p class="hint">Підніміть навіску до упору вгору й опустіть до упору вниз (показання перестане змінюватися) і зафіксуйте обидва значення. Датчик показує сигнал у відсотках, зміщений відносно фізичного положення.</p>${info(3)}
+<div class="sb"><div class="fig"><div id="hw"></div><div class="cap">Триточкова навіска в масштабі: 1 — нижні тяги, 2 — верхня тяга, 3 — підйомний важіль (на його валу жовтий датчик положення), 4 — підйомна тяга, 5 — гідроциліндр. В упорі червоний трикутник стає яскравим, а показання датчика більше не змінюється.</div></div>
+<div class="vb"><span>сигнал датчика</span><div class="col"><i id="vbi"></i></div><b class="big" id="raw">—</b></div></div>
+<input type="range" id="sl" min="-10" max="110" step="0.5" value="${S.pos}" oninput="mv(this.value)" aria-label="Положення навіски: ліворуч — униз, праворуч — угору">
+<div class="pc"><button class="g sm" onclick="mv(+S.pos-0.5)">−0,5</button><button class="g sm" onclick="mv(+S.pos+0.5)">+0,5</button><span class="note">Повзунок: ліворуч — навіска вниз, праворуч — угору.</span></div>
+<div>${bt('U','Зафіксувати верх')}${bt('D','Зафіксувати низ')}</div><p class="note">${c.U&&c.D?'Робочий хід датчика: '+F(f1(c.U.raw-c.D.raw))+' %. На його основі контролер переводить сигнал у глибину.':'Зафіксуйте обидва крайні положення — з них визначається шкала положення.'}</p>${rb(3)}`+navb(2,4)}
+function mv(v){S.pos=+(+v).toFixed(1);const p=cl(S.pos,0,100),raw=f1(V.pOff+V.pG*p);$('raw').textContent=F(raw)+' %';$('sl').value=S.pos;$('hw').innerHTML=hitchSVG(p,{stops:1,sens:1,lbl:1});$('vbi').style.height=cl(raw,0,100)+'%';save()}
+function fx(k){const p=cl(S.pos,0,100),tg=k=='U'?100:0;if(Math.abs(p-tg)>1&&!confirm('Навіска ще не в упорі — показання продовжило б змінюватись. Доведіть до упору. Зафіксувати все одно?'))return;S.cal[k]={raw:f1(V.pOff+V.pG*p),p};save();R()}
+
+function s4(){const t=S.tare,g=V.a.pm*g_,vu=2.5+.02*.55*g,vd=2.5+.02*.1*g,st=S.hsq||'up',shown=t&&t.st==st?2.5:st=='up'?vu:vd;
+return`<h2>Крок 4. Тарування «нуля» тензопальців</h2><p class="hint">Тензопальці в шарнірах нижніх тяг вимірюють зусилля. Власна вага плуга створює «фальшивий» сигнал. Виберіть стан агрегату, зніміть показання й виконайте тарування.</p>${info(4)}
+<div class="sb"><div class="fig">${hitchSVG(st=='up'?100:53.3,{pin:1,G:st=='up'})}<div class="cap">Тензопалець стоїть у шарнірі нижньої тяги (жовте кільце). ${st=='up'?'Плуг висить на навісці: вся його вага йде через тяги.':'Плуг стоїть на ґрунті: майже всю вагу тримає ґрунт.'}</div></div>
+<div class="gc" style="flex:0 1 220px;align-self:flex-start">${gauge(shown,0,5,2.44,2.56,F(shown,2)+' В')}<b>Сигнал тензопальця</b><small>нуль датчика 2,50 В${t&&t.st==st?' · після тарування':''}</small></div></div>
+<div><button class="${st=='up'?'p':'g'}" onclick="S.hsq='up';R()">Плуг піднятий (висить на навісці)</button><button class="${st=='down'?'p':'g'}" onclick="S.hsq='down';R()">Плуг опущений на ґрунт</button></div>
+<button class="p" onclick="tareDo()">Тарувати нуль</button> ${t?`<span class="bd${t.st=='up'?'':' w'}">виконано при ${t.st=='up'?'піднятому':'опущеному'} плузі</span>`:''}${rb(4)}`+navb(3,5)}
+function tareDo(){const g=V.a.pm*g_,st=S.hsq||'up';S.tare={st,vb:(st=='down'?2.5+.02*.1*g:2.5+.02*.55*g).toFixed(2),va:'2,50'};save();R()}
+
+const TXA=['Майже позиційний режим: глибина добре тримається на нерівностях, але опір не обмежується; на твердих ділянках двигун може перевантажуватись.','Змішаний режим: компроміс між точністю глибини й захистом двигуна. Підбирайте частку за картою ґрунтів і мікрорельєфом.','Майже силовий режим: двигун захищено, але глибина «плаває» зі зміною твердості ґрунту (виглиблення на важких ділянках).'];
+const tx=v=>'→ '+TXA[v<25?0:v>75?2:1];
+function fieldMap(el){if(!el)return;const W=Math.max(280,el.clientWidth||600),H=124,ml=4,pw=W-8,X=x=>ml+x/V.L*pw;let s='';
+for(const q of V.secs){const x=X(q.x0),w=X(q.x1)-x,cx=x+w/2;s+=`<rect x="${x.toFixed(1)}" y="6" width="${w.toFixed(1)}" height="64" fill="${kcol(q.k)}" stroke="var(--soilink)" stroke-width=".8"/><text x="${cx.toFixed(1)}" y="${w>92?26:42}" font-size="12.5" font-weight="700" text-anchor="middle" fill="var(--soilink)">${w>62?'k ≈ ':''}${q.k}${w>86?' кПа':''}</text>`+(w>112?`<text x="${cx.toFixed(1)}" y="43" font-size="10.5" text-anchor="middle" fill="var(--soilink)">${soil(q.k)}</text>`:'')+(w>92?`<text x="${cx.toFixed(1)}" y="60" font-size="10.5" text-anchor="middle" fill="var(--soilink)">вологість ×${F(q.w,2)}</text>`:'')}
+const pts=[];for(let x=0;x<V.L;x+=2)pts.push(X(x).toFixed(1)+','+(90+V.z[x]/V.zr*9).toFixed(1));
+s+=`<polyline points="${pts.join(' ')}" fill="none" stroke="var(--ink)" stroke-width="1.2"/><text x="${ml}" y="${H-5}" font-size="10.5" fill="var(--sub)">0 м</text><text x="${W-4}" y="${H-5}" font-size="10.5" fill="var(--sub)" text-anchor="end">${V.L} м</text><text x="${W/2}" y="${H-5}" font-size="10.5" fill="var(--sub)" text-anchor="middle">${W>420?'профіль поверхні: ':''}мікрорельєф ±${F(V.zr)} см (висоту збільшено)</text>`;
+el.innerHTML=`<svg viewBox="0 0 ${W} ${H}" height="${H}" role="img" aria-label="Карта ґрунтів і профіль поверхні гону">${s}</svg>`}
+function s5(){return`<h2>Крок 5. Режим регулювання та поріг буксування</h2><p class="hint">Оберіть частку силового сигналу (Mix) за картою ґрунтів і мікрорельєфом та поріг буксування, за якого плуг піднімається. Мета — стабільна глибина без перевантаження двигуна.</p>${info(5)}
+<div class="fig"><div id="fm"></div><div class="cap">Карта гону (${V.L} м): що темніша ділянка, то твердіший ґрунт; середній k<sub>ср</sub> ≈ ${F(V.km,1)} кПа. Чим більший розкид k між ділянками, тим менше доцільна силова частка; чим сильніший мікрорельєф, тим більше вона потрібна.</div></div>
+<label>Частка силового сигналу (Mix)</label><div class="mix" id="mxb"><i style="width:${S.al}%">${mixT(S.al,'силовий')}</i><i style="width:${100-S.al}%">${mixT(100-S.al,'позиційний')}</i></div>
+<input type="range" min="0" max="100" step="5" value="${S.al}" oninput="setMix(+this.value)" aria-label="Частка силового сигналу, відсотків"><div class="note" id="hal">${tx(S.al)}</div>
+<label>Поріг буксування (Slip), %</label><input type="number" min="5" max="40" value="${S.thr}" oninput="u('thr',this.value);S.v5=1" style="max-width:160px"><p class="note">Коли буксування за даними радара перевищує поріг, плуг трохи піднімається. Занадто низький поріг дає часті підйоми, занадто високий — втрати палива й ущільнення ґрунту.</p>${rb(5)}`+navb(4,6)}
+const mixT=(v,t)=>v>=38?t+' '+v+' %':v>=10?v+' %':'';
+function setMix(v){S.al=v;S.v5=1;const b=$('mxb').children;b[0].style.width=v+'%';b[0].textContent=mixT(v,'силовий');b[1].style.width=(100-v)+'%';b[1].textContent=mixT(100-v,'позиційний');$('hal').textContent=tx(v);save();ds()}
+
+const txv=v=>'→ '+(v<35?'Повільне заглиблення: агрегат довго виходить на глибину.':v>85?'Удари при опусканні: перерегулювання на початку гону.':'Плавний вихід на глибину.'),txu=v=>'→ '+(v<V.hneed?'Не вистачить висоти підйому для розвороту.':v>V.hneed+10?'Зайвий хід: більше навантаження на механізм підйому.':'Достатній підйом для розвороту.');
+/* Заглиблення на початку гону: та сама модель, але рівне однорідне поле — щоб було видно лише вплив швидкості опускання */
+function entry(){const hs=n(S.hz)||V.hag,Vf=Object.assign({},V,{z:V.z.map(()=>0),stone:V.stone.map(()=>0),k:V.k.map(()=>V.km),w:V.w.map(()=>1)}),
+o=sim4(Vf,{v:V.vc,Gs:5,Dd:3,al:0,thr:100,hset:hs,vdn:S.vd,recUp:rawU(),recDown:rawD(),dF:0,fl:{press:0,temp:0,cable:0,pos:0},bEnt:bT(),seed:11}).filter(p=>p[0]<=80);
+let xin=null,ov=0;for(const p of o){if(xin==null&&Math.abs(p[1]-hs)<=2)xin=p[0];ov=Math.max(ov,p[1]-hs)}return{o,hs,xin,ov}}
+function post6(){const e=entry();drawChart($('c6'),{h:170,xMax:80,y0:0,y1:40,inv:1,ticks:4,bands:[[e.hs-2,e.hs+2]],aria:'Заглиблення плуга на початку гону',leg:[['глибина на перших 80 м гону, см','var(--wn)'],['допуск ±2 см','var(--ac)','band']],ser:[{p:e.o.map(p=>[p[0],p[1]]),c:'var(--wn)',w:2.2}],tip:x=>`<b>${Math.round(x)} м</b>`});
+$('e6').innerHTML=`Плуг опускається зі швидкістю до <b>${F(6*S.vd/100,1)} см/с</b> і входить у допуск через <b>${e.xin==null?'понад 80':e.xin} м</b> від початку гону (рівне однорідне поле, справна система).${S.vd>80?' Понад 5 см/с корпуси вже б’ють об ґрунт.':S.vd<40?' Перші метри гону зорано мілко.':''}`;$('hw6').innerHTML=hitchSVG(S.ul,{need:V.hneed})}
+function s6(){return`<h2>Крок 6. Глибина, швидкість опускання, верхній ліміт</h2><p class="hint">Задайте цільову глибину за агровимогою, темп опускання на початку гону та обмеження підйому для розвороту.</p>${info(6)}${pass()}
+<label>Задана глибина h_зад, см</label><input type="text" inputmode="decimal" value="${vs(S.hz)}" oninput="u('hz',this.value);post6()" style="max-width:160px">
+<label>Швидкість опускання: <b id="vv">${S.vd}</b> %</label><input type="range" min="10" max="100" step="5" value="${S.vd}" oninput="S.vd=+this.value;$('vv').textContent=this.value;$('hv2').textContent=txv(this.value);save();ds();post6()"><div class="note" id="hv2">${txv(S.vd)}</div>
+<div class="ch" id="c6"></div><p class="note" id="e6"></p>
+<label>Верхнє обмеження підйому: <b id="vu">${S.ul}</b> %</label><input type="range" min="50" max="100" step="1" value="${S.ul}" oninput="S.ul=+this.value;$('vu').textContent=this.value;$('hu').textContent=txu(this.value);save();ds();$('hw6').innerHTML=hitchSVG(S.ul,{need:V.hneed})"><div class="note" id="hu">${txu(S.ul)}</div>
+<div class="fig" style="max-width:460px"><div id="hw6"></div><div class="cap">Положення навіски на верхньому ліміті. Жовта лінія — рівень носків корпусів, потрібний для розвороту.</div></div>${rb(6)}`+navb(5,7)}
+
+function adv(){const l=S.tr.last,s=l.st,o=own(),a=[],f=fe();
+if(f.cable||f.pos||f.press||f.temp)a.push('Є невизнані несправності з кроку 1: перевірте показання тиску, оливи, тензопальців і датчика положення.');
+if(s.ov>5)a.push(`Двигун перевантажено на ${s.ov} % шляху: збільште частку силового сигналу (Mix) або зменшіть швидкість.`);
+if(s.sm>20)a.push(`Буксування досягає ${F(s.sm,1)} %: перегляньте поріг Slip (крок 5) або швидкість.`);
+if(s.ch>1.8)a.push('Клапан працює ривками (автоколивання): зменште чутливість або підвищте демпфування.');
+if(l.v<V.vr[0]||l.v>V.vr[1])a.push(`Швидкість поза рекомендованою (${F(V.vr[0])}–${F(V.vr[1])} км/год).`);
+if(s.inb<85)a.push(`За профілем у допуску ±2 см лише ${s.inb} % шляху. Подивіться, де глибина виходить за зелену смугу: на ділянках іншого ґрунту (тло графіка), на нерівностях чи всюди — і зіставте з табл. 1.4 методички.`);
+if(o&&o.k>=6){if(Math.abs(o.mu-V.hag)>1.5)a.push(`Середня глибина за замірами ${F(f1(o.mu))} см відрізняється від агровимоги ${V.hag} см: перевірте h_зад (6), калібрування положення (3), тарування (4), параметри плуга (2).`);if(o.v1>8)a.push(`Нерівномірність глибини за замірами V ≈ ${F(f1(o.v1))} %: порівняйте заміри на ділянках різного ґрунту та на нерівностях; підберіть Mix (крок 5).`)}
+else a.push('Зробіть 12–15 замірів глибини (нижче), щоб оцінити якість оранки.');
+if(a.length==0)a.push('Норма: показники в межах.');return`<div class="rb np"><b>Що показав прохід і що робити:</b><ul>${a.map(x=>`<li>${x}</li>`).join('')}</ul></div>`}
+function histTbl(){const h=S.hist||[];if(h.length<1)return'';return`<details ${h.length>1?'open':''}><summary>Журнал спроб (${h.length})</summary><div class="tw"><table class="t2 c"><tr><th>№</th><th>Mix, %</th><th>Slip, %</th><th>v, км/год</th><th>чутл.</th><th>демпф.</th><th>у допуску, %</th><th>h_ср, см</th><th>V, %</th><th>букс. макс., %</th><th>перевант., %</th></tr>
+${h.map(q=>`<tr><td>${q.n}</td><td>${q.al}</td><td>${q.thr}</td><td>${F(q.v)}</td><td>${F(q.Gs)}</td><td>${F(q.Dd)}</td><td><b>${q.inb}</b></td><td>${F(q.m,1)}</td><td>${F(q.cv,1)}</td><td>${F(q.sm,1)}</td><td>${q.ov}</td></tr>`).join('')}</table></div><p class="note">Показники в журналі пораховано за всім гоном (не за вашими замірами). Сіра штрихова лінія на профілі — попередня спроба.</p></details>`}
+function chk7(){const o=own(),t=S.tr,e=$('k7');if(!e||!o)return;const a=n(t.mean),b=n(t.sd),d=n(t.cv),m=(v,ok)=>v==null?'—':ok?'<span class="ok">✓</span>':'<span class="no">✗</span>';
+e.innerHTML=o.k>15?`<span class="no">Замірів ${o.k}: для статистики залиште 12–15.</span>`:`Перевірка обчислень: h_ср ${m(a,Math.abs(a-o.mu)<=.15)} · σ ${m(b,Math.min(Math.abs(b-o.s1),Math.abs(b-o.s0))<=.15)} · V ${m(d,Math.min(Math.abs(d-o.v1),Math.abs(d-o.v0))<=.5)}${b!=null&&Math.abs(b-o.s1)>.15&&Math.abs(b-o.s0)<=.15?' <span class="note">(σ пораховано з n у знаменнику; у методичці — n − 1, обидва варіанти приймаються)</span>':''}`}
+const TXS={Gs:['Мала чутливість: плуг повільно відпрацьовує нерівності й зміну ґрунту.','Помірна чутливість: баланс швидкості реакції та плавності.','Велика чутливість: клапан працює ривками, глибина «гуляє» вгору-вниз (автоколивання).'],Dd:['Без демпфування: коливання гаснуть повільно.','Достатнє демпфування: коливання швидко затухають.','Забагато: реакція на кожен шум сигналу, ривки клапана.']};
+const txs=(k,v)=>'→ '+TXS[k][v<2.5?0:v>7.5?2:1];
+function s7(){const t=S.tr,l=t.last,sl=(k,x)=>`<div><label>${x}: <b id="v${k}">${F(t[k])}</b></label><input type="range" min="0" max="10" step="0.5" value="${t[k]}" oninput="S.tr.${k}=+this.value;$('v${k}').textContent=F(+this.value);$('h${k}').textContent=txs('${k}',this.value);save()"><div class="note" id="h${k}">${txs(k,t[k])}</div></div>`;
+let r='';if(l){r=`<h3>Прохід № ${t.n}: що відбувалося на гоні</h3>${pvHTML()}${adv()}${histTbl()}
+<h3>Заміри глибини борозни лінійкою</h3><p class="note">Зробіть 12–15 замірів (похибка лінійки ±0,5 см): клацайте на профілі глибини або вводьте відстань. Потім обчисліть h_ср, σ (вибіркове стандартне відхилення) та коефіцієнт варіації V = σ / h_ср · 100 % і внесіть у поля.</p>
+<div class="pc np"><button class="g sm ${PV.rul?'on':''}" onclick="PV.rul=!PV.rul;R()">${PV.rul?'Лінійка ввімкнена: клацайте на профілі глибини':'Заміряти клацанням на профілі'}</button><input type="text" inputmode="decimal" id="mx" placeholder="або відстань від початку гону, м" style="max-width:250px"><button class="g sm" onclick="mx()">Заміряти</button><button class="g sm" onclick="mauto()">Авто: 12 точок</button><button class="g sm" onclick="mclr()">Очистити</button></div>
+${t.m.length?`<div class="tw"><table class="t2 c"><tr><th>x, м</th>${t.m.map(p=>`<td>${p[0]}</td>`).join('')}</tr><tr><th>h, см</th>${t.m.map(p=>`<td><b>${F(p[1])}</b></td>`).join('')}</tr></table></div>`:''}
+${t.m.length>=12?`<div class="r3"><div><label>h_ср, см</label><input type="text" inputmode="decimal" value="${vs(t.mean)}" oninput="S.tr.mean=this.value;save();chk7()"></div><div><label>σ, см</label><input type="text" inputmode="decimal" value="${vs(t.sd)}" oninput="S.tr.sd=this.value;save();chk7()"></div><div><label>V, %</label><input type="text" inputmode="decimal" value="${vs(t.cv)}" oninput="S.tr.cv=this.value;save();chk7()"></div></div><p class="note" id="k7"></p>`:`<p class="note">Для розрахунку потрібно щонайменше 12 замірів (зараз ${t.m.length}).</p>`}`}
+return`<h2>Крок 7. Пробний прохід і підстроювання</h2><p class="hint">Задайте швидкість, налаштуйте чутливість і демпфування, запустіть прохід. Мета — відхилення глибини не більше ±2 см і V ≤ 10 %. Рекомендована швидкість: ${F(V.vr[0])}–${F(V.vr[1])} км/год.</p>${info(7)}${pass()}
+<div class="r3"><div><label>Швидкість, км/год</label><input type="text" inputmode="decimal" value="${vs(t.v)}" oninput="S.tr.v=this.value;save();ds()"></div>${sl('Gs','Чутливість регулятора')}${sl('Dd','Демпфування')}</div>
+<button class="p" onclick="run()">${l?'Повторити прохід':'Почати пробний прохід'}</button> <span class="note">спроб: ${t.n}</span>${r}${rb(7)}`+navb(6,8)}
+function post7(){const l=S.tr.last;if(!l)return;pvBind(l.o,{hs:V.hag,ghost:S.prev,dots:S.tr.m,auto:AN,click:x=>{ms(x);R()}});AN=0;chk7()}
+
+function loop(){const r=score(),col=x=>x==null?'var(--sub)':x>=.85?'var(--ac)':x>=.6?'var(--am)':'var(--wn)',a=V.a,
+B=[[6,62,128,'Задавальний вплив','задавач h_зад',vs(S.hz||'—')+' см / '+S.vd+' %',r[5]/10],[236,62,128,'Регулятор','ECU (ПІД)','чутл. '+F(S.tr.Gs)+' / демпф. '+F(S.tr.Dd),r[6]/30],[408,62,128,'Вик. механізм','клапан + циліндр',(rdg().p)+' МПа',r[0]/8],[580,62,128,'Об’єкт керування',a.pl.split(' ').slice(0,2).join(' '),'h = '+V.hag+' см',r[1]/10],[290,190,180,'Датчики зв’язку','тензопальці + датчик положення','нуль F / хід навіски',(r[2]+r[3])/27]],
+bx=b=>`<rect x="${b[0]}" y="${b[1]}" width="${b[2]}" height="62" rx="7" fill="${col(b[6])}" fill-opacity=".22" stroke="${col(b[6])}" stroke-width="2"/><text x="${b[0]+b[2]/2}" y="${b[1]+20}" text-anchor="middle" font-size="12" font-weight="700" fill="var(--ink)">${b[3]}</text><text x="${b[0]+b[2]/2}" y="${b[1]+37}" text-anchor="middle" font-size="11" fill="var(--ink)">${b[4]}</text><text x="${b[0]+b[2]/2}" y="${b[1]+53}" text-anchor="middle" font-size="11" fill="var(--sub)">${b[5]}</text>`,
+ar=d=>`<path d="${d}" fill="none" stroke="var(--ink)" stroke-width="1.7" marker-end="url(#ah)"/>`,t=(x,y,s,an)=>`<text x="${x}" y="${y}" font-size="11" fill="var(--sub)" text-anchor="${an||'middle'}">${s}</text>`,c0=col(r[4]/15);
+return`<div class="tw"><svg viewBox="0 0 760 290" style="min-width:640px;width:100%;display:block" role="img" aria-label="Блок-схема замкненого контуру"><defs><marker id="ah" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0L8,4L0,8z" fill="var(--ink)"/></marker></defs>${B.map(bx).join('')}<circle cx="180" cy="93" r="16" fill="${c0}" fill-opacity=".22" stroke="${c0}" stroke-width="2"/><path d="M172,85L188,101M188,85L172,101" stroke="var(--ink)" stroke-width="1.4"/>
+${ar('M134,93H162')}${ar('M196,93H234')}${ar('M364,93H406')}${ar('M536,93H578')}${ar('M708,93H754')}${ar('M644,20V60')}${ar('M644,124V221H472')}${ar('M290,221H180V111')}
+${t(148,84,'h_зад')}${t(215,84,'e')}${t(385,84,'u')}${t(557,84,'p')}${t(731,84,'h')}${t(193,124,'−')}${t(100,148,'суматор: Mix '+S.al+'/'+(100-S.al)+', Slip '+S.thr+' %')}${t(752,13,'збурення: ґрунт k, мікрорельєф, камені','end')}${t(380,272,'зворотний зв’язок: сила F, положення p')}
+</svg></div><p class="note">Колір блоку — якість налаштування відповідних кроків: зелений ≥ 85 %, жовтий ≥ 60 %, червоний нижче.</p>`}
+function diag(){const d=[],l=S.tr.last,f=fe();if(V.fl.cable&&f.cable)d.push('Відсутня реакція на зміну тягового опору: несправність тензопальців не усунуто (крок 1).');if(V.fl.pos&&f.pos)d.push('Немає позиційного сигналу: несправний датчик положення (крок 1).');if(V.fl.press&&f.press)d.push('Гідросистема працює повільно через відхилення тиску (крок 1).');if(V.fl.temp&&f.temp)d.push('Перегріта олива збільшує запізнення клапана (крок 1).');
+if(!S.tare)d.push('Нуль тензопальців не тарований: систематична похибка зусилля (крок 4).');else if(S.tare.st=='down')d.push('Тарування виконано при опущеному плузі: у зусиллі лишилась частина ваги плуга (крок 4).');
+if(!(S.cal.U&&S.cal.D))d.push('Не відкалібровано крайні положення навіски: хибна шкала глибини (крок 3).');
+if(Math.abs((n(S.pm)??0)-V.a.pm)/V.a.pm>.03||Math.abs((n(S.w)??0)-V.a.n*V.a.bw)>2)d.push('Хибні маса або ширина захвату плуга: зміщення опорного зусилля (крок 2).');
+if(Math.abs(S.al-V.alOpt)>20)d.push(S.al>V.alOpt?'Завелика частка силового: глибина «плаває» зі зміною ґрунту, виглиблення на твердих ділянках (крок 5).':'Замала частка силового: двигун перевантажується на твердих ділянках / глибина реагує на нерівності (крок 5).');
+if(l){const s=l.st;if(s.ov>5)d.push(`Двигун перевантажено на ${s.ov} % шляху.`);if(s.sm>20)d.push(`Високе буксування (макс. ${F(s.sm,1)} %): перевірте поріг Slip.`);if(s.ch>1.8)d.push('Автоколивання клапана: занадто висока чутливість або мало демпфування.');if(Math.abs(s.m-V.hag)>1.5)d.push(`Систематична похибка глибини ${F(f1(s.m-V.hag))} см відносно агровимоги (кроки 2–4, 6).`);
+const sc=V.secs.map(q=>{const a=l.o.filter(p=>p[0]>=Math.max(q.x0,40)&&p[0]<q.x1);return a.length?a.reduce((x,p)=>x+p[1],0)/a.length:null});V.secs.forEach((q,i)=>{if(sc[i]!=null&&q.k>V.km*1.1&&sc[i]<V.hag-1.5)d.push(`Виглиблення на твердій ділянці ${i+1} (k≈${q.k} кПа): середня глибина ${F(f1(sc[i]))} см.`)})}
+return d}
+function drawHist(el,l){if(!el)return;const a=l.o.filter(p=>p[0]>40),lo=V.hag-8,B=Array(16).fill(0);a.forEach(p=>{const i=Math.floor(p[1]-lo);if(i>=0&&i<16)B[i]++});const mx=Math.max(...B,1),W=Math.max(280,el.clientWidth||600),H=150,bw=(W-50)/16;
+el.innerHTML=`<svg viewBox="0 0 ${W} ${H}" height="${H}" role="img" aria-label="Розподіл глибини">${B.map((c,i)=>{const d=lo+i+.5,ok=Math.abs(d-V.hag)<=2,h=c/mx*100;return`<rect x="${(40+i*bw+1).toFixed(1)}" y="${(122-h).toFixed(1)}" width="${(bw-2).toFixed(1)}" height="${h.toFixed(1)}" fill="${ok?'var(--ac)':'var(--wn)'}" opacity=".8"/>${c?`<text x="${(40+i*bw+bw/2).toFixed(1)}" y="${(118-h).toFixed(1)}" font-size="9.5" text-anchor="middle" fill="var(--sub)">${Math.round(c/a.length*100)}%</text>`:''}${i%2==0||W>520?`<text x="${(40+i*bw).toFixed(1)}" y="138" font-size="10.5" text-anchor="middle" fill="var(--sub)">${Math.round(lo+i)}</text>`:''}`}).join('')}<line x1="40" x2="${W-10}" y1="122" y2="122" stroke="var(--ln)"/><text x="${W-10}" y="148" font-size="10.5" text-anchor="end" fill="var(--sub)">глибина, см</text><text x="4" y="12" font-size="10.5" fill="var(--sub)">частка шляху; зелені стовпці — в допуску ±2 см від ${V.hag} см</text></svg>`}
+function c42Row(k,t,ref,ta){return`<div><label>${t} <span id="q_${k}"></span></label><input type="text" inputmode="decimal" value="${vs((S.c42||{})[k])}" oninput="(S.c42=S.c42||{}).${k}=this.value;save();chk42()"></div>`}
+const C42={A:[['p1','p₁, %','p1',.15],['p2','p₂, %','p2',.15],['dG','ΔG, л/га','dG',.03],['E','E, грн/рік','E',0],['T','T, років','T',.15]],B:[['v1','v₁, км/год','v1',.06],['W1','W₁, га/год','W1',.015],['W2','W₂, га/год','W2',.015],['dW','приріст ΔW, %','dW',.25],['D1','D₁, днів','D1',.25],['D2','D₂, днів','D2',.25]]};
+function chk42(){const c=calc42();if(!c)return;for(const r of C42[V.odd?'A':'B']){const e=$('q_'+r[0]);if(!e)continue;const x=n((S.c42||{})[r[0]]),ref=c[r[2]];e.innerHTML=x==null?'':ref==null?'':Math.abs(x-ref)<=Math.max(r[3],.02*Math.abs(ref))?'<span class="ok">✓</span>':'<span class="no">✗</span>'}}
+function c42HTML(){const c=calc42(),l=S.tr.last;if(!c)return'<p class="note">Дані з’являться після пробного проходу.</p>';
+const dA=`S = ${V.S} га; G₀ = ${V.G0} л/га; C = ${V.C} грн/л; h_зад = ${F(c.h)} см; Δh_без = ${F(c.d0,1)} см; Δh_з = ${F(c.d1,1)} см; C_EHR = ${V.CE.toLocaleString('uk-UA')} грн`,
+dB=`B = ${F(c.B,2)} м; τ = ${F(V.tau)}; t = ${V.tz} год; S = ${V.S} га; h_зад = ${F(c.h)} см; Δh_без = ${F(c.d0,1)} см; Δh_з = ${F(c.d1,1)} см; v₂ = ${F(c.v2,1)} км/год`,
+note=`<p class="note">Δh — середнє абсолютне відхилення глибини від агровимоги на всьому гоні: «без» — силовий режим 100 % з типовими настройками, «з» — ваш останній прохід. v₂ — фактична середня швидкість вашого проходу.</p>`;
+if(S.demo)return`<p><b>Варіант А.</b> ${dA}.</p><p class="note">p₁ = ${F(c.d0,1)} / ${F(c.h)} · 100 = ${F(c.p1,3)} %; p₂ = ${F(c.d1,1)} / ${F(c.h)} · 100 = ${F(c.p2,3)} %; ΔG = ${V.G0} · (${F(c.p1,3)} − ${F(c.p2,3)}) / 100 = ${F(c.dG,3)} л/га; E = ${V.S} · ${F(c.dG,3)} · ${V.C} ≈ ${(Math.round(c.E/10)*10).toLocaleString('uk-UA')} грн/рік; T = ${V.CE.toLocaleString('uk-UA')} / ${(Math.round(c.E/10)*10).toLocaleString('uk-UA')} ≈ ${F(c.T,1)} року.</p>
+<p><b>Варіант Б.</b> ${dB}.</p><p class="note">v₁ = ${F(c.v2,1)} · (${F(c.h)} + ${F(c.d1,1)}) / (${F(c.h)} + ${F(c.d0,1)}) = ${F(c.v1,3)} км/год; W₁ = 0,1 · ${F(c.B,1)} · ${F(c.v1,3)} · ${F(V.tau)} = ${F(c.W1,4)} га/год; W₂ = 0,1 · ${F(c.B,1)} · ${F(c.v2,1)} · ${F(V.tau)} = ${F(c.W2,4)} га/год; приріст ${F(c.dW,1)} %; D₁ = ${V.S} / (${F(c.W1,4)} · ${V.tz}) = ${F(c.D1,1)} дня; D₂ = ${V.S} / (${F(c.W2,4)} · ${V.tz}) = ${F(c.D2,1)} дня.</p>${note}`;
+const bad=c.d1>=c.d0?`<p class="no">Δh_з ≥ Δh_без: ваше налаштування тримає глибину не краще за базове, ефекту немає. Поверніться до кроку 7 і підстройте систему.</p>`:'';
+return`<p>${V.odd?'Варіант А: '+dA:'Варіант Б: '+dB}.</p>${note}${bad}<div class="np"><p class="note"><b>Самоперевірка.</b> Порахуйте за формулами методички й введіть свої результати: симулятор покаже ✓ або ✗ (допуск 2 %), але правильних чисел не підкаже.</p><div class="r3">${C42[V.odd?'A':'B'].map(r=>c42Row(...r)).join('')}</div></div>`}
+function s8(){const r=score(),tot=Math.round(r.reduce((a,b)=>a+b,0)),l=S.tr.last,dg=diag(),code=hash(JSON.stringify([S.reg,S.al,S.thr,S.hz,S.vd,tot,S.tr.n])).toString(36).toUpperCase().slice(0,7),gr=tot>=90?'відмінно':tot>=75?'добре':tot>=60?'задовільно':'потребує повторного налаштування';
+return`${S.demo?'<div class="wm">ПРИКЛАД ІЗ МЕТОДИЧКИ — не є звітом студента</div>':''}<h2>Підсумковий протокол налаштування EHR</h2>${info(8)}<table class="t2"><tr><th>Студент</th><td>${S.demo?'приклад із методички':`${esc(S.reg.name)}, група ${esc(S.reg.group)}, № ${S.reg.num}`}</td></tr><tr><th>Варіант</th><td>${V.id}: ${V.a.t} + ${V.a.pl}; поле: гін ${V.L} м, глибина ${V.hag} см ±2</td></tr><tr><th>Результат</th><td><span class="big">${tot} / 100</span> — ${gr}; спроб на кроці 7: ${S.tr.n}; ${S.demo?'код протоколу в прикладі не видається':`код протоколу: <b>${code}</b>`}</td></tr></table>
+<div class="tw"><table class="t2"><tr><th style="width:auto">Крок</th><td><b>Фактичне значення (для табл. 2.4 методички)</b></td><td style="width:74px"><b>Бали</b></td></tr>${[1,2,3,4,5,6,7].map(i=>`<tr><td>${i}. ${NM[i-1]}</td><td>${rec(i)}</td><td>${F(r[i-1])} / ${MX[i-1]}</td></tr>`).join('')}</table></div>
+${r.map((x,i)=>`<div class="bar"><span>${NM[i]}</span><i style="width:${x/MX[i]*180}px"></i> ${Math.round(x/MX[i]*100)} %</div>`).join('')}
+${l?`<h3>Профіль глибини оранки</h3><div class="ch" id="p1"></div><p class="note">Тло — ґрунтові ділянки (темніше — твердіше), трикутники — камені. У допуску: ${l.st.inb} % шляху; середня ${F(l.st.m,1)} см; σ = ${F(l.st.sd,1)} см; V = ${F(l.st.cv,1)} %.</p>
+<h3>Навантаження двигуна і буксування</h3><div class="ch" id="p2"></div><h3>Розподіл глибини</h3><div class="ch" id="p3"></div>${histTbl()}`:'<p class="note">Пробний прохід не виконано.</p>'}
+<h3>Блок-схема вашого контуру (для п. 4.1)</h3>${loop()}<h3>Діагностика (зіставте з табл. 1.4 методички)</h3>${dg.length?'<ul>'+dg.map(x=>`<li>${x}</li>`).join('')+'</ul>':'<p><span class="bd">Зауважень немає — налаштування виконано якісно.</span></p>'}
+<h3>Дані для розрахунку Завдання 4.2</h3>${c42HTML()}
+<div class="nb np"><button class="g" onclick="go(7)">До кроку 7</button><button class="p" onclick="window.print()">Друк / зберегти як PDF</button></div>`}
+function post8(){const l=S.tr.last;if(!l)return;const hs=V.hag,K=x=>V.k[cl(Math.floor(x),0,V.L-1)];PV.o=l.o;PV.V=V;
+drawChart($('p1'),{h:200,xMax:V.L,y0:hs-8,y1:hs+8,inv:1,ticks:4,secs:V.secs,bands:[[hs-2,hs+2]],aria:'Профіль глибини',leg:[['глибина, см (нижче — глибше)','var(--wn)'],['допуск ±2 см','var(--ac)','band'],...(S.tr.m.length?[['ваші заміри','var(--ink)','dot']]:[])],ser:[{p:l.o.map(p=>[p[0],p[1]]),c:'var(--wn)',w:2.1}],dots:S.tr.m,marks:stones(),tip:x=>`<b>${Math.round(x)} м</b><br>глибина ${F(pvAt(x,1),1)} см<br>k ≈ ${Math.round(K(x))} кПа`});
+const mxl=Math.max(120,Math.ceil(Math.max(...l.o.map(p=>p[2]))/20)*20);
+drawChart($('p2'),{h:160,xMax:V.L,y0:0,y1:mxl,ticks:mxl/20>7?4:mxl/20,secs:V.secs,aria:'Навантаження і буксування',leg:[['завантаження двигуна, %','var(--ac)'],['буксування, %','var(--am)']],hl:[[100,'var(--wn)','межа 100 %'],[+S.thr,'var(--am)','поріг Slip']],ser:[{p:l.o.map(p=>[p[0],p[2]]),c:'var(--ac)'},{p:l.o.map(p=>[p[0],p[3]]),c:'var(--am)'}],tip:x=>`<b>${Math.round(x)} м</b><br>двигун ${Math.round(pvAt(x,2))} %<br>буксування ${F(pvAt(x,3),1)} %`});
+drawHist($('p3'),l);chk42()}
+
+/* ===== Досліди «що буде, якщо…» ===== */
+const EXP=[['Дослід 1. Частка Mix','Поставте Mix 0 %, потім 50 % і 100 %. Запишіть для кожного: σ глибини, частку шляху в допуску й найбільше завантаження двигуна. Де з’являється виглиблення?'],
+['Дослід 2. Чутливість і демпфування','Чутливість 2 → 5 → 9 за демпфування 3. Запишіть активність клапана й частку шляху в допуску. Потім за чутливості 9 порівняйте демпфування 0 і 3, а за чутливості 7 — демпфування 3 і 10. Коли демпфування допомагає, а коли шкодить?'],
+['Дослід 3. Однорідне й строкате поле','Mix 100 %. Неоднорідність ґрунту ×0 (однорідне поле), ×1 і ×2. Запишіть σ. Чому силовий спосіб добре працює лише на однорідних ґрунтах?'],
+['Дослід 4. Помилки налаштування','Увімкніть по черзі «нуль не таровано» і «низ знято не до упору». Запишіть середню глибину: яка систематична похибка і в якому режимі (Mix 0 чи 100 %) вона більша?'],
+['Дослід 5. Поріг Slip і швидкість','Поріг Slip 10 → 20 → 35 %. Запишіть середню глибину й найбільше буксування. Потім змініть швидкість на −1 і +1 км/год.']];
+function labInit(){if(S.lab&&S.lab.id==V.id)return;S.lab={id:V.id,al:S.al,Gs:S.tr.Gs,Dd:S.tr.Dd,dv:cl(Math.round(((n(S.tr.v)||V.vc)-V.vc)*2)/2,-2,2),thr:+S.thr||15,vd:S.vd,kh:1,zh:1,f:{},exp:0,pin:null,log:[]}}
+function labField(){const L=S.lab;if(L.kh==1&&L.zh==1)return V;return Object.assign({},V,{k:V.k.map(k=>V.km+(k-V.km)*L.kh),z:V.z.map(z=>z*L.zh),secs:V.secs.map(q=>Object.assign({},q,{k:Math.round(V.km+(q.k-V.km)*L.kh)}))})}
+function labRun(){const L=S.lab,a=V.a,Vx=labField(),o=sim4(Vx,{v:V.vc+L.dv,Gs:L.Gs,Dd:L.Dd,al:L.al/100,thr:L.thr,hset:V.hag,vdn:L.vd,recUp:rawU(),recDown:rawD()+(L.f.cal?.1*V.pG*100:0),dF:L.f.tare?.55*a.pm*g_:0,fl:{press:0,temp:L.f.tmp?90:0,cable:L.f.cab?'обрив':0,pos:0},bEnt:bT(),seed:hash(V.id)+4242});
+return{o:o.map(p=>[p[0],f1(p[1]),Math.round(p[2]),f1(p[3]),f1(p[4])]),st:stats(o,V.hag),Vx}}
+let LR=null;
+function labPar(){const L=S.lab,f=Object.keys(L.f).filter(k=>L.f[k]).map(k=>({tare:'нуль не таровано',cal:'низ не до упору',cab:'обрив кабелю',tmp:'перегріта олива'}[k]));return`Mix ${L.al} %; чутл. ${F(L.Gs)}; демпф. ${F(L.Dd)}; v ${F(V.vc+L.dv)} км/год; Slip ${L.thr} %; опуск. ${L.vd} %${L.kh!=1?'; ґрунт ×'+F(L.kh):''}${L.zh!=1?'; рельєф ×'+F(L.zh):''}${f.length?'; '+f.join(', '):''}`}
+function labConcl(r){const s=r.st,L=S.lab,a=[],o=r.o,sec=r.Vx.secs.map(q=>{const w=o.filter(p=>p[0]>=Math.max(q.x0,40)&&p[0]<q.x1);return w.length?{k:q.k,d:w.reduce((x,p)=>x+p[1],0)/w.length}:null}).filter(Boolean);
+a.push(`У допуску ±2 см — <b>${s.inb} %</b> шляху; середня глибина ${F(s.m,1)} см за агровимоги ${V.hag} см; σ = ${F(s.sd,1)} см.`);
+if(sec.length>1){const hd=sec.reduce((x,y)=>y.k>x.k?y:x),sf=sec.reduce((x,y)=>y.k<x.k?y:x);if(hd.k-sf.k>=4&&sf.d-hd.d>1.2)a.push(`На твердій ділянці (k ≈ ${hd.k} кПа) середня глибина ${F(hd.d,1)} см, на м’якій (k ≈ ${sf.k} кПа) — ${F(sf.d,1)} см: `+(L.al>=40||s.inb<85?'глибина «плаває» разом із ґрунтом — ознака завеликої частки силового сигналу.':'глибина трохи слідує за ґрунтом. Це ціна захисту двигуна силовим сигналом; поки різниця в межах допуску, компроміс прийнятний.'))}
+if(s.ch>1.8)a.push(`Клапан працює ривками (активність ${F(s.ch,1)}): автоколивання — чутливість завелика або демпфування замале.`);else if(s.ch<.12&&s.sd>1.5)a.push('Клапан майже не працює: система повільно відпрацьовує збурення.');
+if(s.ov>5)a.push(`Двигун перевантажено на ${s.ov} % шляху: опір не обмежується — частка силового сигналу замала або швидкість зависока.`);
+if(Math.abs(s.m-V.hag)>1.5)a.push(`Систематична похибка глибини ${F(f1(s.m-V.hag))} см: так проявляються хибне калібрування, тарування або надто низький поріг Slip.`);
+if(s.sm>L.thr+6)a.push(`Буксування сягає ${F(s.sm,1)} % за порога ${L.thr} %: на вологих і важких ділянках агрегат працює на межі зчеплення.`);
+if(a.length==1&&s.inb>=90)a.push('Глибина стабільна, двигун не перевантажений, клапан працює спокійно.');
+if(L.pin){const p=L.pin.st;a.push(`Порівняно із закріпленим станом: σ ${F(p.sd,1)} → ${F(s.sd,1)} см, у допуску ${p.inb} → ${s.inb} %, найбільше буксування ${F(p.sm,1)} → ${F(s.sm,1)} %.`)}
+return`<div class="concl"><b>Висновок.</b><ul>${a.map(x=>`<li>${x}</li>`).join('')}</ul></div>`}
+function labTiles(r){const s=r.st,p=S.lab.pin&&S.lab.pin.st,mxld=Math.max(...r.o.filter(q=>q[0]>40).map(q=>q[2])),pm=S.lab.pin&&S.lab.pin.mx,
+t=(nm,v,u,pv,good,dc)=>{let d='';if(pv!=null&&Math.abs(v-pv)>1e-9){const up=v>pv;d=`<em class="${good==null?'':up==good?'dn':'up'}">${up?'▲':'▼'} було ${F(pv,dc)}</em>`}return`<div><span>${nm}</span><b>${F(v,dc)}${u}</b>${d}</div>`};
+return`<div class="kv">${t('у допуску ±2 см',s.inb,' %',p&&p.inb,true,0)}${t('середня глибина',s.m,' см',p&&p.m,null,1)}${t('σ глибини',s.sd,' см',p&&p.sd,false,1)}${t('коеф. варіації V',s.cv,' %',p&&p.cv,false,1)}${t('двигун, макс.',mxld,' %',pm,false,0)}${t('перевантаження',s.ov,' % шляху',p&&p.ov,false,0)}${t('буксування, макс.',s.sm,' %',p&&p.sm,false,1)}${t('активність клапана',s.ch,'',p&&p.ch,false,1)}</div>`}
+function labUpd(full){const L=S.lab;LR=labRun();const cfg={hs:V.hag,thr:L.thr,V:LR.Vx,ghost:L.pin?L.pin.o:null,ghostName:'закріплений стан',kOf:x=>LR.Vx.k[cl(Math.floor(x),0,V.L-1)]};
+if(full||!$('sc_svg'))pvBind(LR.o,cfg);else{const p=PV.p;PV.o=LR.o;PV.cfg=cfg;PV.V=LR.Vx;PV.thr=L.thr;const g=geom();PV.th=[0];for(let i=1;i<LR.o.length;i++)PV.th.push(PV.th[i-1]+(LR.o[i][0]-LR.o[i-1][0])/(g.rr*(1-cl(LR.o[i][3],0,90)/100)));pvCharts();PV.p=p;pvDraw()}
+$('lb_t').innerHTML=labTiles(LR);$('lb_c').innerHTML=labConcl(LR);$('lb_p').textContent=labPar();save()}
+function labSet(k,v){S.lab[k]=v;const e=$('lv_'+k);if(e)e.textContent=k=='dv'?F(V.vc+v):F(v);labUpd(k=='kh')}
+function labPin(){const L=S.lab;L.pin={o:LR.o.map(p=>[p[0],p[1]]),st:LR.st,mx:Math.max(...LR.o.filter(q=>q[0]>40).map(q=>q[2])),par:labPar()};labUpd();$('lb_pn').textContent='Закріплено: '+L.pin.par}
+function labLog(){const L=S.lab,s=LR.st;L.log.push({par:labPar(),inb:s.inb,m:s.m,sd:s.sd,cv:s.cv,ov:s.ov,sm:s.sm,ch:s.ch,mx:Math.max(...LR.o.filter(q=>q[0]>40).map(q=>q[2]))});if(L.log.length>24)L.log.shift();save();$('lb_l').innerHTML=labLogHTML()}
+function labLogHTML(){const g=S.lab.log;return g.length?`<div class="tw"><table class="t2 c"><tr><th>№</th><th style="text-align:left">Що задано</th><th>у допуску, %</th><th>h_ср, см</th><th>σ, см</th><th>V, %</th><th>двигун макс., %</th><th>букс. макс., %</th><th>клапан</th></tr>${g.map((q,i)=>`<tr><td>${i+1}</td><td style="text-align:left">${q.par}</td><td>${q.inb}</td><td>${F(q.m,1)}</td><td>${F(q.sd,1)}</td><td>${F(q.cv,1)}</td><td>${q.mx}</td><td>${F(q.sm,1)}</td><td>${F(q.ch,1)}</td></tr>`).join('')}</table></div><button class="g sm np" onclick="S.lab.log=[];save();$('lb_l').innerHTML=labLogHTML()">Очистити журнал</button>`:'<p class="note">Журнал порожній. Кнопка «Записати в журнал» додає сюди рядок із поточними числами — перенесіть таблицю в зошит.</p>'}
+function labReset(){const e=S.lab.exp;S.lab=null;labInit();S.lab.exp=e;S.lab.al=V.alOpt;S.lab.Gs=5;S.lab.Dd=3;S.lab.dv=0;S.lab.thr=15;S.lab.vd=60;R()}
+function s9(){labInit();const L=S.lab,sl=(k,nm,mn,mx,st,val,u)=>`<div><label>${nm}: <b id="lv_${k}">${val}</b>${u||''}</label><input type="range" min="${mn}" max="${mx}" step="${st}" value="${L[k]}" oninput="labSet('${k}',+this.value)"></div>`,
+ck=(k,nm)=>`<label style="display:flex;gap:8px;align-items:center;color:var(--ink);margin:5px 0"><input type="checkbox" ${L.f[k]?'checked':''} onchange="S.lab.f.${k}=this.checked;labUpd()">${nm}</label>`;
+return`<h2>Досліди «що буде, якщо…»</h2><p class="hint">Поле й агрегат — вашого варіанта ${V.id}. Досліди не змінюють протокол і бали.</p>${info(LAB)}
+<div class="pc np">${EXP.map((e,i)=>`<button class="g sm ${L.exp==i?'on':''}" onclick="S.lab.exp=${i};save();R()">${e[0].split('.')[0]}</button>`).join('')}</div>
+<div class="concl"><b>${EXP[L.exp][0]}.</b> ${EXP[L.exp][1]}</div>
+<div class="lab-g">${sl('al','Mix, частка силового',0,100,5,L.al,' %')}${sl('thr','Поріг Slip',5,40,1,L.thr,' %')}${sl('Gs','Чутливість',0,10,.5,F(L.Gs))}${sl('Dd','Демпфування',0,10,.5,F(L.Dd))}${sl('dv','Швидкість',-2,2,.5,F(V.vc+L.dv),' км/год')}${sl('vd','Швидкість опускання',10,100,5,L.vd,' %')}${sl('kh','Неоднорідність ґрунту ×',0,2,.5,F(L.kh))}${sl('zh','Мікрорельєф ×',0,2,.5,F(L.zh))}</div>
+<div class="lab-g" style="margin-top:6px"><div>${ck('tare','нуль тензопальців не таровано')}${ck('cal','низ навіски знято не до упору (на 10 % ходу вище)')}</div><div>${ck('cab','обрив кабелю тензопальця')}${ck('tmp','перегріта олива (90 °C)')}</div></div>
+<div class="pc np"><button class="p sm" onclick="labPin()">Закріпити для порівняння</button><button class="g sm" onclick="labLog()">Записати в журнал</button><button class="g sm" onclick="labReset()">Скинути до рекомендованих</button><span class="note" id="lb_pn">${L.pin?'Закріплено: '+L.pin.par:''}</span></div>
+<p class="note">Зараз задано: <span id="lb_p"></span></p><div id="lb_t"></div><div id="lb_c"></div>${pvHTML()}
+<h3>Журнал дослідів</h3><div id="lb_l">${labLogHTML()}</div><div class="nb np"><button class="g" onclick="go(7)">До кроку 7</button><button class="g" onclick="go(8)">До протоколу</button></div>`}
+
+/* ===== Каркас: меню, дисплей, тема, перемальовування ===== */
+function u(k,v){S[k]=v;save();ds();navR()}
+function go(i){S.step=i;if(i==5)S.v5=1;save();R();scrollTo(0,0)}
+function ds(){if(!V){$('ds').innerHTML='<div class="t">ДИСПЛЕЙ EHR</div><div class="d"><span>Очікування</span><span>—</span></div>';return}
+const l=S.tr.last,r=[['Варіант',V.id],['Mix сил./поз.',S.al+'/'+(100-S.al)+' %'],['Slip',S.thr+' %'],['h_зад',S.hz?vs(S.hz)+' см':'—'],['Опускання',S.vd+' %'],['Верх. ліміт',S.ul+' %'],['Навіска Вг/Ни',S.cal.U&&S.cal.D?F(S.cal.U.raw)+' / '+F(S.cal.D.raw):'—'],['Нуль F',S.tare?'тарований':'—'],['Швидкість',S.tr.v?vs(S.tr.v)+' км/год':'—'],['Чутл./демпф.',F(S.tr.Gs)+' / '+F(S.tr.Dd)],['Спроб',S.tr.n],...(l?[['У допуску',l.st.inb+' %'],['h_ср гону',F(l.st.m,1)+' см']]:[])];
+$('ds').innerHTML='<div class="t">ДИСПЛЕЙ EHR — ЖИВІ ПОКАЗАННЯ</div>'+r.map(x=>`<div class="d"><span>${x[0]}</span><span>${x[1]}</span></div>`).join('')}
+function theme(set){let t=null;try{t=localStorage.getItem(TKEY)}catch(e){}if(set!==0){t=t=='light'?'dark':t=='dark'?null:'light';try{t?localStorage.setItem(TKEY,t):localStorage.removeItem(TKEY)}catch(e){}}
+if(t)document.documentElement.setAttribute('data-theme',t);else document.documentElement.removeAttribute('data-theme');$('thb').textContent='Тема: '+(t=='light'?'світла':t=='dark'?'темна':'авто')}
+function navR(){$('nv').innerHTML=TT.map((t,i)=>{const d=i>=1&&i<=7?done(i):0;return`<button class="${i==S.step?'on':''}${i==LAB?' lab':''}" ${!V&&i?'disabled':''} onclick="go(${i})" ${i==S.step?'aria-current="step"':''}>${i>=1&&i<=7?`<i class="${d==1?'ok':d?'pt':''}" title="${d==1?'заповнено':d?'заповнено частково':'не заповнено'}"></i>`:''}${t}</button>`}).join('')}
+function R(){cancelAnimationFrame(PV.raf);PV.play=false;if(!V)S.step=0;if(S.step==LAB&&!V)S.step=0;
+navR();
+$('bn').innerHTML=S.demo&&V?`<div class="bn np"><span><b>Відкрито приклад із методички</b> (варіант ${V.id}). Усі кроки вже заповнено — розгляньте їх, а для звіту отримайте власний варіант.</span><button class="p sm" onclick="newReg()">Отримати свій варіант</button></div>`:'';
+$('chip').textContent=V?(S.demo?'приклад · ':'')+'варіант '+V.id:'варіант не видано';
+$('mn').innerHTML=[s0,s1,s2,s3,s4,s5,s6,s7,s8,s9][S.step]();
+const st=S.step;if(st==0&&V)sceneBuild($('sc'),{d:-32});if(st==2)live2();if(st==3)mv(S.pos);if(st==5)fieldMap($('fm'));if(st==6)post6();if(st==7)post7();if(st==8)post8();if(st==LAB)labUpd(1);ds()}
+
+/* ===== Запуск ===== */
+theme(0);
+if(!S){demoState();save()}            /* перше відкриття: приклад із методички */
+let RW=innerWidth;addEventListener('resize',()=>{if(Math.abs(innerWidth-RW)>8){RW=innerWidth;clearTimeout(R.t);R.t=setTimeout(R,180)}});
+R();
+</script></body></html>
