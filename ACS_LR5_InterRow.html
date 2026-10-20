@@ -1,0 +1,647 @@
+<!DOCTYPE html>
+<html lang="uk"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Симулятор налаштування САК культиватора — ЛР №5</title>
+<style>
+:root{--bg:#ECEFE8;--pn:#FFFFFF;--pn2:#F5F7F2;--ink:#1C231D;--sub:#56635A;--ln:#D3DBD0;--ac:#2F6B3A;--aci:#FFFFFF;--wn:#B4412C;--am:#A66A00;--sky:#DDEAF0;--trk:#3F7D49;--trk2:#2C5B34;--plg:#B4412C;--stl:#59646B;--tyre:#22262A;--rim:#C9CFC6;--gls:#A9C9D6;--db:#14180F;--df:#FFB000;--dd:#8A6300;--soilink:#2B2118;--plowed:#5A4433;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#12150F;--pn:#1C2118;--pn2:#161A12;--ink:#ECEFE7;--sub:#A5AF9F;--ln:#343D2D;--ac:#77B76B;--aci:#0E130B;--wn:#E3705A;--am:#E2A93B;--sky:#18222A;--trk:#5E9E62;--trk2:#3F7446;--plg:#D2604B;--stl:#8C979D;--tyre:#0B0D0E;--rim:#7E877C;--gls:#3C5B68;--db:#0B0D08;--df:#FFC233;--dd:#6E4E00;--plowed:#3C2D22}}
+:root[data-theme="dark"]{--bg:#12150F;--pn:#1C2118;--pn2:#161A12;--ink:#ECEFE7;--sub:#A5AF9F;--ln:#343D2D;--ac:#77B76B;--aci:#0E130B;--wn:#E3705A;--am:#E2A93B;--sky:#18222A;--trk:#5E9E62;--trk2:#3F7446;--plg:#D2604B;--stl:#8C979D;--tyre:#0B0D0E;--rim:#7E877C;--gls:#3C5B68;--db:#0B0D08;--df:#FFC233;--dd:#6E4E00;--plowed:#3C2D22}
+html{scroll-padding-top:env(safe-area-inset-top,0px);height:100%}*{box-sizing:border-box}
+body{margin:0;min-height:100%;background:var(--bg);color:var(--ink);font:15px/1.5 -apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;-webkit-text-size-adjust:100%}
+.w{max-width:1240px;margin:0 auto;padding:14px 14px 48px}
+.top{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:10px}
+.top h1{font-size:1.12rem;line-height:1.25;margin:0;font-weight:700;letter-spacing:-.01em}.top h1 small{display:block;font-weight:400;font-size:.8rem;color:var(--sub);letter-spacing:0}
+.tools{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.chip{font-size:.78rem;border:1px solid var(--ln);border-radius:99px;padding:3px 10px;color:var(--sub);background:var(--pn)}
+.bn{border:1px solid var(--am);background:color-mix(in srgb,var(--am) 12%,var(--pn));border-radius:10px;padding:10px 14px;margin-bottom:12px;font-size:.9rem;display:flex;gap:10px 16px;align-items:center;justify-content:space-between;flex-wrap:wrap}
+.lay{display:grid;grid-template-columns:212px minmax(0,1fr) 232px;gap:14px;align-items:start}
+@media(max-width:1020px){.lay{grid-template-columns:200px minmax(0,1fr)}aside{grid-column:1/-1;position:static!important}}
+@media(max-width:760px){.lay{grid-template-columns:minmax(0,1fr)}}
+nav{display:flex;flex-direction:column;gap:4px;position:sticky;top:10px}
+@media(max-width:760px){nav{flex-direction:row;overflow-x:auto;position:static;padding-bottom:4px}}
+nav button{border:1px solid var(--ln);background:var(--pn);color:var(--sub);padding:7px 9px;border-radius:8px;font:inherit;font-size:.8rem;text-align:left;cursor:pointer;white-space:nowrap;display:flex;gap:7px;align-items:center}
+nav button i{flex:none;width:9px;height:9px;border-radius:50%;border:1.5px solid var(--sub);display:block}
+nav button i.ok{background:var(--ac);border-color:var(--ac)}nav button i.pt{background:linear-gradient(90deg,var(--am) 50%,transparent 50%);border-color:var(--am)}
+nav button.on{border-color:var(--ac);color:var(--ink);font-weight:700;box-shadow:inset 3px 0 0 var(--ac)}nav button:disabled{opacity:.4;cursor:not-allowed}
+nav button.lab{margin-top:8px;border-style:dashed}
+main{background:var(--pn);border:1px solid var(--ln);border-radius:12px;padding:18px 20px;min-height:340px;min-width:0}
+@media(max-width:760px){main{padding:14px 12px}}
+main h2{margin:0 0 4px;font-size:1.1rem;line-height:1.3}main h3{font-size:.98rem;margin:20px 0 6px}
+.hint,.note{color:var(--sub);font-size:.86rem;margin:4px 0 12px}.note{margin:6px 0}
+label{display:block;font-size:.84rem;margin:11px 0 3px;color:var(--sub)}
+input[type=text],input[type=number],select{width:100%;padding:8px 10px;border:1px solid var(--ln);border-radius:8px;background:var(--pn2);color:var(--ink);font:inherit;font-size:.95rem}
+input[type=range]{width:100%;accent-color:var(--ac);margin:2px 0}
+input[type=checkbox]{accent-color:var(--ac);width:16px;height:16px}
+:focus-visible{outline:2px solid var(--ac);outline-offset:2px}
+.r2{display:grid;grid-template-columns:1fr 1fr;gap:12px}.r3{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+@media(max-width:560px){.r3{grid-template-columns:1fr 1fr}}
+button.p,button.g{border:1px solid var(--ac);border-radius:8px;padding:8px 14px;font:inherit;font-size:.9rem;cursor:pointer;margin:4px 4px 4px 0}
+button.p{background:var(--ac);color:var(--aci);font-weight:600}button.g{background:none;color:var(--ac)}button:disabled{opacity:.4;cursor:not-allowed}
+button.sm{padding:4px 10px;font-size:.8rem;margin:0}button.g.on{background:color-mix(in srgb,var(--ac) 16%,transparent);font-weight:600}
+.nb{display:flex;justify-content:space-between;margin-top:20px}
+aside{background:var(--db);border-radius:12px;padding:13px 15px;font:.8rem/1.6 ui-monospace,SFMono-Regular,Consolas,monospace;color:var(--df);position:sticky;top:10px}
+aside .d{display:flex;justify-content:space-between;gap:8px;border-bottom:1px dashed var(--dd);padding:2px 0}aside .t{color:var(--dd);font-size:.7rem;margin-bottom:6px;letter-spacing:.04em}
+aside .d span:last-child{text-align:right}
+.t2{width:100%;border-collapse:collapse;font-size:.86rem;margin:8px 0}.t2 th,.t2 td{border:1px solid var(--ln);padding:6px 8px;text-align:left;vertical-align:top}.t2 th{width:32%;background:var(--pn2);font-weight:600}
+.t2.c td,.t2.c th{text-align:center;width:auto}.tw{overflow-x:auto}
+.rb{border:1px dashed var(--ac);border-radius:8px;padding:9px 12px;margin-top:14px;font-size:.86rem}
+.bd{display:inline-block;padding:2px 9px;border-radius:99px;font-size:.78rem;font-weight:600;background:color-mix(in srgb,var(--ac) 18%,transparent);color:var(--ac)}.bd.w{background:color-mix(in srgb,var(--wn) 18%,transparent);color:var(--wn)}.bd.a{background:color-mix(in srgb,var(--am) 20%,transparent);color:var(--am)}
+.big{font-size:1.5rem;font-weight:700;color:var(--ac);font-variant-numeric:tabular-nums}
+.cam2{display:flex;flex-wrap:wrap;gap:4px 8px;align-items:flex-end}.fig .cam2 svg{width:auto;min-width:0}.sx{overflow-x:auto}.fig .sx>svg,.sx>svg{min-width:540px}
+.fig{background:var(--pn2);border:1px solid var(--ln);border-radius:10px;margin:8px 0;overflow:hidden}.fig svg{display:block;width:100%;height:auto}
+.cap{font-size:.78rem;color:var(--sub);padding:5px 10px 7px;border-top:1px solid var(--ln)}
+.ch{position:relative;margin:8px 0;background:var(--pn2);border:1px solid var(--ln);border-radius:10px;touch-action:pan-y}.ch svg{display:block;width:100%;cursor:crosshair}
+.ch text,.fig text{font-family:inherit}
+.tip{position:absolute;top:6px;pointer-events:none;background:var(--pn);border:1px solid var(--ln);border-radius:6px;padding:4px 8px;font-size:.74rem;line-height:1.35;white-space:nowrap;box-shadow:0 2px 8px rgba(0,0,0,.15);display:none;z-index:2}
+.gs{display:grid;grid-template-columns:repeat(auto-fit,minmax(128px,1fr));gap:8px;margin:0 0 8px}@media(max-width:420px){.gs{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.gt{border:1px solid var(--ln);border-radius:8px;padding:6px 8px;background:var(--pn2);min-width:0}.gt b{display:block;font-size:1.05rem;font-variant-numeric:tabular-nums;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.gt span{display:block;font-size:.7rem;color:var(--sub);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mt{position:relative;height:7px;background:var(--ln);border-radius:4px;margin-top:4px;overflow:hidden}.mt i{position:absolute;top:0;bottom:0;left:0;background:var(--ac);border-radius:4px}.mt u{position:absolute;top:0;bottom:0;width:2px;background:var(--ink)}.mt s{position:absolute;top:0;bottom:0;background:color-mix(in srgb,var(--ac) 35%,transparent)}
+.pvw{display:grid;grid-template-columns:236px minmax(0,1fr);gap:10px;align-items:start}.pvw .fig{margin:0}@media(max-width:640px){.pvw{grid-template-columns:minmax(0,1fr)}.pvw .fig.lp{max-width:300px}}
+.pc{display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin:6px 0}.pc input[type=range]{flex:1;min-width:120px}.pc select{width:auto;padding:4px 8px;font-size:.82rem}
+.bar{display:flex;align-items:center;gap:8px;font-size:.84rem;margin:3px 0}.bar i{display:block;height:9px;background:var(--ac);border-radius:5px}.bar span{width:190px;flex:none}@media(max-width:560px){.bar span{width:120px}}
+details{margin-bottom:10px;font-size:.86rem}summary{cursor:pointer;color:var(--ac)}
+.inf{border-left:3px solid var(--ac);background:var(--pn2);border-radius:0 8px 8px 0;padding:6px 14px;margin:10px 0 14px;font-size:.87rem}.inf summary{font-weight:700;color:var(--ac);margin-bottom:4px}.inf p,.inf ul{margin:6px 0}.inf ul{padding-left:20px}
+.gg{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin:10px 0}@media(max-width:700px){.gg{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.gc{border:1px solid var(--ln);border-radius:10px;padding:8px;background:var(--pn2);text-align:center}.gc svg{width:100%;height:auto;display:block}.gc b{font-size:.84rem;display:block;margin:2px 0}.gc small{color:var(--sub);display:block;font-size:.74rem;margin-bottom:6px}.gc select{font-size:.84rem;padding:5px 6px}
+.sb{display:flex;gap:14px;align-items:stretch;flex-wrap:wrap}.sb .fig{flex:1 1 300px;margin:0}
+.vb{flex:none;width:92px;display:flex;flex-direction:column;align-items:center;gap:4px;font-size:.74rem;color:var(--sub)}.vb .col{position:relative;width:26px;flex:1;min-height:150px;background:var(--ln);border-radius:5px;overflow:hidden}.vb .col i{position:absolute;left:0;right:0;bottom:0;background:var(--am)}
+.mix{display:flex;height:22px;border-radius:6px;overflow:hidden;font-size:.74rem;font-weight:600;color:#fff;margin:4px 0}.mix i{display:flex;align-items:center;justify-content:center;font-style:normal;overflow:hidden;white-space:nowrap}.mix i:first-child{background:var(--wn)}.mix i:last-child{background:var(--ac);color:var(--aci)}
+.lab-g{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:4px 18px}@media(max-width:620px){.lab-g{grid-template-columns:minmax(0,1fr)}}
+.lab-g label{margin:6px 0 0}.kv{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin:10px 0}@media(max-width:620px){.kv{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.kv div{border:1px solid var(--ln);border-radius:8px;padding:6px 8px;background:var(--pn2)}.kv b{display:block;font-size:1.05rem;font-variant-numeric:tabular-nums}.kv span{font-size:.72rem;color:var(--sub)}.kv em{font-style:normal;font-size:.74rem;display:block}.up{color:var(--wn)}.dn{color:var(--ac)}
+.concl{border-radius:8px;padding:9px 12px;background:color-mix(in srgb,var(--ac) 10%,var(--pn));border:1px solid color-mix(in srgb,var(--ac) 40%,var(--ln));font-size:.9rem;margin:8px 0}.concl ul{margin:4px 0;padding-left:18px}
+.ok{color:var(--ac);font-weight:700}.no{color:var(--wn);font-weight:700}
+.wm{display:none}
+@media print{nav,.nb,aside,.np,.top .tools,.bn{display:none!important}.tw,.sx{overflow:visible}.tw svg,.sx>svg,.fig .sx>svg{min-width:0!important}.lay{display:block}main{border:0;padding:0}body{background:#fff;color:#000}.wm{display:block;font-size:1.3rem;font-weight:700;color:#B4412C;border:2px solid #B4412C;padding:6px 12px;margin:0 0 10px;text-align:center}.ch,.fig,.tw,.bar,tr{break-inside:avoid}h2,h3{break-after:avoid}*{-webkit-print-color-adjust:exact;print-color-adjust:exact}details>summary{list-style:none}}
+@media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important}}
+</style></head><body><div class="w">
+<header class="top"><h1>Симулятор камерного підрулювання культиватора<small>Міжрядний обробіток просапних культур. Лабораторна робота №5, завдання 3</small></h1>
+<div class="tools"><span class="chip" id="chip"></span><button class="g sm" id="thb" onclick="theme()" title="Перемкнути тему">Тема: авто</button></div></header>
+<div id="bn"></div>
+<div class="lay"><nav id="nv" aria-label="Кроки налаштування"></nav><main id="mn"></main><aside id="ds" aria-label="Термінал САК"></aside></div></div>
+<script>
+/* ===== Модель (без змін відносно попередньої версії: ті самі варіанти, бали й коди протоколів) ===== */
+const cl=(x,a,b)=>Math.max(a,Math.min(b,x)),f1=x=>Math.round(x*10)/10,n=x=>{const v=parseFloat(String(x).replace(',','.'));return isNaN(v)?null:v};
+function hash(s){let h=2166136261;for(const c of s){h^=c.charCodeAt(0);h=Math.imul(h,16777619)}return h>>>0}
+function rng(a){return()=>{a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
+const erf=x=>{const s=Math.sign(x);x=Math.abs(x);const t=1/(1+.3275911*x);return s*(1-(((((1.061405429*t-1.453152027)*t)+1.421413741)*t-.284496736)*t+.254829592)*t*Math.exp(-x*x))},Phi=z=>.5*(1+erf(z/Math.SQRT2));
+const AGG=[
+{t:'МТЗ-82.1 (Беларус)',im:'Hatzenbichler, 6-рядний',n:6,a:70,lock:250},
+{t:'John Deere 6120M',im:'Einböck, 8-рядний',n:8,a:75,lock:250},
+{t:'New Holland T6.160',im:'New Holland SRC SmartSteer, 12-рядний',n:12,a:45,lock:250},
+{t:'Fendt 312 Vario',im:'Steketee, 8-рядний',n:8,a:50,lock:250},
+{t:'МТЗ-1221.3 (Беларус)',im:'Einböck (компактна рама), 12-рядний',n:12,a:50,lock:190},
+{t:'Case IH Puma 150',im:'Hatzenbichler, 8-рядний',n:8,a:70,lock:250},
+{t:'Claas Arion 550',im:'Einböck (компактна рама), 8-рядний',n:8,a:60,lock:190},
+{t:'Deutz-Fahr 6165',im:'New Holland SRC SmartSteer, 12-рядний',n:12,a:50,lock:250}];
+const CROPS=[{c:'цукрові буряки',st:'2–4 листки',ph:8},{c:'соняшник',st:'4–6 листків',ph:25},{c:'кукурудза',st:'V4–V6',ph:35},{c:'соя',st:'2–3 трійчасті листки',ph:12}];
+function geo(V,Q){const th=Q.th*Math.PI/180,s=Q.h/Math.cos(th),d=Q.h*Math.tan(th),W=1.1547*s;return{s,d,W,nv:Math.min(3,Math.floor(W/V.a.a))}}
+function det(V,Q){const dark=V.night&&!Q.led,sg=dark?22:10,mc=dark?60:75,dr={'низька':3,'середня':2,'висока':.8}[V.weed],d3=cl(V.crop.ph/8,.8,3),dn=Q.mode=='RGB'?dr:Q.mode=='3D'?d3:Math.hypot(dr,d3),mw=cl(75-12*dn,5,70),P=(t,m)=>1-Phi((t-m)/sg),rec=P(Q.thr,mc),fp=P(Q.thr,mw);return{rec,fp,dn,mc,mw,sg,f1:2*60*rec/(2*60*rec+40*fp+60*(1-rec))}}
+function bestDet(V,Q0){let b={f1:-1};for(const mode of['RGB','3D','RGB+3D'])for(let t=5;t<=95;t+=2){const d=det(V,{...Q0,mode,thr:t,led:1});if(d.f1>b.f1)b={f1:d.f1,mode,thr:t}}return b}
+function mkV(r_){const R=rng(hash([r_.group,r_.name,r_.num].join('|').toLowerCase().replace(/\s+/g,' '))),pk=a=>a[Math.floor(R()*a.length)],ri=(a,b)=>Math.round(a+R()*(b-a)),rf=(a,b)=>a+R()*(b-a);
+const a=pk(AGG),crop=pk(CROPS),L=ri(40,120)*10,slope=ri(0,120)/10,rw=f1(rf(1,4));
+const rw_=[],trk=[],bump=[];let o=0,bp=0,nb=ri(60,160);const f1_=rf(18,40),f2_=rf(45,90),f3_=rf(5,9),a3=rf(.5,1.5),p1=rf(0,6.28),p2=rf(0,6.28),p3=rf(0,6.28);
+for(let x=0;x<L;x++){o=o*.95+(R()-.5)*.8;if(x==nb){bp+=(R()-.5)*6;nb+=ri(70,180)}bump.push(bp);trk.push(o*2.2);rw_.push(rw*(.6*Math.sin(2*Math.PI*x/f1_+p1)+.4*Math.sin(2*Math.PI*x/f2_+p2))+a3*Math.sin(2*Math.PI*x/f3_+p3)+(R()-.5)*.4)}
+const V={a,crop,L,slope,rw,r:rw_,trk,bump,id:'К-'+(hash(r_.group+r_.name+r_.num)%900+100),weed:pk(['низька','середня','середня','висока']),night:R()<.2,nNeed:a.a<=50?3:2,z0:ri(8,25)*(R()<.5?-1:1),
+fl:{press:R()<.25?f1(rf(14.2,16)):0,flow:R()<.25?ri(22,28):0,lens:R()<.25?1:0,mast:R()<.2?ri(8,16):0},
+rd:{p:Math.round(rf(18.4,19.8)*10)/10,q:ri(42,48)},v1:f1(rf(5.5,7.5)),vr:[8,12],S:ri(120,400),Y:f1(rf(2.6,3.6)),C:ri(15,18)*1000,Cs:ri(24,32)*10000,tau:f1(rf(.78,.86)*100)/100,tz:ri(9,11),odd:r_.num%2==1};
+const hh=Math.max(120,70+crop.ph+20);V.ideal={h:hh,th:Math.round(Math.atan(105/hh)*57.3),mode:'RGB+3D',thr:0,led:1,aEnt:a.a,v:9,Gs:5,Ki:3,Dd:4,Qf:45,fl:{press:0,flow:0,lens:0,mast:0},lockEff:a.lock,zN:0,Z:5,seed:1};
+V.ideal.thr=bestDet(V,V.ideal).thr;
+let Z=3;for(;Z<16;Z++){const s=sim5(V,{...V.ideal,Z});if(s.dmg<=1)break}V.Zopt=Z;V.W=1;return V}
+function sim5(V,Q){const dt=.05,v=Q.v/3.6,g=geo(V,Q),dq=det(V,Q),rg=rng(Q.seed),gs=()=>(rg()+rg()+rg()-1.5)*1.15,fl=Q.fl,a=V.a;
+const sc=g.nv>0?1.4*(g.s/150)*Math.sqrt(2/Math.max(g.nv,.7))*(fl.lens?2:1)*cl(2/dq.dn,.7,3)*(1+2*dq.fp):30,pd=.004+.015*((1-dq.rec)+.5*dq.fp),
+rmax=.35*Q.Qf*(fl.press?.6:1)*(fl.flow?.55:1),G=.5*Q.Gs,Td=.05*Q.Dd,Ki=.25*Q.Ki,Tres=Math.max(.15-g.d/100/v,0)+.05,cb=.5*Math.abs(Q.aEnt-a.a),lim=Q.lockEff/10,lockT=a.lock/10;
+const buf=Array(5).fill(0);let x=0,c=0,rate=0,I=0,ep=0,dep=0,drop=0,nz=0,tn=0,st=0,nd=0,sumsq=0,N=0,dm=0;const o=[],ts=[];let nx=0;
+const rr=xx=>V.r[cl(Math.floor(xx),0,V.L-1)],D=xx=>V.slope*1.8*(1-Math.exp(-xx/60))+V.bump[cl(Math.floor(xx),0,V.L-1)];
+while(x<V.L){const i=Math.floor(x),tt=st*dt;if(drop<=0&&rg()<pd*v*dt)drop=4+rg()*8;
+const jit=fl.mast?(rg()-.5)*fl.mast*.25:0,P=V.trk[i]+D(x)+c+jit,xd=Math.max(0,x-v*Tres);
+if(tt-tn>=.1){nz=sc*gs();tn=tt}
+let err=rr(xd)-P+nz+cb,cmd;if(drop>0){cmd=-(c-Q.zN/10)*.5;drop-=v*dt;nd+=v*dt;I*=.99;ep=err}else{I=cl(I+err*dt,-30,30);const de=(err-ep)/dt;ep=err;dep+=(de-dep)*dt/.2;cmd=G*(err+Td*dep)+Ki*I}
+if(Math.abs(cmd)>rmax&&drop<=0)I-=err*dt;cmd=cl(cmd,-rmax,rmax);buf.push(cmd);cmd=buf.shift();rate+=(cmd-rate)*dt/.15;c=cl(c+(rate-.5*V.slope)*dt*1,-Math.min(lim,lockT),Math.min(lim,lockT));
+const e=P-rr(x);N++;sumsq+=e*e;if(Math.abs(e)>Q.Z-1)dm++;
+if(x>=nx){o.push([Math.round(x),f1(e),f1(c),drop>0?1:0]);nx+=1}x+=v*dt;st++}
+const body=o.filter(p=>p[0]>20);return{o,dmg:f1(100*dm/N),rms:f1(Math.sqrt(sumsq/N)),mx:f1(Math.max(...body.map(p=>Math.abs(p[1])))),drop:f1(100*nd/V.L),Wk:f1(98/(1+Math.pow(Q.Z/12,2))),sc:f1(sc)}}
+const pen=(e,t,s)=>e<=t?0:Math.min(1,(e-t)/s),W_=Z=>98/(1+Math.pow(Z/12,2));
+const rdg=()=>({p:String(V.fl.press||V.rd.p).replace('.',','),q:String(V.fl.flow||V.rd.q),m:V.fl.mast?'люфт '+V.fl.mast+' мм':'жорстко, люфт 0 мм',l:V.fl.lens?'забруднений':'чистий'});
+const fe=()=>({press:S.ck.p==='Несправність'?0:V.fl.press,flow:S.ck.q==='Несправність'?0:V.fl.flow,mast:S.ck.m==='Несправність'?0:V.fl.mast,lens:S.ck.l==='Несправність'?0:V.fl.lens});
+const modeQ=()=>S.mode=='—'?'RGB':S.mode;
+function Qs(o){const c=S.cal,ok=c.L&&c.R&&c.N;return{v:n(S.tr.v)||9,Gs:S.Gs,Ki:S.Ki,Dd:S.Dd,Qf:n(S.Qf)||40,h:n(S.h)||100,th:n(S.th)||30,mode:modeQ(),thr:S.thr,led:S.led,aEnt:n(S.aE)||V.a.a,Z:n(S.Z)||8,lockEff:ok?(Math.abs(c.L.a)+Math.abs(c.R.a))/2:V.a.lock*.6,zN:ok?c.N.a:V.z0,fl:fe(),seed:hash(V.id)+S.tr.n,...o}}
+function stepTest(){const q=Qs({v:V.vr[0]+1}),g=geo(V,q),dt=.05,v=q.v/3.6,Tres=Math.max(.15-g.d/100/v,0)+.05,G=.5*S.Gs,Td=.05*S.Dd,Ki=.25*S.Ki,rmax=.35*q.Qf*(q.fl.press?.6:1)*(q.fl.flow?.55:1),buf=Array(5).fill(0);let c=0,rate=0,I=0,ep=10,dep=0,mx=0;const tr=[];
+for(let i=0;i<120;i++){const err=10-c;I=cl(I+err*dt,-30,30);const de=(err-ep)/dt;ep=err;dep+=(de-dep)*dt/.2;let cmd=G*(err+Td*dep)+Ki*I;if(Math.abs(cmd)>rmax)I-=err*dt;cmd=cl(cmd,-rmax,rmax);buf.push(cmd);cmd=buf.shift();rate+=(cmd-rate)*dt/.15;c+=rate*dt;mx=Math.max(mx,c);tr.push([i*dt,c])}
+let ts=6;for(let i=tr.length-1;i>=0;i--)if(Math.abs(tr[i][1]-10)>1){ts=tr[i][0]+dt;break}if(ts>=5.95)ts=6;return{os:f1(Math.max(0,(mx-10)/10*100)),ts:f1(ts),tr}}
+function ownS(){const m=S.tr.m.map(p=>p[1]);if(!m.length)return null;return{k:m.length,mu:m.reduce((a,b)=>a+b,0)/m.length,mn:Math.min(...m),sh:100*m.filter(z=>z<=1).length/m.length}}
+function zm(x){const l=S.tr.last;if(!l)return;x=cl(Math.round(x),5,V.L-5);const p=l.o[cl(x,0,l.o.length-1)],r=rng(hash(V.id+'z'+x+S.tr.n)),e=(r()+r()-1)*.7;S.tr.m.push([x,Math.round((l.Z-Math.abs(p[1])+e)*2)/2]);S.tr.m.sort((a,b)=>a[0]-b[0]);save()}
+function score(){const a=V.a,r=[],c=S.cal,t=S.tr,l=t.last;
+r[0]=[['p',V.fl.press],['q',V.fl.flow],['m',V.fl.mast],['l',V.fl.lens]].reduce((s,[k,f])=>s+((f&&S.ck[k]==='Несправність')||(!f&&S.ck[k]==='Норма')?2:0),0);
+const q=Qs({}),g=geo(V,q),hh=n(S.h),th=n(S.th);r[1]=hh&&th?(g.s>=130&&g.s<=200?4:4*(1-pen(Math.min(Math.abs(g.s-130),Math.abs(g.s-200)),0,40)))+(g.d>=80&&g.d<=160?4:4*(1-pen(Math.min(Math.abs(g.d-80),Math.abs(g.d-160)),0,50)))+(g.nv>=V.nNeed?2:0)+(hh>=70+V.crop.ph?2:0):0;
+const bd=bestDet(V,q),dd=det(V,q);r[2]=(S.mode=='—'?0:5*(1-pen(bd.f1-det(V,{...q,led:1}).f1,.04,.2)))+6*(1-pen(bd.f1-dd.f1,.05,.3))+((V.night&&!S.led)?0:4);if(S.mode=='—')r[2]=0;
+const aE=n(S.aE),Z=n(S.Z);r[3]=(aE!=null?4*(1-pen(Math.abs(aE-a.a),.5,10)):0)+(n(S.nvI)==V.nNeed&&g.nv>=V.nNeed?2:0)+(Z!=null?4*(1-pen(Math.max(0,V.Zopt-1-Z,Z-V.Zopt-3),0,4)):0);
+r[4]=c.L&&c.R&&c.N?15*(1-(pen(a.lock-Math.abs(c.L.a),1.5,30)+pen(a.lock-Math.abs(c.R.a),1.5,30)+pen(Math.abs(c.N.a),1,10))/3):0;
+const T=S.t6;r[5]=T?4*(1-pen(T.os,15,25))+3*(1-pen(T.ts,1.5,1.5))+3*(1-pen(Math.max(0,40-(n(S.Qf)||0),(n(S.Qf)||0)-50),0,20)):0;
+r[6]=0;if(l){const o=ownS(),ok=o&&o.k>=12&&o.k<=15?[Math.abs(n(t.zs)-o.mu)<=.2,Math.abs(n(t.zm)-o.mn)<=.5,Math.abs(n(t.dm)-o.sh)<=5].filter(Boolean).length:0;
+r[6]=12*(1-pen(l.dmg,1,5))+6*cl((l.Wk-50)/20,0,1)+(l.v>=8&&l.v<=12?3:0)+3*(1-pen(l.rms,2,3))+6*ok/3}
+return r.map(x=>Math.max(0,Math.round(x*10)/10))}
+function pv(){const q=Qs({}),d=det(V,q),g=geo(V,q),a=V.a.a,nr=Math.max(0,Math.min(6,Math.floor(g.W/a))),r=rng(hash(V.id+'pv')),O=[],nw=Math.min(90,{'низька':8,'середня':20,'висока':46}[V.weed]*Math.max(nr,1)/1.5),k=540/Math.max(g.W,a*2);
+const zz=()=>(r()+r()+r()-1.5)*1.15;for(let j=0;j<nr;j++){const xr=290+(j-(nr-1)/2)*a*k;for(let i=0;i<14;i++)O.push({c:1,z:zz(),x:xr+(r()-.5)*5,y:16+i*15+(r()-.5)*4})}
+for(let i=0;i<nw;i++)O.push({c:0,z:zz(),x:30+r()*520,y:10+r()*210});let tp=0,fp=0,nc=0,nwd=0;O.forEach(o=>{o.s=(o.c?d.mc:d.mw)+d.sg*o.z;o.det=o.s>q.thr;if(o.c){nc++;if(o.det)tp++}else{nwd++;if(o.det)fp++}});
+return{O,nr,k,rec:nc?Math.round(tp/nc*100):0,fp:nwd?Math.round(fp/nwd*100):0,d}}
+
+/* ===== Схема контуру керування (для вкладки «Теорія») ===== */
+const flow=()=>{const B=[['Камера','бачить рядок'],['Обчислювач','e = лапи − рядок'],['ПІД-регулятор','команда u'],['Розподільник','потік масла'],['Гідроциліндр','зсув каретки'],['Лапи','між рядками']],w=96,g=16,x0=6,
+b=(i)=>{const x=x0+i*(w+g);return`<rect x="${x}" y="34" width="${w}" height="52" rx="7" fill="var(--bg)" stroke="var(--ac)" stroke-width="1.6"/><text x="${x+w/2}" y="56" text-anchor="middle" font-size="12" font-weight="700" fill="var(--ink)">${B[i][0]}</text><text x="${x+w/2}" y="73" text-anchor="middle" font-size="10.5" fill="var(--sub)">${B[i][1]}</text>`+(i<5?`<path d="M${x+w+1},60h${g-4}" stroke="var(--ink)" stroke-width="1.4" marker-end="url(#fa)"/>`:'')},X=x0+5*(w+g)+w/2;
+return`<div class="sx"><svg class="ch" viewBox="0 0 680 150" role="img" aria-label="Схема контуру: камера, обчислювач, ПІД-регулятор, розподільник, гідроциліндр, лапи; зворотний зв’язок через камеру"><defs><marker id="fa" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="7" markerHeight="7" markerUnits="userSpaceOnUse" orient="auto"><path d="M0,0L8,4L0,8z" fill="var(--ink)"/></marker><marker id="fb" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="7" markerHeight="7" markerUnits="userSpaceOnUse" orient="auto"><path d="M0,0L8,4L0,8z" fill="var(--ac)"/></marker></defs><text x="6" y="18" font-size="11.5" fill="var(--sub)">Трактор іде за RTK-лінією (±2 см), а цей контур окремо тримає знаряддя по фактичному рядку</text>${B.map((_,i)=>b(i)).join('')}<path d="M${X},86V122H${x0+w/2}V90" fill="none" stroke="var(--ac)" stroke-width="1.8" marker-end="url(#fb)"/><text x="340" y="140" text-anchor="middle" font-size="11.5" fill="var(--ac)">зворотний зв’язок: камера знову бачить, де лапи відносно рядка</text></svg></div>`};
+const INF=[
+`${flow()}<p><b>Ідея.</b> RTK-автопілот керує <i>трактором</i>, але рядки посіяні не по ідеальній прямій, а знаряддя зноситься на схилі й від нерівномірного опору ґрунту. Тому на знарядді ставлять окремий контур: <i>камера бачить фактичний рядок → контролер порівнює його з положенням знаряддя → розподільник → циліндр зсуває раму (каретку) → зсув фіксує датчик положення</i>.</p>
+<p><b>Ключовий компроміс.</b> Захисна зона Z — відстань від осі рядка до лапи. Що менша Z, то більше бур’янів знищується (W ≈ 98 / (1 + (Z/12)²) %), але тим вищий ризик підрізати рослину, коли знаряддя відхилиться більше за Z − 1 см. Отже, Z треба вибирати за реальною точністю утримання.</p>
+<p><b>Як працювати.</b> Сім кроків. Кожен вносить свою потенційну похибку (несправність, геометрія, розпізнавання, калібрування), і всі вони проявляться на пробному проході.</p>`,
+`<p><b>Принцип.</b> Камерна система працює лише тоді, коли механіка жорстка, гідравліка швидка, а об’єктив чистий.</p>
+<p><b>Що відбувається в системі.</b> Низький тиск і малий потік обмежують швидкість зсуву каретки — вона не встигає на розворотах і нерівностях. Люфт щогли дає «тремтіння» зображення і шум вимірювання. Забруднений об’єктив збільшує шум і втрати рядка.</p>
+<p><b>Що робимо.</b> Порівняйте показання з орієнтирами й вкажіть «Норма» чи «Несправність». <b>Типова помилка:</b> пропустити показання, що виходить за орієнтир.</p>`,
+`<p><b>Принцип.</b> Камера дивиться вперед і вниз. Відстань до центра кадру <b>s = h / cos θ</b>, виніс уперед <b>d = h · tg θ</b>, ширина кадру на ґрунті <b>W ≈ 1,155 · s</b>. У кадрі має бути щонайменше 2–3 міжряддя, щоб система усереднювала положення кількох рядків і не залежала від випадкового бур’яна.</p>
+<p><b>Компроміс.</b> Високо й крутої — широкий кадр, але менша роздільність і більший шум. Низько — мало рядків у кадрі. Виніс d дає запас часу: команда виконується через τ = d / v, коли лапи доходять до побаченого місця.</p>
+<p><b>Типова помилка:</b> закрити кадром менше потрібних міжрядь або поставити камеру нижче за рослини.</p>`,
+`<p><b>Принцип.</b> Камера відокремлює рослини від ґрунту й бур’янів за <i>кольором</i> (RGB — відтінок зеленого) та/або за <i>об’ємом</i> (3D — висота). Кожен об’єкт отримує оцінку; якщо вона вища за поріг — це рослина.</p>
+<p><b>Що відбувається, якщо помилитися.</b> Занизький поріг — бур’яни сприймаються як рослини (зсув оцінки центра рядка). Зависокий — частина рослин пропускається, система втрачає рядок. На «зеленому килимі» кольору мало (потрібен 3D або RGB+3D), у темряві без LED усі оцінки гірші й шумні.</p>
+<p><b>Що робимо.</b> Підберіть режим і поріг, щоб розпізнавалось ≥ 95 % рослин і було мало хибних спрацювань.</p>`,
+`<p><b>Принцип.</b> Система має знати реальну ширину міжряддя, щоб накласти «сітку» на зображення й знайти центри рядків. Захисна зона Z задає мінімальну відстань лапи від рядка.</p>
+<p><b>Що відбувається, якщо помилитися.</b> Хибна ширина міжряддя зміщує знайдений центр (приблизно на половину різниці). Занадто мале Z — підрізання рослин, занадто велике — багато бур’янів у рядку.</p>
+<p><b>Що робимо.</b> Введіть ширину з паспорта, число міжрядь із кроку 2, оцініть Z. Остаточно Z уточнюють на пробному проході.</p>`,
+`<p><b>Принцип.</b> Рама з каретки рухається в обмежених межах (±190…±250 мм). Датчик положення показує сигнал із власним зміщенням нуля, тому реперні положення знімають на упорах: Л, П. Нейтраль — середина діапазону: <b>N = (Л + П) / 2</b>.</p>
+<p><b>Що відбувається, якщо помилитися.</b> Не доведено до упору — система вважає хід меншим, ніж він є, і не використовує всю довжину зсуву (на схилі знаряддя «вилазить» за межу). Хибна нейтраль зміщує «центр»: коли камера втрачає рядок, каретка повертається не в центр, а зі зміщенням.</p>
+<p><b>Типова помилка:</b> зафіксувати нейтраль, коли каретка ще біля упору.</p>`,
+`<p><b>Принцип.</b> Клапан отримує команду, пропорційну відхиленню. <b>Gain</b> — як сильно рухається каретка на 1 см відхилення. Гідравліка має запізнення, тому при завеликому Gain каретка «перелітає» рядок і виникають автоколивання. <b>Ki</b> накопичує помилку й знімає постійне зміщення (схил). <b>Демпфування</b> гасить коливання, але завелике дає ривки від шуму зображення.</p>
+<p><b>Потік масла</b> задає максимальну швидкість зсуву: r_max ≈ 0,35 · Q см/с. При Q ≈ 45 л/хв це близько 16 см/с.</p>
+<p><b>Що робимо.</b> Змінюйте один параметр за раз і дивіться «Тест зміщення»: ціль — перерегулювання < 15 % і час відпрацювання < 1,5 с.</p>`,
+`<p><b>Принцип.</b> Якість перевіряють вимірюванням: на 12–15 рослинах лінійкою вимірюють фактичну захисну зону Z<sub>i</sub> = Z − |e<sub>i</sub>|, де e — відхилення знаряддя від осі рядка в цьому місці. Z<sub>ср</sub> = ΣZ<sub>i</sub>/n; Z<sub>min</sub> — найменше значення; рослини з Z<sub>i</sub> ≤ 1 см вважаються підрізаними.</p>
+<p><b>Порядок.</b> 1) Швидкість 8–12 км/год. 2) Запустіть прохід, подивіться анімацію й блок «Що показав прохід». 3) Виконайте заміри та обчислення. 4) Змініть один параметр і повторіть. Вибір Z — компроміс між знищенням бур’янів і підрізанням.</p>`,
+`<p><b>Як читати протокол.</b> <i>Відхилення e(x)</i> показує, де й чому знаряддя виходило з рядка (бежеві смуги — камера не бачила рядка). <i>Крива «Z — пошкодження — бур’яни»</i> показує, наскільки Z відповідає точності вашого налаштування. <i>Блок-схема</i> — яка частина контуру налаштована гірше. <i>Діагностика</i> — зіставлення з табл. 1.4.</p>`];
+
+/* ===== Стан, збереження, прохід, протокол ===== */
+const $=i=>document.getElementById(i);
+const KEY='lr5v1',TKEY='lr5theme',RN={p:'Тиск у гідросистемі',q:'Потік масла на виносі',m:'Щогла камери, люфти',l:'Об’єктив камери'};
+/* Приклад із методички: цей «студент» дає демо-варіант, з яким симулятор відкривається вперше */
+const DEMO={group:'Приклад',name:'Приклад із методички',num:91};
+/* Число для показу: десяткова кома, мінус як «−» */
+const F=(x,d)=>{if(x===''||x==null||(typeof x=='number'&&isNaN(x)))return'—';const s=d==null?String(x):Number(x).toFixed(d);return s.replace('.',',').replace('-','−')};
+const MR=k=>k+' '+(k%10>=1&&k%10<=4&&(k%100<11||k%100>14)?'міжряддя':'міжрядь');
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const blank=()=>({reg:null,step:0,ck:{},h:'',th:'',cs:'',cd:'',cw:'',mode:'—',thr:50,led:0,aE:'',nvI:'',Z:'',pos:0,cal:{},Gs:5,Ki:2,Dd:3,Qf:'',t6:null,tr:{v:'',n:0,last:null,m:[],zs:'',zm:'',dm:''}});
+let S=null;try{S=JSON.parse(localStorage.getItem(KEY))}catch(e){}if(!S||!S.tr)S=null;
+const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}};
+let V=S&&S.reg?mkV(S.reg):null,AN=0;
+const TT=['Реєстрація й варіант','1. Монтаж і гідросистема','2. Геометрія камери','3. Спектральне калібрування','4. Міжряддя й захисна зона','5. Калібрування каретки','6. ПІД і потік масла','7. Пробний прохід','Підсумковий протокол','Досліди «що буде, якщо…»'];
+const MX=[8,12,15,10,15,10,30],NM=['Монтаж і гідросистема','Геометрія камери','Спектральне калібрування','Міжряддя й зона','Калібрування каретки','ПІД і потік','Пробний прохід'];
+const LAB=9;
+
+/* Пробний прохід: ті самі виклики моделі, що й у попередній версії симулятора */
+function runCore(){const t=S.tr,v=n(t.v),q=Qs({}),r=sim5(V,q);
+S.prev=t.last?t.last.o.map(p=>[p[0],p[1]]):null;
+t.last={o:r.o,dmg:r.dmg,rms:r.rms,mx:r.mx,drop:r.drop,Wk:r.Wk,v,Z:q.Z,Gs:S.Gs};t.n++;t.m=[];
+(S.hist=S.hist||[]).push({n:t.n,v,Z:q.Z,Gs:S.Gs,Ki:S.Ki,Dd:S.Dd,mode:modeQ(),thr:S.thr,dmg:r.dmg,rms:r.rms,mx:r.mx,drop:r.drop,Wk:r.Wk});if(S.hist.length>12)S.hist.shift()}
+function run(){const t=S.tr,v=n(t.v);if(!v||v<=0)return alert('Вкажіть швидкість, км/год.');if(!n(S.Z))return alert('Вкажіть захисну зону Z (крок 4).');if(!n(S.h)||!n(S.th))return alert('Налаштуйте геометрію камери (крок 2).');runCore();AN=1;save();R()}
+function mx(){const x=n($('mx').value);if(x==null)return alert('Вкажіть відстань від початку гону, м.');zm(x);R()}
+function mautoCore(){S.tr.m=[];const r=rng(hash(V.id+'a'+S.tr.n));for(let i=0;i<12;i++)zm(40+(V.L-80)*(i+r()*.8)/12)}
+function mauto(){mautoCore();R()}
+function mclr(){S.tr.m=[];save();R()}
+
+/* Стан «приклад із методички»: усе заповнено правильно; дві спроби — завузька захисна зона, потім обґрунтована */
+function demoState(){S=blank();S.demo=1;S.reg={...DEMO};V=mkV(S.reg);const a=V.a,I=V.ideal;
+for(const[k,f]of[['p',V.fl.press],['q',V.fl.flow],['m',V.fl.mast],['l',V.fl.lens]])S.ck[k]=f?'Несправність':'Норма';
+S.h=String(I.h);S.th=String(I.th);const g=geo(V,Qs({}));S.cs=String(Math.round(g.s));S.cd=String(Math.round(g.d));S.cw=String(Math.round(g.W));
+const bd=bestDet(V,Qs({}));S.mode=bd.mode;S.thr=bd.thr;S.led=V.night?1:0;
+S.aE=String(a.a);S.nvI=String(V.nNeed);S.pos=0;
+S.cal={L:{raw:f1(-a.lock+V.z0),a:-a.lock},R:{raw:f1(a.lock+V.z0),a:a.lock},N:{raw:f1(V.z0),a:0}};
+S.Gs=5;S.Ki=3;S.Dd=4;S.Qf='45';S.t6=stepTest();S.tr.v='9';
+S.Z='3';runCore();S.Z=String(V.Zopt);runCore();
+mautoCore();const o=ownS();S.tr.zs=o.mu.toFixed(1);S.tr.zm=String(o.mn);S.tr.dm=o.sh.toFixed(1);
+S.step=0;return S}
+
+/* Рядки «Запишіть у таблицю методички» */
+function rec(i){const R_=rdg(),k=S.ck,c=S.cal,t=S.tr,l=t.last,m=(x,u)=>x===''||x==null?'—':String(x).replace('.',',')+u,g=geo(V,Qs({})),has=n(S.h)&&n(S.th);
+return[0,`Тиск ${R_.p} МПа (${k.p||'—'}); потік ${R_.q} л/хв (${k.q||'—'}); щогла: ${R_.m} (${k.m||'—'}); об’єктив: ${R_.l} (${k.l||'—'})`,
+has?`h = ${S.h} см; θ = ${S.th}°; s ≈ ${Math.round(g.s)} см; d ≈ ${Math.round(g.d)} см; W ≈ ${Math.round(g.W)} см; у кадрі ${MR(g.nv)}`:'не налаштовано',
+`${S.mode}; поріг ${S.thr}; LED ${S.led?'увімк.':'вимк.'}; розпізнано рослин ${pv().rec} %; хибні спрацювання ${pv().fp} %`,
+`міжряддя ${m(S.aE,' см')}; міжрядь у кадрі ${m(S.nvI,'')}; захисна зона Z = ${m(S.Z,' см')}`,
+`Ліво ${c.L?F(c.L.raw)+' мм':'—'}; право ${c.R?F(c.R.raw)+' мм':'—'}; нейтраль ${c.N?F(c.N.raw)+' мм':'—'}; хід ${c.L&&c.R?'±'+F(f1((c.R.raw-c.L.raw)/2))+' мм':'—'}`,
+S.t6?`Gain ${F(S.Gs)}; Ki ${F(S.Ki)}; демпфування ${F(S.Dd)}; потік ${m(S.Qf,' л/хв')}; перерегулювання ${F(S.t6.os)} %; час відпрацювання ${F(S.t6.ts)} с`:'тест не виконано',
+l?`${F(l.v)} км/год; Z = ${F(l.Z)} см; Z_ср ${m(t.zs,' см')}, Z_min ${m(t.zm,' см')}; підрізано за замірами ${m(t.dm,' %')}; за всім гоном пошкоджено ${F(l.dmg)} %; знищено бур’янів ${F(l.Wk)} %; спроб ${t.n}`:'не виконано'][i]}
+
+/* Чи заповнено крок (для позначок у меню): 1 — так, .5 — частково, 0 — ні */
+function done(i){if(!V)return 0;const c=S.ck,t=S.tr;switch(i){
+case 1:{const k=['p','q','m','l'].filter(x=>c[x]&&c[x]!='—').length;return k==4?1:k?.5:0}
+case 2:return n(S.h)&&n(S.th)?(S.cs&&S.cd&&S.cw?1:.5):0;
+case 3:return S.mode!='—'?1:0;
+case 4:{const k=[S.aE,S.nvI,S.Z].filter(Boolean).length;return k==3?1:k?.5:0}
+case 5:{const k=['L','R','N'].filter(x=>S.cal[x]).length;return k==3?1:k?.5:0}
+case 6:return S.t6&&S.Qf?1:S.t6||S.Qf?.5:0;
+case 7:return t.last?(t.m.length>=12&&t.zs!==''&&t.zm!==''&&t.dm!==''?1:.5):0;
+default:return 0}}
+
+/* Розрахунок Завдання 4.2 за формулами методички (для самоперевірки) */
+const TAU=()=>Math.round(V.tau*1000)/1000;
+function p1calc(){const sig=.74*V.v1;return f1(100*(1-erf((10-1)/(sig*Math.SQRT2))))}
+function calc42(){const l=S.tr.last;if(!l)return null;const p1=p1calc(),p2=l.dmg,dY=V.Y*(p1-p2)/100,E=V.S*dY*V.C,En=E-.15*V.Cs,T=En>0?V.Cs/En:null,
+B=f1(V.a.n*V.a.a/100),v1=V.v1,v2=l.v,tau=TAU(),W1=.1*B*v1*tau,W2=.1*B*v2*tau,dW=(W2-W1)/W1*100,D1=V.S/(W1*V.tz),D2=V.S/(W2*V.tz);
+return{p1,p2,dY,E,En,T,B,v1,v2,W1,W2,dW,D1,D2,tau}}
+/* частка шляху, де каретка стояла на упорі */
+const satShare=(o,lim)=>{const a=o.filter(p=>p[0]>20);return a.length?Math.round(100*a.filter(p=>Math.abs(p[2])>=lim-.15).length/a.length):0};
+const lostRuns=o=>{const a=[];let st=null;o.forEach(p=>{if(p[3]&&st==null)st=p[0];if(!p[3]&&st!=null){a.push([st,p[0]]);st=null}});if(st!=null)a.push([st,o[o.length-1][0]]);return a};
+/* ===== Графіки з курсором ===== */
+function drawChart(el,c){if(!el)return;
+const W=Math.max(280,Math.round(el.clientWidth||640)),ml=40,mr=12,lg=[];let lx=ml,ly=13;for(const q of c.leg||[]){const w=28+q[0].length*6.1;if(lx+w>W-4&&lx>ml){lx=ml;ly+=15}lg.push([lx,ly,q]);lx+=w}
+const mt=c.leg?ly+13:10,H=(c.h||170)+(c.leg?ly-13:0),mb=24,x1=c.xMax,pw=W-ml-mr,ph=H-mt-mb;
+const X=x=>ml+x/x1*pw,Y=y=>{const f=(cl(y,c.y0,c.y1)-c.y0)/(c.y1-c.y0);return mt+(c.inv?f:1-f)*ph};
+let s='';
+if(c.secs)for(const q of c.secs)s+=`<rect x="${X(q.x0).toFixed(1)}" y="${mt}" width="${(X(q.x1)-X(q.x0)).toFixed(1)}" height="${ph}" fill="${kcol(q.k)}" opacity=".5"/>`;
+for(const q of c.shade||[])s+=`<rect x="${X(q[0]).toFixed(1)}" y="${mt}" width="${Math.max(1.5,X(q[1])-X(q[0])).toFixed(1)}" height="${ph}" fill="${c.shadeC||'var(--am)'}" opacity=".3"/>`;
+for(const b of c.bands||[]){const ya=Y(b[0]),yb=Y(b[1]);s+=`<rect x="${ml}" y="${Math.min(ya,yb)}" width="${pw}" height="${Math.abs(yb-ya)}" fill="${b[2]||'var(--ac)'}" opacity="${b[3]||.25}"/>`}
+const nt=c.ticks||4;for(let k=0;k<=nt;k++){const v=c.y0+(c.y1-c.y0)*k/nt,y=Y(v);s+=`<line x1="${ml}" x2="${W-mr}" y1="${y}" y2="${y}" stroke="var(--ln)" stroke-width="1" opacity=".8"/><text x="${ml-5}" y="${y+3.5}" text-anchor="end" font-size="10.5" fill="var(--sub)">${F(Math.round(v*10)/10)}</text>`}
+if(c.xn){const nx=c.xn;for(let k=0;k<=nx;k++){const v=x1*k/nx;s+=`<text x="${X(v)}" y="${H-7}" text-anchor="${k==0?'start':k==nx?'end':'middle'}" font-size="10.5" fill="var(--sub)">${F(Math.round(v*10)/10)}${k==nx?' '+(c.xu||'м'):''}</text>`}}
+else{const raw=x1/(W<430?3:5),p10=10**Math.floor(Math.log10(raw)),st=[1,2,2.5,5,10].map(m=>m*p10).find(m=>m>=raw-1e-9);for(let v=0;v<=x1+1e-9;v+=st){if(X(v)>W-mr-34)break;s+=`<line x1="${X(v)}" x2="${X(v)}" y1="${mt+ph}" y2="${mt+ph+4}" stroke="var(--ln)"/><text x="${X(v)}" y="${H-7}" text-anchor="${v==0?'start':'middle'}" font-size="10.5" fill="var(--sub)">${F(Math.round(v*10)/10)}</text>`}s+=`<text x="${W-mr}" y="${H-7}" text-anchor="end" font-size="10.5" fill="var(--sub)">${c.xl||'шлях, '+(c.xu||'м')}</text>`}
+for(const h of c.hl||[])s+=`<line x1="${ml}" x2="${W-mr}" y1="${Y(h[0])}" y2="${Y(h[0])}" stroke="${h[1]}" stroke-width="1.2" stroke-dasharray="5 4"/>`+(h[2]?`<text x="${W-mr-3}" y="${Y(h[0])-3}" text-anchor="end" font-size="10" fill="${h[1]}">${h[2]}</text>`:'');
+for(const q of c.ser)if(q.p&&q.p.length)s+=`<path d="${q.p.map((p,i)=>(i?'L':'M')+X(p[0]).toFixed(1)+','+Y(p[1]).toFixed(1)).join('')}" fill="none" stroke="${q.c}" stroke-width="${q.w||1.9}" ${q.d?`stroke-dasharray="${q.d}"`:''} stroke-linejoin="round"/>`;
+for(const q of c.vl||[])s+=`<line x1="${X(q[0])}" x2="${X(q[0])}" y1="${mt}" y2="${mt+ph}" stroke="${q[1]||'var(--ink)'}" stroke-width="1.2" stroke-dasharray="3 3"/>`+(q[2]?`<text x="${X(q[0])+4}" y="${mt+12}" font-size="10" fill="${q[1]||'var(--ink)'}">${q[2]}</text>`:'');
+for(const x of c.marks||[])s+=`<path d="M${X(x)-4.5},${mt+ph} l4.5,-8 l4.5,8z" fill="var(--stl)" stroke="var(--pn)" stroke-width="1"/>`;
+for(const p of c.dots||[])s+=`<circle cx="${X(p[0])}" cy="${Y(p[1])}" r="4.2" fill="var(--ink)" stroke="var(--pn)" stroke-width="1.6"/>`;
+for(const[lx,ly,q]of lg)s+=(q[2]=='band'?`<rect x="${lx}" y="${ly-5}" width="16" height="9" fill="${q[1]}" opacity=".3"/>`:q[2]=='dot'?`<circle cx="${lx+8}" cy="${ly-.5}" r="4" fill="${q[1]}"/>`:`<line x1="${lx}" x2="${lx+16}" y1="${ly}" y2="${ly}" stroke="${q[1]}" stroke-width="2.4" ${q[2]?`stroke-dasharray="${q[2]}"`:''}/>`)+`<text x="${lx+20}" y="${ly+3.5}" font-size="10.5" fill="var(--ink)">${q[0]}</text>`;
+s+=`<line class="cur" x1="0" x2="0" y1="${mt}" y2="${mt+ph}" stroke="var(--ink)" stroke-width="1.3" opacity="0"/>`;
+el.innerHTML=`<svg viewBox="0 0 ${W} ${H}" height="${H}" role="img" aria-label="${c.aria||'Графік'}">${s}</svg><div class="tip"></div>`;
+el._c=Object.assign({},c,{X,W,ml,pw});
+if(!el._b){el._b=1;const fx=e=>{const k=el._c,r=el.getBoundingClientRect();return cl((e.clientX-r.left-k.ml)/k.pw*k.xMax,0,k.xMax)};
+el.addEventListener('pointermove',e=>{const k=el._c,x=fx(e);chartCur(el,x,1);if(e.buttons&&k.scrub&&!(k.click&&PV.rul))k.scrub(x)});
+el.addEventListener('pointerdown',e=>{const k=el._c,x=fx(e);if(k.click&&PV.rul)k.click(x);else if(k.scrub)k.scrub(x)});
+el.addEventListener('pointerleave',()=>{const k=el._c;el.querySelector('.tip').style.display='none';if(k.pin==null)el.querySelector('.cur').setAttribute('opacity',0);else chartCur(el,k.pin,0)})}}
+function chartCur(el,x,tip){const c=el&&el._c;if(!c)return;const l=el.querySelector('.cur');if(!l)return;const px=c.X(x);l.setAttribute('x1',px);l.setAttribute('x2',px);l.setAttribute('opacity',.75);
+const t=el.querySelector('.tip');if(tip&&c.tip){t.innerHTML=c.tip(x);t.style.display='block';t.style.left=cl(px+10,4,c.W-t.offsetWidth-4)+'px'}}
+function chartPin(id,x){const el=$(id);if(el&&el._c){el._c.pin=x;chartCur(el,x,0)}}
+
+/* Стрілковий прилад (крок 1) */
+function gauge(v,mn,mx,z0,z1,txt){const cx=80,cy=74,r=58,ang=x=>Math.PI*(1-cl((x-mn)/(mx-mn),0,1)),pt=(x,rr)=>[cx+rr*Math.cos(ang(x)),cy-rr*Math.sin(ang(x))],arc=(a,b,c,w)=>{const p=pt(a,r),q=pt(b,r);return`<path d="M${p[0].toFixed(1)},${p[1].toFixed(1)} A${r},${r} 0 0 1 ${q[0].toFixed(1)},${q[1].toFixed(1)}" fill="none" stroke="${c}" stroke-width="${w}"/>`};
+let tk='';for(let i=0;i<=4;i++){const x=mn+(mx-mn)*i/4,p=pt(x,r+11);tk+=`<text x="${p[0].toFixed(1)}" y="${(p[1]+3).toFixed(1)}" font-size="9" text-anchor="middle" fill="var(--sub)">${F(Math.round(x*10)/10)}</text>`}
+const nd=v==null?null:pt(v,r-8);
+return`<svg viewBox="0 0 160 98" role="img" aria-label="Прилад: ${txt}">${arc(mn,mx,'var(--ln)',9)}${arc(z0,z1,'var(--ac)',9)}${tk}${nd?`<line x1="${cx}" y1="${cy}" x2="${nd[0].toFixed(1)}" y2="${nd[1].toFixed(1)}" stroke="var(--ink)" stroke-width="2.6" stroke-linecap="round"/>`:''}<circle cx="${cx}" cy="${cy}" r="5" fill="var(--ink)"/><text x="${cx}" y="94" font-size="13" font-weight="700" text-anchor="middle" fill="var(--ink)">${txt}</text></svg>`}
+
+
+/* ===== Креслення кроків ===== */
+const r3=x=>Math.round(x*1000)/1000,r1=x=>Math.round(x*10)/10;
+const lab=(x,y,t,o={})=>`<text x="${r1(x)}" y="${r1(y)}" font-size="${o.s||11.5}" font-weight="${o.w||400}" fill="${o.c||'var(--ink)'}" text-anchor="${o.a||'start'}" ${o.halo===0?'':`paint-order="stroke" stroke="${o.halo||'var(--pn2)'}" stroke-width="3.5" stroke-linejoin="round"`}>${t}</text>`;
+const NAR=()=>innerWidth<600;
+const SOIL='#C9B48A',SOIL2='#8A6D4B',LEAF='#3F9A3A',LEAF2='#2C7427',WEED='#A9B34A',STEEL='#59646B';
+/* рослина культури у плані (розетка) та бур'ян */
+const rosette=(x,y,r,c)=>`<g transform="translate(${r1(x)},${r1(y)})"><ellipse rx="${r}" ry="${r*.45}" fill="${c||LEAF}"/><ellipse rx="${r*.45}" ry="${r}" fill="${c||LEAF}"/><circle r="${r*.3}" fill="${LEAF2}"/></g>`;
+/* рослина збоку: стебло й листки, висота hp (у поділках) */
+const plantSide=(x,gy,hp,c)=>`<path d="M${r1(x)},${gy} V${r1(gy-hp)}" stroke="${LEAF2}" stroke-width="2.4"/><ellipse cx="${r1(x-hp*.28)}" cy="${r1(gy-hp*.62)}" rx="${r1(hp*.3)}" ry="${r1(Math.max(2,hp*.11))}" fill="${c||LEAF}" transform="rotate(-24 ${r1(x-hp*.28)} ${r1(gy-hp*.62)})"/><ellipse cx="${r1(x+hp*.28)}" cy="${r1(gy-hp*.8)}" rx="${r1(hp*.3)}" ry="${r1(Math.max(2,hp*.11))}" fill="${c||LEAF}" transform="rotate(24 ${r1(x+hp*.28)} ${r1(gy-hp*.8)})"/>`;
+
+/* Крок 2: геометрія камери — вид збоку в масштабі та кадр на ґрунті */
+function camSVG(){const q=Qs({}),g=geo(V,q),h=n(S.h),th=n(S.th);if(!h||th==null)return'<p class="note">Задайте висоту й кут камери.</p>';
+const nar=NAR(),SW=nar?cl(innerWidth-64,290,452):452,sc=nar?.56:.8,x0=nar?78:92,gy=nar?176:250,SH=gy+54,T=th*Math.PI/180,cy=gy-h*sc,vf=23*Math.PI/180,xn=h*Math.tan(Math.max(T-vf,-1.2)),xfRaw=T+vf>=1.5?1e4:h*Math.tan(T+vf),X=x=>x0+x*sc,xe=SW-6,ph=V.crop.ph;
+const far=Math.min(X(xfRaw),xe),axx=X(g.d),fy=(xx,x1)=>r1(cy+(gy-cy)*(xx-x0)/(x1-x0));let pl='';for(let x=36;X(x)<xe-6;x+=25)pl+=plantSide(X(x),gy,Math.max(5,ph*sc));
+const sx=Math.min(X(g.d*.62),xe-78),sy=axx>x0+1?cy+(gy-cy)*(sx-x0)/(axx-x0):gy-20;
+const side=`<svg viewBox="0 0 ${SW} ${SH}" style="flex:${SW} 1 ${nar?280:300}px" role="img" aria-label="Камера: вид збоку в масштабі"><rect x="0" y="${gy}" width="${SW}" height="26" fill="${SOIL}" opacity=".55"/><polygon points="${x0},${r1(cy)} ${r1(X(xn))},${gy} ${r1(far)},${gy}${X(xfRaw)>xe?` ${xe},${fy(xe,X(xfRaw))}`:''}" fill="var(--am)" opacity=".16"/>
+<line x1="${x0}" y1="${r1(cy)}" x2="${r1(Math.min(axx,xe))}" y2="${axx>xe?fy(xe,axx):gy}" stroke="var(--am)" stroke-width="1.6" stroke-dasharray="6 4"/>${pl}
+<rect x="${x0-44}" y="${gy-52*sc/.8}" width="62" height="11" rx="3" fill="${STEEL}"/><path d="M${x0-6},${gy-52*sc/.8+11} q-10,${r1((52*sc/.8-11)/2)} 4,${r1(52*sc/.8-11)}" fill="none" stroke="${STEEL}" stroke-width="4"/><path d="M${x0-16},${gy+3} h28 l-6,-7 h-16z" fill="${STEEL}"/>
+<line x1="${x0}" y1="${gy-52*sc/.8}" x2="${x0}" y2="${r1(cy)}" stroke="var(--ink)" stroke-width="3.5"/><g transform="translate(${x0},${r1(cy)}) rotate(${r1(90-th)})"><rect x="-9" y="-7" width="22" height="14" rx="3" fill="var(--ac)"/><rect x="13" y="-4" width="6" height="8" fill="var(--ink)"/></g>
+<line x1="${x0-54}" y1="${gy}" x2="${x0-54}" y2="${r1(cy)}" stroke="var(--ink)" stroke-width="1"/><line x1="${x0-59}" y1="${r1(cy)}" x2="${x0-22}" y2="${r1(cy)}" stroke="var(--ink)" stroke-width="1"/>${lab(x0-18,cy-7,'h = '+F(h)+' см',{a:'end',w:700})}
+${th>3?`<path d="M${x0},${r1(cy+30)} A30,30 0 0 0 ${r1(x0+30*Math.sin(T))},${r1(cy+30*Math.cos(T))}" fill="none" stroke="var(--ink)" stroke-width="1"/>`:''}
+${axx<xe?`<circle cx="${r1(axx)}" cy="${gy}" r="4.5" fill="var(--wn)"/><line x1="${x0}" y1="${gy+13}" x2="${r1(axx)}" y2="${gy+13}" stroke="var(--ink)" stroke-width="1"/>${lab(Math.max((x0+axx)/2,x0+34),gy+27,'d = '+Math.round(g.d)+' см',{a:'middle',w:700,halo:0})}`:lab(xe-4,gy+24,'центр кадру за межами рисунка: d = '+Math.round(g.d)+' см',{a:'end',c:'var(--wn)',halo:0})}
+${lab(sx+9,sy-7,'s = '+Math.round(g.s)+' см',{w:700})}${lab(x0+28,cy-12,'θ = '+F(th)+'°',{w:700})}${lab(6,gy+48,'Вид збоку, масштаб однаковий по обох осях',{c:'var(--sub)',s:10.5,halo:0})}
+<line x1="0" x2="${SW}" y1="${gy}" y2="${gy}" stroke="${SOIL2}" stroke-width="1.4"/></svg>`;
+/* кадр на ґрунті */
+const a=V.a.a,TW=nar?SW:262,pw=TW-12,k=Math.min(1.5,pw/Math.max(g.W+20,3.4*a)),cx=TW/2,fw=g.W*k,fh=Math.min(nar?90:150,fw*.6),fy0=nar?44:66,TH=nar?Math.round(fy0+fh+74):SH;let rows='';
+for(let i=-4;i<=4;i++){const xx=cx+(i+.5)*a*k;if(xx<8||xx>TW-8)continue;const ins=Math.abs(xx-cx)<=fw/2;rows+=`<line x1="${r1(xx)}" x2="${r1(xx)}" y1="${fy0-20}" y2="${fy0+fh+20}" stroke="${LEAF}" stroke-width="${ins?4:2.5}" opacity="${ins?.9:.35}"/>`}
+const top=`<svg viewBox="0 0 ${TW} ${TH}" style="flex:${TW} 1 ${nar?280:190}px" role="img" aria-label="Кадр камери на ґрунті, вид зверху">${lab(6,16,'Кадр на ґрунті (вид зверху)',{c:'var(--sub)',s:10.5})}${rows}<rect x="${r1(cx-fw/2)}" y="${fy0}" width="${r1(fw)}" height="${r1(fh)}" fill="var(--am)" opacity=".16" stroke="var(--am)" stroke-width="1.6"/>
+<line x1="${r1(cx-fw/2)}" x2="${r1(cx+fw/2)}" y1="${fy0+fh+30}" y2="${fy0+fh+30}" stroke="var(--ink)" stroke-width="1"/>${lab(cx,fy0+fh+46,'W = '+Math.round(g.W)+' см',{a:'middle',w:700})}${lab(cx,fy0+fh+62,'у кадрі '+MR(g.nv)+' по '+a+' см',{a:'middle'})}</svg>`;
+return`<div class="cam2">${side}${top}</div>`}
+function camChk(){const q=Qs({}),g=geo(V,q),h=n(S.h),th=n(S.th);if(!h||th==null)return'';const ck=(ok,t)=>`<span class="bd${ok?'':' w'}">${ok?'✓':'✗'} ${t}</span> `,v=n(S.tr.v)||9;
+return ck(g.s>=130&&g.s<=200,'s = '+Math.round(g.s)+' см (треба 130–200)')+ck(g.d>=80&&g.d<=160,'d = '+Math.round(g.d)+' см (треба 80–160)')+ck(g.nv>=V.nNeed,'у кадрі '+MR(g.nv)+' (треба ≥ '+V.nNeed+')')+ck(h>=70+V.crop.ph,'h ≥ '+(70+V.crop.ph)+' см')+`<p class="note">Запас часу: за ${F(v)} км/год камера бачить місце за τ = d / v ≈ <b>${F(f1(g.d/100/(v/3.6)))}</b> с до приходу лап — стільки є в системи, щоб підготувати зсув каретки.</p>`}
+
+/* Крок 3: кадр камери з рамками розпізнавання та розподіл оцінок */
+function frameSVG(){const p=pv();if(!p.nr)return'<p class="note"><b>У кадрі не вміщується жодного міжряддя — збільште висоту або змініть кут камери (крок 2).</b></p>';const dark=V.night&&!S.led;
+const o=p.O.map(q=>{const r=q.c?7:4.5,b=q.det?`<rect x="${r1(q.x-r-2.5)}" y="${r1(q.y-r-2.5)}" width="${2*r+5}" height="${2*r+5}" rx="2" fill="none" stroke="${q.c?'#2B7FFF':'var(--wn)'}" stroke-width="1.8"/>`:q.c?`<rect x="${r1(q.x-r-2.5)}" y="${r1(q.y-r-2.5)}" width="${2*r+5}" height="${2*r+5}" rx="2" fill="none" stroke="var(--wn)" stroke-width="1.4" stroke-dasharray="3 2.5"/>`:'';return(q.c?rosette(q.x,q.y,6,dark?'#2f6b2c':LEAF):`<circle cx="${r1(q.x)}" cy="${r1(q.y)}" r="3.4" fill="${dark?'#6f7533':WEED}"/>`)+b}).join('');
+return`<div class="fig"><svg viewBox="0 0 580 234" role="img" aria-label="Кадр камери з результатом розпізнавання"><rect width="580" height="234" fill="${dark?'#2A2A22':SOIL}" opacity="${dark?1:.6}"/>${o}${dark?'<rect width="580" height="234" fill="#000" opacity=".28"/>':''}</svg><div class="cap">Кадр камери: ${MR(p.nr)} у полі зору, рядки вертикальні. Синя рамка — рослину розпізнано; червона пунктирна — рослину пропущено; червона суцільна — бур’ян, прийнятий за рослину.${dark?' <b>Темно: без підсвічування зображення шумне.</b>':''}</div></div>
+<div class="kv" style="grid-template-columns:repeat(3,minmax(0,1fr))"><div><span>розпізнано рослин</span><b class="${p.rec>=95?'ok':p.rec>=85?'':'no'}">${p.rec} %</b></div><div><span>хибні спрацювання на бур’янах</span><b class="${p.fp<=10?'ok':p.fp<=25?'':'no'}">${p.fp} %</b></div><div><span>якість сигналу рядка</span><b>${Math.round(p.d.f1*100)} %</b><div class="mt"><i style="width:${Math.round(p.d.f1*100)}%"></i></div></div></div>${distSVG(p.d,S.thr)}`}
+function distSVG(d,thr){const pdf=(x,m,s)=>Math.exp(-.5*((x-m)/s)**2)/(s*2.5066),X=x=>44+x*5.6,Y=v=>132-v*2000,cp=[],wp=[];for(let x=0;x<=100;x+=2){cp.push([X(x),Y(pdf(x,d.mc,d.sg))]);wp.push([X(x),Y(pdf(x,d.mw,d.sg))])}
+const line=a=>'M'+a.map(p=>p[0].toFixed(0)+','+p[1].toFixed(1)).join('L'),area=(a,from,to)=>{const b=a.filter((p,i)=>i*2>=from&&i*2<=to);return b.length?`M${b[0][0].toFixed(0)},132L${b.map(p=>p[0].toFixed(0)+','+p[1].toFixed(1)).join('L')}L${b[b.length-1][0].toFixed(0)},132Z`:''};
+return`<div class="fig"><div class="sx"><svg viewBox="0 0 640 170" role="img" aria-label="Розподіл оцінок рослин і бур’янів"><path d="${area(cp,0,thr)}" fill="var(--wn)" opacity=".45"/><path d="${area(wp,thr,100)}" fill="var(--wn)" opacity=".45"/><path d="${line(wp)}" fill="none" stroke="${WEED}" stroke-width="2.4"/><path d="${line(cp)}" fill="none" stroke="${LEAF}" stroke-width="2.4"/><line x1="44" x2="604" y1="132" y2="132" stroke="var(--sub)"/><line x1="${X(thr)}" x2="${X(thr)}" y1="14" y2="132" stroke="var(--ink)" stroke-width="1.6" stroke-dasharray="5 3"/>${lab(X(thr)+(thr>80?-6:6),24,'поріг '+thr,{a:thr>80?'end':'start',w:700})}
+${lab(X(d.mw),Y(pdf(d.mw,d.mw,d.sg))-6,'бур’яни',{a:'middle',c:'#7c8329'})}${lab(X(d.mc),Y(pdf(d.mc,d.mc,d.sg))-6,'рослини',{a:'middle',c:LEAF2})}${[0,25,50,75,100].map(v=>lab(X(v),148,v,{a:'middle',c:'var(--sub)',s:10.5,halo:0})).join('')}${lab(324,164,'оцінка «схожості на культурну рослину»',{a:'middle',c:'var(--sub)',s:10.5,halo:0})}</svg></div><div class="cap">Кожен об’єкт у кадрі отримує оцінку. Усе, що праворуч від порога, система вважає рослиною. Червона заливка — помилки: ліворуч від порога пропущені рослини, праворуч — бур’яни, прийняті за рослини. Що далі розведені дві криві, то легше вибрати поріг.</div></div>`}
+
+/* Крок 4 і лупа проходу: переріз у масштабі. mode 'inter' — ціле міжряддя, 'row' — один рядок великим планом зі зміщенням e */
+function zoneSVG(Z,e,mode){const a=V.a.a,ph=V.crop.ph;if(!Z||Z<=0)return'<p class="note">Введіть Z, щоб побачити схему захисної зони.</p>';
+if(mode=='row'){const W=250,H=215,k=Math.min(11,(W/2-8)/(Z+9)),cx=W/2,gy=150,L=cx-(Z-e)*k,Rr=cx+(Z+e)*k,cut=Math.abs(e)>Z-1,hp=Math.min(ph*k*.5,96);
+const blade=(x0,x1)=>`<rect x="${r1(Math.min(x0,x1))}" y="${gy+5}" width="${r1(Math.abs(x1-x0))}" height="9" rx="2" fill="${STEEL}"/>`;
+return`<rect width="${W}" height="${gy}" fill="var(--sky)"/><rect y="${gy}" width="${W}" height="${H-gy}" fill="${SOIL}"/><rect x="${r1(cx-(Z-1)*k)}" y="${gy-4}" width="${r1(2*(Z-1)*k)}" height="${H-gy+4}" fill="var(--ac)" opacity=".22"/>
+${blade(-10,L)}${blade(Rr,W+10)}<line x1="${r1(L)}" x2="${r1(L)}" y1="${gy-14}" y2="${gy+22}" stroke="${cut&&e>0?'var(--wn)':'var(--ink)'}" stroke-width="1.6"/><line x1="${r1(Rr)}" x2="${r1(Rr)}" y1="${gy-14}" y2="${gy+22}" stroke="${cut&&e<0?'var(--wn)':'var(--ink)'}" stroke-width="1.6"/>
+${plantSide(cx,gy,hp,cut?'#B4412C':LEAF)}<line x1="0" x2="${W}" y1="${gy}" y2="${gy}" stroke="${SOIL2}" stroke-width="1.3"/>
+<line x1="${r1(Math.min(L,cx))}" x2="${r1(Math.max(L,cx))}" y1="${gy+34}" y2="${gy+34}" stroke="var(--soilink)" stroke-width="1.2"/><line x1="${r1(Math.min(Rr,cx))}" x2="${r1(Math.max(Rr,cx))}" y1="${gy+46}" y2="${gy+46}" stroke="var(--soilink)" stroke-width="1.2"/>
+${lab((L+cx)/2,gy+31,F(Z-e,1),{a:'middle',s:11,c:'var(--soilink)',halo:'#F2E6C8',w:700})}${lab((Rr+cx)/2,gy+58,F(Z+e,1)+' см',{a:'middle',s:11,c:'var(--soilink)',halo:'#F2E6C8',w:700})}
+${lab(6,16,'зліва',{c:'var(--sub)',s:10.5})}${lab(W-6,16,'справа',{a:'end',c:'var(--sub)',s:10.5})}${cut?lab(cx,34,'підрізано',{a:'middle',c:'var(--wn)',w:700,s:13}):''}`}
+const W=NAR()?cl(innerWidth-64,290,640):640,H=212,k=Math.min(7.2,(W-30)/(a+2*Math.min(a/2,24))),cx=W/2,gy=128,rL=cx-a/2*k,rR=cx+a/2*k,hp=Math.min(ph*k*.45,84),Wk=Math.round(W_(Z));let w='';
+const rg=rng(hash(V.id+'zw'));for(let i=0;i<16;i++){const u=(rg()-.5)*(a+40),near=Math.min(Math.abs(u+a/2),Math.abs(u-a/2));if(near<Z&&near>1.2)w+=`<circle cx="${r1(cx+u*k)}" cy="${gy-4}" r="3.2" fill="${WEED}" stroke="#7c8329" stroke-width=".8"/>`}
+const blade=(x0,x1)=>x1>x0?`<rect x="${r1(x0)}" y="${gy+5}" width="${r1(x1-x0)}" height="9" rx="2" fill="${STEEL}"/><path d="M${r1((x0+x1)/2)},${gy+5} v-58" stroke="${STEEL}" stroke-width="5"/>`:'';
+return`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Переріз міжряддя із захисною зоною"><rect width="${W}" height="${gy}" fill="var(--sky)"/><rect y="${gy}" width="${W}" height="${H-gy}" fill="${SOIL}"/>
+<rect x="${r1(rL-Z*k)}" y="${gy-6}" width="${r1(2*Z*k)}" height="${H-gy+6}" fill="var(--ac)" opacity=".2"/><rect x="${r1(rR-Z*k)}" y="${gy-6}" width="${r1(2*Z*k)}" height="${H-gy+6}" fill="var(--ac)" opacity=".2"/>
+<rect x="0" y="${gy-76}" width="${W}" height="10" fill="${STEEL}" opacity=".85"/>${blade(-20,rL-Z*k)}${blade(rL+Z*k,rR-Z*k)}${blade(rR+Z*k,W+20)}${w}${plantSide(rL,gy,hp)}${plantSide(rR,gy,hp)}
+<line x1="0" x2="${W}" y1="${gy}" y2="${gy}" stroke="${SOIL2}" stroke-width="1.3"/>
+<line x1="${r1(rL)}" x2="${r1(rL+Z*k)}" y1="${gy+28}" y2="${gy+28}" stroke="var(--soilink)" stroke-width="1.6"/><line x1="${r1(rL)}" x2="${r1(rL)}" y1="${gy}" y2="${gy+60}" stroke="var(--soilink)" stroke-width="1"/><line x1="${r1(rR)}" x2="${r1(rR)}" y1="${gy}" y2="${gy+60}" stroke="var(--soilink)" stroke-width="1"/><line x1="${r1(rL+Z*k)}" x2="${r1(rL+Z*k)}" y1="${gy+5}" y2="${gy+34}" stroke="var(--soilink)" stroke-width="1"/>${lab(rL+Z*k+7,gy+32,'Z = '+F(Z)+' см',{w:700,c:'var(--soilink)',halo:'#F2E6C8'})}
+<line x1="${r1(rL)}" x2="${r1(rR)}" y1="${gy+54}" y2="${gy+54}" stroke="var(--soilink)" stroke-width="1"/>${lab(cx,gy+72,(W>=520?'міжряддя ':'')+'a = '+a+' см; ширина лапи a − 2Z = '+F(f1(a-2*Z))+' см',{a:'middle',c:'var(--soilink)',halo:'#F2E6C8'})}
+${W>=520?lab(8,18,'Переріз у масштабі. Зелені смуги — захисні зони; бур’яни в них лишаються.',{c:'var(--sub)'}):''}${lab(W-8,18,'знищується ≈ '+Wk+' % бур’янів',{a:'end',w:700})}</svg>`}
+
+/* Крок 5: зміщувальна каретка, вид зверху (1 мм = 0,62 поділки) */
+function carSVG(p){const L=V.a.lock,a=cl(p,-L,L),k=.62,cx=320,W=640,H=196,x=cx+a*k,cal=S.cal,mk=(c,t)=>c?`<line x1="${r1(cx+c.a*k)}" x2="${r1(cx+c.a*k)}" y1="96" y2="150" stroke="var(--am)" stroke-width="2" stroke-dasharray="4 3"/>${lab(cx+c.a*k,164,t,{a:'middle',c:'var(--am)',w:700,s:10.5})}`:'';let tn='';for(let i=-3;i<=3;i++)tn+=`<path d="M${r1(x+i*52)},128 v30 l-7,12 h14 l-7,-12" fill="${STEEL}" stroke="${STEEL}" stroke-width="3"/>`;
+return`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Зміщувальна каретка, вид зверху"><rect width="${W}" height="${H}" fill="${SOIL}" opacity=".35"/>
+<rect x="${cx-L*k-70}" y="40" width="${2*L*k+140}" height="22" rx="4" fill="var(--trk2)"/>${lab(cx,34,'нерухома рама (навіска трактора)',{a:'middle',c:'var(--sub)',s:10.5})}
+<rect x="${cx-L*k-74}" y="64" width="8" height="34" fill="var(--wn)" opacity="${a<=-L?1:.35}"/><rect x="${cx+L*k+66}" y="64" width="8" height="34" fill="var(--wn)" opacity="${a>=L?1:.35}"/>
+<line x1="${cx}" x2="${cx}" y1="62" y2="104" stroke="var(--ink)" stroke-dasharray="3 3"/>
+<rect x="${r1(x-66)}" y="70" width="132" height="24" rx="4" fill="var(--ac)"/><rect x="${r1(x-190)}" y="104" width="380" height="16" rx="3" fill="${STEEL}"/><path d="M${r1(x-40)},94 V104 M${r1(x+40)},94 V104" stroke="${STEEL}" stroke-width="7"/>${tn}
+<rect x="${cx-L*k-58}" y="76" width="${r1(Math.max(4,(x-66)-(cx-L*k-58)-34))}" height="10" fill="var(--rim)" stroke="${STEEL}"/><rect x="${r1(x-100)}" y="78" width="34" height="6" fill="${STEEL}"/>
+${mk(cal.L,'Л')}${mk(cal.R,'П')}${mk(cal.N,'Н')}${lab(cx-L*k-70,186,'упор ліворуч',{c:'var(--sub)',s:10.5})}${lab(cx+L*k+70,186,'упор праворуч',{a:'end',c:'var(--sub)',s:10.5})}${lab(x,87,'каретка',{a:'middle',c:'var(--aci)',halo:0,w:700,s:11})}</svg>`}
+
+/* ===== Перегляд проходу: вид зверху + переріз + прилади + графіки ===== */
+const PV={o:null,p:1,play:false,dur:16,raf:0,rul:false,Z:5,lim:25,V:null,cfg:{}};
+const pvE=(x,c)=>{const o=PV.o,i=cl(Math.floor(x),0,o.length-1),j=Math.min(o.length-1,i+1),f=cl(x-i,0,1);return o[i][c]+(o[j][c]-o[i][c])*f};
+function pvHTML(){return`<div class="fig"><svg id="tv" viewBox="0 0 720 300" role="img" aria-label="Культиватор у роботі, вид зверху"></svg><div class="cap">Вид зверху відносно рядків: рядки нерухомі, лапи зсуваються на величину відхилення e. Упоперек 1 см показано більшим, ніж уздовж (поперечний масштаб розтягнуто). Темні смуги — оброблений ґрунт; світлі навколо рядків — захисні зони, де бур’яни лишаються.</div></div>
+<div class="pvw"><div class="fig lp"><svg id="lp" viewBox="0 0 250 215" role="img" aria-label="Переріз рядка в масштабі"></svg><div class="cap">Переріз одного рядка в масштабі: відстань від рослини до лівої та правої лапи. Зелена смуга — безпечне відхилення ±(Z − 1) см.</div></div>
+<div><div class="gs"><div class="gt"><span>Відхилення e, см</span><b id="g_e">—</b><div class="mt"><s id="g_es"></s><u id="g_em" style="left:50%"></u></div></div>
+<div class="gt"><span>Факт. зона, см</span><b id="g_z">—</b><div class="mt"><i id="g_zm"></i></div></div>
+<div class="gt"><span>Каретка c, см</span><b id="g_c">—</b><div class="mt"><u id="g_cm" style="left:50%"></u></div></div>
+<div class="gt"><span>Камера</span><b id="g_k">—</b><div class="mt"><i id="g_km"></i></div></div>
+<div class="gt"><span>Підрізано досі, %</span><b id="g_d">—</b><div class="mt"><i id="g_dm"></i></div></div>
+<div class="gt"><span>Пройдено, м</span><b id="g_x">—</b><div class="mt"><i id="g_xm"></i></div></div></div>
+<div class="pc np"><button class="p sm" id="pv_b" onclick="pvToggle()">▶ Пуск</button><button class="g sm" onclick="pvSeek(0)">На початок</button><button class="g sm" onclick="pvWorst()">Найгірший момент</button><select id="pv_s" onchange="PV.dur=+this.value" aria-label="Швидкість перегляду"><option value="40">повільно</option><option value="16" selected>звичайно</option><option value="7">швидко</option></select></div>
+<input type="range" class="np" id="pv_r" min="0" max="1000" value="1000" oninput="pvSeek(this.value/1000)" aria-label="Положення агрегату на гоні">
+<p class="note np">Перетягніть повзунок або ведіть курсором по графіках — агрегат стане в цю точку гону.</p></div></div>
+<div class="ch" id="c1"></div><div class="ch" id="c2"></div>`}
+function pvBind(o,cfg){cancelAnimationFrame(PV.raf);PV.play=false;PV.o=o;PV.cfg=cfg=cfg||{};PV.V=cfg.V||V;PV.Z=cfg.Z;PV.lim=cfg.lim||V.a.lock/10;PV.night=cfg.night;
+/* накопичена частка підрізаних рослин */
+PV.cum=[];let b=0;o.forEach((p,i)=>{if(Math.abs(p[1])>PV.Z-1)b++;PV.cum.push(100*b/(i+1))});
+/* бур'яни: фіксований випадковий розсів уздовж гону */
+const dn={'низька':1.4,'середня':3,'висока':6}[PV.V.weed],rg=rng(hash(V.id+'wd')),a=V.a.a;PV.w=[];for(let x=0;x<PV.V.L+6;x+=1/dn)PV.w.push([x+rg()*.3,(rg()-.5)*2.3*a]);
+let w=25,m=-1;o.forEach((p,i)=>{if(i>=25&&Math.abs(p[1])>m){m=Math.abs(p[1]);w=i}});PV.worst=w;
+pvCharts();const auto=cfg.auto&&!matchMedia('(prefers-reduced-motion:reduce)').matches;pvSeek(auto?0:cfg.start!=null?cfg.start:w/(o.length-1));if(auto)pvToggle()}
+function pvCharts(){const o=PV.o,cfg=PV.cfg,Z=PV.Z,L=PV.V.L,lim=PV.lim;
+drawChart($('c1'),{h:190,xMax:L,y0:-12,y1:12,ticks:4,bands:[[-(Z-1),Z-1]],shade:lostRuns(o),aria:'Відхилення знаряддя від осі рядка вздовж гону',
+leg:[['відхилення e, см','var(--wn)'],...(cfg.ghost?[[cfg.ghostName||'попередня спроба','var(--sub)','4 3']]:[]),['безпечно: ±(Z − 1)','var(--ac)','band'],['камера не бачить рядка','var(--am)','band'],...(cfg.dots&&cfg.dots.length?[['ваші заміри','var(--ink)','dot']]:[])],
+ser:[...(cfg.ghost?[{p:cfg.ghost,c:'var(--sub)',d:'4 3',w:1.3}]:[]),{p:o.map(p=>[p[0],p[1]]),c:'var(--wn)',w:1.9}],dots:(cfg.dots||[]).map(m=>[m[0],pvE(m[0],1)]),
+tip:x=>`<b>${Math.round(x)} м</b><br>e = ${F(pvE(x,1),1)} см<br>факт. зона ${F(Z-Math.abs(pvE(x,1)),1)} см${o[cl(Math.round(x),0,o.length-1)][3]?'<br>камера не бачить рядка':''}`,scrub:x=>pvSeekX(x),click:cfg.click});
+const yl=Math.ceil((lim+3)/5)*5;drawChart($('c2'),{h:150,xMax:L,y0:-yl,y1:yl,ticks:4,shade:lostRuns(o),aria:'Положення каретки вздовж гону',leg:[['зсув каретки c, см','var(--ac)']],hl:[[lim,'var(--wn)','упор +'+F(lim)+' см'],[-lim,'var(--wn)','']],ser:[{p:o.map(p=>[p[0],p[2]]),c:'var(--ac)'}],
+tip:x=>`<b>${Math.round(x)} м</b><br>каретка ${F(pvE(x,2),1)} см<br>упори ±${F(lim)} см`,scrub:x=>pvSeekX(x)})}
+function pvSeekX(x){pvSeek(cl(x/(PV.o.length-1),0,1))}
+function pvSeek(p){PV.p=cl(+p,0,1);pvDraw()}
+function pvWorst(){PV.play=false;cancelAnimationFrame(PV.raf);pvBtn();pvSeek(PV.worst/(PV.o.length-1))}
+function pvToggle(){if(!PV.o)return;if(PV.play){PV.play=false;cancelAnimationFrame(PV.raf)}else{if(PV.p>=1)PV.p=0;PV.play=true;PV.t0=0;PV.raf=requestAnimationFrame(pvTick)}pvBtn()}
+function pvBtn(){const b=$('pv_b');if(b)b.textContent=PV.play?'⏸ Пауза':'▶ Пуск'}
+function pvTick(t){if(!PV.play||!$('tv'))return;if(PV.t0)PV.p=Math.min(1,PV.p+(t-PV.t0)/1000/PV.dur);PV.t0=t;pvDraw();if(PV.p>=1){PV.play=false;pvBtn()}else PV.raf=requestAnimationFrame(pvTick)}
+/* вид зверху: рядки на cx ± a/2; уздовж 1 м = ky поділок, упоперек 1 см = k поділок */
+function topSVG(xc){const o=PV.o,Z=PV.Z,a=V.a.a,W=PV.W||720,H=300,k=(W-30)/((W<500?1.7:2.3)*a),ky=24,y0=74,cx=W/2,rows=[-a/2,a/2],xa=xc+y0/ky,xb=Math.max(0,xc-(H-y0)/ky),Y=x=>y0+(xc-x)*ky,e0=pvE(xc,1),lost=o[cl(Math.round(xc),0,o.length-1)][3],q=PV.cfg.q||Qs({}),g=geo(V,q);
+let s=`<rect width="${W}" height="${H}" fill="${PV.night?'#3a3528':SOIL}" opacity="${PV.night?1:.55}"/>`;
+/* оброблені смуги позаду лап */
+const edges=[];for(let x=xb;x<=xc+.001;x+=.5)edges.push([x,pvE(x,1)]);edges.push([xc,e0]);
+const band=(l0,l1)=>{const A=edges.map(p=>r1(cx+(l0+p[1])*k)+','+r1(Y(p[0]))),B=edges.slice().reverse().map(p=>r1(cx+(l1+p[1])*k)+','+r1(Y(p[0])));return`<polygon points="${A.join(' ')} ${B.join(' ')}" fill="var(--plowed)" opacity=".62"/>`};
+if(xc>xb){s+=band(-1.5*a,rows[0]-Z)+band(rows[0]+Z,rows[1]-Z)+band(rows[1]+Z,1.5*a)}
+/* бур'яни */
+const w=PV.w;let i0=0,hi=w.length;while(i0<hi){const m=(i0+hi)>>1;if(w[m][0]<xb)i0=m+1;else hi=m}
+for(let i=i0;i<w.length&&w[i][0]<=xa;i++){const x=w[i][0],u=w[i][1];if(Math.abs(u)>1.14*a)continue;let alive=x>xc;if(!alive){const e=pvE(x,1);alive=rows.some(r=>u>r-Z+e&&u<r+Z+e)}if(Math.min(Math.abs(u-rows[0]),Math.abs(u-rows[1]))<1.2)continue;if(alive)s+=`<circle cx="${r1(cx+u*k)}" cy="${r1(Y(x))}" r="2.6" fill="${WEED}" stroke="#7c8329" stroke-width=".6"/>`}
+/* рослини */
+for(let x=Math.ceil(xb*2)/2;x<=xa;x+=.5)for(const r of rows){const cut=x<=xc&&Math.abs(pvE(x,1))>Z-1,px=cx+r*k,py=Y(x);s+=cut?`<path d="M${r1(px-5)},${r1(py-5)} l10,10 M${r1(px+5)},${r1(py-5)} l-10,10" stroke="var(--wn)" stroke-width="2.6" stroke-linecap="round"/>`:rosette(px,py,4.6)}
+/* кадр камери попереду */
+const fw=Math.min(g.W*k,W-8),fh=cl(g.W*.5/100*ky,18,30),fy0=Y(xc+g.d/100),off=fy0-fh/2<22,fy=off?22+fh/2:Math.min(fy0,y0-9-fh/2);s+=`<rect x="${r1(cx-fw/2)}" y="${r1(fy-fh/2)}" width="${r1(fw)}" height="${r1(fh)}" fill="var(--am)" opacity="${lost?.1:.2}" stroke="var(--am)" stroke-width="1.6" ${lost?'stroke-dasharray="6 4"':''}/>`+lab(cx,fy+4,lost?'камера: рядок втрачено':'кадр камери: '+F(f1(g.d/100))+' м попереду лап'+(off?' (за межами рисунка)':''),{a:'middle',c:lost?'var(--wn)':'var(--soilink)',halo:'#F2E6C8',s:11,w:lost?700:400});
+/* брус і лапи */
+const bl=(l0,l1)=>`<rect x="${r1(cx+(l0+e0)*k)}" y="${y0-7}" width="${r1(Math.max(0,(l1-l0)*k))}" height="14" rx="3" fill="${STEEL}"/>`;
+s+=`<rect x="${r1(cx+(-1.5*a+e0)*k)}" y="${y0-3}" width="${r1(3*a*k)}" height="6" fill="var(--trk2)"/>`+bl(-1.5*a,rows[0]-Z)+bl(rows[0]+Z,rows[1]-Z)+bl(rows[1]+Z,1.5*a);
+s+=`<line x1="0" x2="${W}" y1="${y0}" y2="${y0}" stroke="var(--ink)" stroke-width="1" stroke-dasharray="4 4" opacity=".5"/>`+lab(8,H-10,'оброблено ↓',{c:'var(--soilink)',halo:'#F2E6C8',s:10.5})+lab(W-8,16,'напрям руху ↑',{a:'end',c:'var(--soilink)',halo:'#F2E6C8',s:10.5})+lab(8,16,'x = '+Math.round(xc)+' м із '+PV.V.L+' м',{c:'var(--soilink)',halo:'#F2E6C8',w:700});
+return s}
+function pvDraw(){const o=PV.o,tv=$('tv');if(!o||!tv)return;const xe=o.length-1,x=PV.p*xe,i=cl(Math.round(x),0,xe),e=pvE(x,1),c=pvE(x,2),lost=o[i][3],Z=PV.Z,lim=PV.lim;
+PV.W=cl(Math.round(tv.clientWidth||720),300,720);tv.setAttribute('viewBox','0 0 '+PV.W+' 300');tv.innerHTML=topSVG(x);$('lp').innerHTML=zoneSVG(Z,e,'row');
+const set=(id,t,cls)=>{const el=$(id);if(el){el.textContent=t;if(cls!=null)el.className=cls}},st=(id,p)=>{const el=$(id);if(el)for(const k in p)el.style[k]=p[k]},bad=Math.abs(e)>Z-1;
+set('g_e',(e>0?'+':'')+F(e,1),bad?'no':'');st('g_es',{left:cl(50-(Z-1)/12*50,0,50)+'%',width:cl((Z-1)/12*100,0,100)+'%'});st('g_em',{left:cl(50+e/12*50,0,99)+'%',background:bad?'var(--wn)':'var(--ac)'});
+set('g_z',F(Z-Math.abs(e),1),bad?'no':'');st('g_zm',{width:cl((Z-Math.abs(e))/Z*100,0,100)+'%',background:bad?'var(--wn)':'var(--ac)'});
+set('g_c',(c>0?'+':'')+F(c,1),Math.abs(c)>=lim-.15?'no':'');st('g_cm',{left:cl(50+c/lim*50,0,99)+'%',background:Math.abs(c)>=lim-.15?'var(--wn)':'var(--ink)'});
+set('g_k',lost?'втрата рядка':'бачить рядок',lost?'no':'ok');st('g_km',{width:lost?'100%':'0%',background:'var(--am)'});
+set('g_d',F(PV.cum[i],1),PV.cum[i]>1?'no':'ok');st('g_dm',{width:cl(PV.cum[i]*10,0,100)+'%',background:PV.cum[i]>1?'var(--wn)':'var(--ac)'});
+set('g_x',Math.round(x));st('g_xm',{width:PV.p*100+'%'});
+const r=$('pv_r');if(r&&document.activeElement!==r)r.value=Math.round(PV.p*1000);chartPin('c1',x);chartPin('c2',x)}
+
+/* ===== Екрани ===== */
+INF.push(`<p><b>Навіщо.</b> Тут можна безпечно «зламати» налаштування й побачити наслідок. Досліди не впливають на протокол і бали: система вважається справною й відкаліброваною, а ви змінюєте один параметр за раз.</p>
+<p><b>Як працювати.</b> 1) Оберіть дослід — симулятор підкаже, що змінювати і що записати. 2) Натисніть «Закріпити для порівняння» на вихідному стані. 3) Рухайте повзунок: графіки й числа перераховуються одразу, сіра лінія — закріплений стан. 4) «Записати в журнал» додає рядок у таблицю, яку переносите в зошит.</p>`);
+const info=i=>`<div class="inf np"><details ${S.infc?'':'open'} ontoggle="S.infc=!this.open;save()"><summary>${i==0?'Як влаштована система камерного підрулювання':i==8?'Як читати протокол':i==LAB?'Як користуватися дослідами':'Принцип і порядок дій'}</summary>${INF[i]}</details></div>`;
+const rb=i=>`<div class="rb np"><b>Запишіть у табл. 2.4 методички (рядок ${i}, «Фактичне значення»):</b><br>${rec(i)}<br><span class="note">У колонці «Логіка» поясніть своїми словами, чому саме такі значення й на що вони впливають.</span></div>`;
+const navb=(p,nx)=>`<div class="nb np"><button class="g" onclick="go(${p})">Назад</button><button class="p" onclick="go(${nx})">Далі</button></div>`;
+const vs=x=>esc(String(x??'').replace('.',','));
+const pass=()=>{const a=V.a;return`<details class="np"><summary>Паспорт варіанта ${V.id}</summary><table class="t2">
+<tr><th>Трактор</th><td>${a.t}; автопілот RTK (точність ходу трактора ≈ 2 см)</td></tr>
+<tr><th>Культиватор</th><td>${a.im}: ${a.n} рядків, міжряддя ${a.a} см, хід каретки ±${a.lock} мм</td></tr>
+<tr><th>Культура</th><td>${V.crop.c}, фаза ${V.crop.st}, висота рослин ≈ ${V.crop.ph} см</td></tr>
+<tr><th>Поле</th><td>гін ${V.L} м; забур’яненість: ${V.weed}; обробіток: ${V.night?'нічний':'денний'}; схил ${F(V.slope)} %</td></tr>
+<tr><th>Вимоги</th><td>пошкодження рослин ≤ 1 %; швидкість ${V.vr[0]}–${V.vr[1]} км/год; тиск 18–20 МПа; потік 40–50 л/хв</td></tr>
+<tr><th>Камера (рекомендації)</th><td>відстань до центра кадру s = 130–200 см; виніс d = 80–160 см; висота не менше ${70+V.crop.ph} см; у кадрі не менше ${V.nNeed} міжрядь</td></tr></table></details>`};
+
+function s0(){if(V){const a=V.a;return`<h2>${S.demo?'Приклад із методички: варіант '+V.id:'Ваш персональний варіант '+V.id}</h2>
+<p class="hint">${S.demo?'Усі сім кроків уже заповнено так, як у прикладі з методички. Пройдіть їх по черзі, запустіть анімацію проходу, спробуйте досліди, а потім отримайте власний варіант.':`${esc(S.reg.name)}, група ${esc(S.reg.group)}, № ${S.reg.num}. Варіант однозначно визначається цими даними.`}</p>${info(0)}
+<table class="t2"><tr><th>Трактор</th><td>${a.t}, автопілот RTK</td></tr><tr><th>Культиватор</th><td>${a.im}, ${a.n} × ${a.a} см, хід каретки ±${a.lock} мм</td></tr><tr><th>Культура</th><td>${V.crop.c}, ${V.crop.st}, висота ≈ ${V.crop.ph} см</td></tr><tr><th>Умови</th><td>забур’яненість: ${V.weed}; ${V.night?'нічний':'денний'} обробіток; схил ${F(V.slope)} %; гін ${V.L} м</td></tr><tr><th>Розрахунок (Завдання 4.2)</th><td>${S.demo?'у прикладі показано обидва варіанти: А і Б':'Варіант '+(V.odd?'А (непарний №)':'Б (парний №)')}</td></tr></table>
+<p class="note">Паспортні дані наближені й навчальні. Одиниці в паспорті можуть відрізнятися від одиниць системи (см, мм), перераховуйте уважно.</p>
+<button class="p" onclick="go(1)">${S.demo?'Переглянути приклад крок за кроком':'Почати налаштування'}</button> <button class="g" onclick="go(LAB)">Досліди «що буде, якщо…»</button> <button class="g" onclick="${S.demo?'newReg()':'rs()'}">${S.demo?'Отримати свій варіант':'Інший студент / скинути'}</button>`}
+return`<h2>Реєстрація студента</h2><p class="hint">Введіть дані — симулятор видасть унікальний варіант: трактор, культиватор, культуру й поле. Ті самі дані завжди дають той самий варіант.</p>
+<label for="g">Група</label><input type="text" id="g" placeholder="напр. АІ-31" autocomplete="off"><label for="p">ПІБ</label><input type="text" id="p" placeholder="Прізвище Ім’я По батькові" autocomplete="name"><label for="nn">Номер у списку групи</label><input type="number" id="nn" min="1" max="99">
+<p><button class="p" onclick="reg()">Отримати варіант</button> <button class="g" onclick="demo()">Відкрити приклад із методички</button></p>`}
+function reg(){const g=$('g').value.trim(),p=$('p').value.trim(),m=parseInt($('nn').value);if(g.length<2||p.length<5||!(m>=1&&m<=99))return alert('Заповніть групу, ПІБ і номер у списку (1–99).');S=blank();S.reg={group:g,name:p,num:m};V=mkV(S.reg);save();R()}
+function rs(){if(confirm('Скинути протокол і почати з новою реєстрацією?')){S=blank();V=null;save();R()}}
+function newReg(){S=blank();V=null;save();R();scrollTo(0,0)}
+function demo(){demoState();save();R();scrollTo(0,0)}
+
+const FIX1={p:'гідросистему прокачано, тиск відрегульовано',q:'потік на виносі трактора збільшено',m:'щоглу камери затягнуто, люфт прибрано',l:'об’єктив очищено'};
+const dyn1=()=>{const fx=Object.keys(FIX1).filter(k=>S.ck[k]=='Несправність');return(fx.length?`<p class="note">Позначено як несправність, виконано: ${fx.map(k=>FIX1[k]).join('; ')}.</p>`:'')+rb(1)};
+function set1(k,v){S.ck[k]=v;save();$('dyn1').innerHTML=dyn1();navR();ds()}
+function s1(){const r=rdg(),fl=V.fl,sel=k=>`<select onchange="set1('${k}',this.value)" aria-label="Ваш висновок">${['—','Норма','Несправність'].map(o=>`<option ${S.ck[k]==o?'selected':''}>${o}</option>`).join('')}</select>`,
+card=(k,t,g,nm)=>`<div class="gc">${g}<b>${t}</b><small>${nm}</small>${sel(k)}</div>`,
+lens=`<svg viewBox="0 0 160 98" role="img" aria-label="Об’єктив: ${r.l}"><circle cx="80" cy="44" r="36" fill="var(--tyre)"/><circle cx="80" cy="44" r="27" fill="#3d6f8f"/><circle cx="80" cy="44" r="15" fill="#16303f"/><circle cx="70" cy="34" r="5" fill="#fff" opacity=".55"/>${fl.lens?'<circle cx="92" cy="50" r="13" fill="#8a6d3b" opacity=".85"/><circle cx="68" cy="56" r="9" fill="#8a6d3b" opacity=".8"/><circle cx="84" cy="30" r="7" fill="#8a6d3b" opacity=".75"/>':''}<text x="80" y="94" font-size="13" font-weight="700" text-anchor="middle" fill="var(--ink)">${r.l}</text></svg>`;
+return`<h2>Крок 1. Перевірка монтажу та гідросистеми</h2><p class="hint">Зніміть показання приладів і для кожного вузла вкажіть висновок. Зелена дуга на шкалі — норма. Якщо позначите «Несправність», її усунуть. Нерозпізнана несправність залишиться й проявиться на пробному проході.</p>${info(1)}
+<div class="gg">${card('p','Тиск у гідросистемі',gauge(fl.press||V.rd.p,10,25,18,20,r.p+' МПа'),'норма 18–20 МПа')}${card('q','Потік масла на виносі',gauge(fl.flow||V.rd.q,10,70,40,50,r.q+' л/хв'),'норма 40–50 л/хв')}${card('m','Щогла камери: люфт',gauge(fl.mast||0,0,20,0,2,(fl.mast||0)+' мм'),'норма до 2 мм')}${card('l','Об’єктив камери',lens,'норма: чистий')}</div>
+<div id="dyn1">${dyn1()}</div>`+navb(0,2)}
+
+function upd2(){$('gv').innerHTML=camSVG();$('gk').innerHTML=camChk();chk2();const e=$('rb2');if(e)e.innerHTML=rb(2);save();ds();navR()}
+function chk2(){const g=geo(V,Qs({})),m=(id,v,x)=>{const e=$(id);if(e)e.innerHTML=n(v)==null?'':Math.abs(n(v)-x)/x<=.03?'<span class="ok">✓</span>':'<span class="no">✗</span>'};m('ck1',S.cs,g.s);m('ck2',S.cd,g.d);m('ck3',S.cw,g.W)}
+function s2(){const ti=(k,l,id)=>`<div><label>${l} <span id="${id}"></span></label><input type="text" inputmode="decimal" value="${vs(S[k])}" oninput="S.${k}=this.value;save();chk2();navR()"></div>`;
+return`<h2>Крок 2. Геометрія камери</h2><p class="hint">Виставте висоту й кут нахилу камери (від вертикалі) так, щоб у кадр вміщувалося достатньо міжрядь, а відстань до центра кадру й виніс були в рекомендованих межах.</p>${info(2)}${pass()}
+<div class="r2"><div><label>Висота камери h: <b id="vh">${S.h||'—'}</b> см</label><input type="range" min="60" max="250" step="5" value="${S.h||100}" oninput="S.h=this.value;$('vh').textContent=this.value;upd2()"></div>
+<div><label>Кут нахилу θ від вертикалі: <b id="vt">${S.th||'—'}</b>°</label><input type="range" min="0" max="70" step="1" value="${S.th||30}" oninput="S.th=this.value;$('vt').textContent=this.value;upd2()"></div></div>
+<div class="fig"><div id="gv">${camSVG()}</div><div class="cap">Жовтий клин — поле зору камери, штрихова лінія — вісь об’єктива. Виніс d показує, наскільки попереду лап камера бачить рядок.</div></div><div id="gk">${camChk()}</div>
+<p class="note">Перерахуйте самі за формулами s = h / cos θ, d = h · tg θ, W = 1,155 · s і введіть (перевірка з точністю ±3 %):</p>
+<div class="r3">${ti('cs','s, см','ck1')}${ti('cd','d, см','ck2')}${ti('cw','W, см','ck3')}</div><div id="rb2">${rb(2)}</div>`+navb(1,3)}
+
+const txt=v=>'→ '+(v<35?'Низький поріг: розпізнаються майже всі рослини, але й багато бур’янів (хибні спрацювання, зсув оцінки центра рядка).':v>70?'Високий поріг: бур’яни відсікаються, але частина культурних рослин пропускається (втрата рядка).':'Помірний поріг: баланс між пропуском рослин і хибними спрацюваннями.');
+function upd3(){$('pv').innerHTML=frameSVG();const e=$('rb3');if(e)e.innerHTML=rb(3);save();ds();navR()}
+function s3(){return`<h2>Крок 3. Спектральне калібрування (RGB / 3D)</h2><p class="hint">Оберіть режим розпізнавання й поріг так, щоб система бачила всі культурні рослини й не приймала бур’яни за культуру. Забур’яненість: <b>${V.weed}</b>, обробіток: <b>${V.night?'нічний':'денний'}</b>. Кадр залежить від геометрії камери з кроку 2.</p>${info(3)}${pass()}
+<div class="r2"><div><label>Режим розпізнавання</label><select onchange="S.mode=this.value;upd3()">${['—','RGB','3D','RGB+3D'].map(o=>`<option ${S.mode==o?'selected':''}>${o}</option>`).join('')}</select></div><div><label style="display:flex;gap:8px;align-items:center;color:var(--ink);margin-top:30px"><input type="checkbox" ${S.led?'checked':''} onchange="S.led=this.checked?1:0;upd3()"> LED-підсвічування</label></div></div>
+<label>Поріг розпізнавання: <b id="vth">${S.thr}</b></label><input type="range" min="0" max="100" step="1" value="${S.thr}" oninput="S.thr=+this.value;$('vth').textContent=this.value;$('hth').textContent=txt(this.value);upd3()"><div class="note" id="hth">${txt(S.thr)}</div>
+<div id="pv">${frameSVG()}</div><div id="rb3">${rb(3)}</div>`+navb(2,4)}
+
+const wz=()=>n(S.Z)?Math.round(W_(n(S.Z)))+' %':'—';
+function upd4(){$('zv').innerHTML=zoneSVG(n(S.Z),0,'inter');$('wz').textContent=wz();const e=$('rb4');if(e)e.innerHTML=rb(4)}
+function s4(){const g=geo(V,Qs({}));return`<h2>Крок 4. Параметри міжряддя та захисна зона</h2><p class="hint">Введіть ширину міжряддя з паспорта, кількість міжрядь у кадрі (за вашою геометрією з кроку 2: <b>${g.nv}</b>) і захисну зону Z — відстань від осі рядка до крайнього леза.</p>${info(4)}${pass()}
+<div class="r3"><div><label>Ширина міжряддя, см</label><input type="text" inputmode="decimal" value="${vs(S.aE)}" oninput="u('aE',this.value);upd4()"></div><div><label>Міжрядь у кадрі</label><input type="text" inputmode="numeric" value="${vs(S.nvI)}" oninput="u('nvI',this.value);upd4()"></div><div><label>Захисна зона Z, см</label><input type="text" inputmode="decimal" value="${vs(S.Z)}" oninput="u('Z',this.value);upd4()"></div></div>
+<div class="fig"><div id="zv">${zoneSVG(n(S.Z),0,'inter')}</div><div class="cap">Знаряддя може відхилитися від осі рядка не більш як на Z − 1 см: далі лапа підрізає рослину.</div></div><p class="note">Що менша Z, то більше бур’янів знищується (зараз ≈ <b id="wz">${wz()}</b>), але то вищий ризик підрізати культуру. Z вибирають за точністю, з якою знаряддя утримується відносно рядка; її видно після пробного проходу, тож тут оберіть початкове значення.</p><div id="rb4">${rb(4)}</div>`+navb(3,5)}
+
+function s5(){const c=S.cal,bt=(k,t)=>`<button class="g" onclick="fx('${k}')">${t}${c[k]?' ✓ '+F(c[k].raw)+' мм':''}</button>`,mid=c.L&&c.R?f1((c.L.raw+c.R.raw)/2):null;return`<h2>Крок 5. Калібрування каретки (ліве / праве / нейтраль)</h2><p class="hint">Перемістіть каретку до упору вліво й вправо (показання перестане змінюватися) і зафіксуйте значення. Потім виставте нейтраль — каретка по центру. Датчик має власне зміщення нуля.</p>${info(5)}
+<div class="sb"><div class="fig"><div id="cw" class="sx"></div><div class="cap">Зміщувальна каретка, вид зверху. В упорі червоний обмежувач стає яскравим, а показання датчика більше не змінюється. Жовті риски — зафіксовані положення.</div></div>
+<div class="vb" style="justify-content:center"><span>датчик положення</span><b class="big" id="raw">—</b></div></div>
+<input type="range" id="sl" min="-330" max="330" step="0.5" value="${S.pos}" oninput="cv(this.value)" aria-label="Положення каретки">
+<div class="pc"><button class="g sm" onclick="cv(+S.pos-0.5)">−0,5 мм</button><button class="g sm" onclick="cv(+S.pos+0.5)">+0,5 мм</button><span class="note">Повзунок зсуває каретку вліво й управо.</span></div>
+<div>${bt('L','Зафіксувати ліво')}${bt('R','Зафіксувати право')}${bt('N','Зафіксувати нейтраль')}</div>
+<p class="note">${mid!==null?`Підказка: якщо обидва упори зняті до кінця, нуль датчика лежить посередині: (Л + П) / 2 = ${F(mid)} мм. Перевірте, що Л і П з різних боків від центра та рівновіддалені від нього.`:'Спершу зафіксуйте обидва крайні положення — з них визначається середина діапазону.'}</p>${rb(5)}`+navb(4,6)}
+function cv(v){S.pos=+(+v).toFixed(1);const a=cl(S.pos,-V.a.lock,V.a.lock);$('raw').textContent=F(f1(a+V.z0))+' мм';$('sl').value=S.pos;const w=$('cw');w.innerHTML=carSVG(S.pos);w.scrollLeft=(w.scrollWidth-w.clientWidth)*cl((S.pos+330)/660,0,1);save()}
+function fx(k){const a=cl(S.pos,-V.a.lock,V.a.lock);if(k!='N'&&Math.abs(a)<V.a.lock-.05&&!confirm('Каретка ще не в упорі — показання продовжило б змінюватись. Доведіть до упору. Зафіксувати все одно?'))return;
+if(k=='N'&&S.cal.L&&S.cal.R&&Math.abs(a+V.z0-(S.cal.L.raw+S.cal.R.raw)/2)>5&&!confirm('Каретка далеко від середини діапазону — це точно центр? Орієнтир: (Л+П)/2 = '+F(f1((S.cal.L.raw+S.cal.R.raw)/2))+' мм. Зафіксувати все одно?'))return;S.cal[k]={raw:f1(a+V.z0),a};save();R()}
+
+const TXG={Gs:['Мала чутливість: каретка «відстає» від рядка, зростає відхилення на нерівностях.','Помірна чутливість: баланс швидкості й плавності.','Велика чутливість: каретка «перелітає» рядок, виникають автоколивання (особливо з запізненням гідравліки).'],Ki:['Ki майже вимкнено: постійне зміщення на схилі не усувається.','Помірне Ki: повільно знімає постійне зміщення.','Велике Ki: повільні хвилі й перерегулювання.'],Dd:['Мало демпфування: коливання гаснуть повільно.','Достатнє демпфування: коливання швидко затухають.','Забагато: реакція на кожен шум зображення — ривки клапана.']};
+const txg=(k,v)=>'→ '+TXG[k][v<2.5?0:v>7.5?2:1];
+/* тест зміщення перераховується одразу після кожної зміни */
+function upd6(){S.t6=stepTest();const T=S.t6,P=S.t6p;drawChart($('c6'),{h:200,xMax:6,xu:'с',xn:6,y0:0,y1:16,ticks:4,bands:[[9,11]],aria:'Тест зміщення: реакція каретки',leg:[['зсув каретки, см','var(--ac)'],...(P?[['закріплений тест','var(--sub)','4 3']]:[]),['рядок зсунувся на 10 см, зона ±1 см','var(--ac)','band']],
+ser:[...(P?[{p:P.tr,c:'var(--sub)',d:'4 3',w:1.4}]:[]),{p:T.tr,c:'var(--ac)',w:2.4}],vl:T.ts<6?[[T.ts,'var(--ink)','у зоні з '+F(T.ts)+' с']]:[],tip:x=>`<b>${F(x,2)} с</b><br>зсув ${F(T.tr[cl(Math.round(x/.05),0,T.tr.length-1)][1],1)} см`});
+$('e6').innerHTML=`<b>Перерегулювання: <span class="${T.os>15?'no':'ok'}">${F(T.os)} %</span></b> (ціль менш як 15 %) · <b>час відпрацювання: <span class="${T.ts>1.5?'no':'ok'}">${T.ts>=6?'понад 6':F(T.ts)} с</span></b> (ціль менш як 1,5 с). ${T.os>15?'Переліт: зменште Gain або збільште демпфування. ':''}${T.ts>1.5?'Повільно: перевірте потік масла, підвищте Gain або зменште Ki. ':''}Найбільша швидкість каретки за такого потоку: ${F(f1(.35*(n(S.Qf)||40)*(fe().press?.6:1)*(fe().flow?.55:1)))} см/с.`;
+const e=$('rb6');if(e)e.innerHTML=rb(6);save();ds();navR()}
+function s6(){const sl=(k,x)=>`<div><label>${x}: <b id="v${k}">${F(S[k])}</b></label><input type="range" min="0" max="10" step="0.5" value="${S[k]}" oninput="S.${k}=+this.value;$('v${k}').textContent=F(+this.value);$('h${k}').textContent=txg('${k}',this.value);upd6()"><div class="note" id="h${k}">${txg(k,S[k])}</div></div>`;
+return`<h2>Крок 6. ПІД-регулятор і потік масла</h2><p class="hint">Підберіть чутливість, Ki, демпфування й потік масла. Графік нижче — тест зміщення: рядок раптово зсувається на 10 см, а каретка має швидко й без перельоту його наздогнати. Він перераховується одразу після кожної зміни.</p>${info(6)}${pass()}
+<div class="r3">${sl('Gs','Чутливість (Gain)')}${sl('Ki','Ki — компенсація зносу на схилі')}${sl('Dd','Демпфування')}</div>
+<label>Потік масла на виносі, л/хв</label><input type="text" inputmode="decimal" value="${vs(S.Qf)}" oninput="S.Qf=this.value;upd6()" style="max-width:180px"><p class="note">Потік обмежує швидкість зсуву каретки: мало — каретка повільна, багато — удари й перерегулювання.</p>
+<div class="ch" id="c6"></div><p class="note" id="e6"></p><div class="pc np"><button class="g sm" onclick="S.t6p=S.t6;upd6()">Закріпити тест для порівняння</button>${S.t6p?'<button class="g sm" onclick="S.t6p=null;upd6()">Прибрати закріплений</button>':''}</div><div id="rb6">${rb(6)}</div>`+navb(5,7)}
+
+function adv(){const l=S.tr.last,o=ownS(),a=[],f=fe();
+if(f.press||f.flow||f.mast||f.lens)a.push('Є невизнані несправності кроку 1: перевірте тиск, потік, щоглу й об’єктив.');
+if(l.drop>4)a.push(`Камера втрачала рядок на ${F(l.drop,1)} % шляху: перегляньте режим і поріг (крок 3), висоту й кут камери (крок 2), чистоту об’єктива.`);
+if(l.rms>2)a.push(`СКВ відхилення ${F(l.rms,1)} см: ${S.Gs>=7?'висока чутливість — можливі коливання, зменште Gain або збільште демпфування (крок 6)':'перевірте геометрію камери, режим розпізнавання й потік масла (кроки 2, 3, 6)'}.`);
+if(l.dmg>1)a.push(`Пошкоджено ${F(l.dmg,1)} % рослин: збільште Z або зменште відхилення (див. криву «Z — пошкодження» у протоколі).`);
+if(l.Wk<75)a.push(`Знищено лише ${F(l.Wk,1)} % бур’янів: захисна зона надто широка — зменшуйте Z, якщо дозволяє точність утримання.`);
+if(l.v<8||l.v>12)a.push('Швидкість поза діапазоном 8–12 км/год.');
+if(satShare(l.o,V.a.lock/10)>3)a.push(`Каретка стояла на упорі ${satShare(l.o,V.a.lock/10)} % шляху: на схилі знаряддя зноситься далі, ніж дозволяє хід каретки.`);
+if(o&&o.k>=12){if(o.sh>2)a.push(`За вашими замірами ${F(f1(o.sh))} % рослин мають Z ≤ 1 см — це підрізання.`)}else a.push('Виконайте 12–15 замірів захисної зони лінійкою.');
+if(!a.length||(a.length==1&&o&&o.k>=12&&o.sh<=2))a.push('Норма: пошкодження ≤ 1 %, захисна зона вузька.');return`<div class="rb np"><b>Що показав прохід і що робити:</b><ul>${a.map(x=>`<li>${x}</li>`).join('')}</ul></div>`}
+function histTbl(){const h=S.hist||[];if(h.length<1)return'';return`<details ${h.length>1?'open':''}><summary>Журнал спроб (${h.length})</summary><div class="tw"><table class="t2 c"><tr><th>№</th><th>v, км/год</th><th>Z, см</th><th>Gain / Ki / демпф.</th><th>режим, поріг</th><th>пошкоджено, %</th><th>СКВ, см</th><th>макс. |e|, см</th><th>втрата рядка, %</th><th>бур’янів знищено, %</th></tr>
+${h.map(q=>`<tr><td>${q.n}</td><td>${F(q.v)}</td><td>${F(q.Z)}</td><td>${F(q.Gs)} / ${F(q.Ki)} / ${F(q.Dd)}</td><td>${q.mode}, ${q.thr}</td><td><b>${F(q.dmg,1)}</b></td><td>${F(q.rms,1)}</td><td>${F(q.mx,1)}</td><td>${F(q.drop,1)}</td><td>${F(q.Wk,1)}</td></tr>`).join('')}</table></div><p class="note">Показники в журналі пораховано за всім гоном. Сіра штрихова лінія на графіку відхилення — попередня спроба. Камера втрачає рядок у випадкових місцях, тому два проходи з однаковими налаштуваннями трохи відрізняються.</p></details>`}
+function chk7(){const o=ownS(),t=S.tr,e=$('k7');if(!e||!o)return;const a=n(t.zs),b=n(t.zm),d=n(t.dm),m=(v,ok)=>v==null?'—':ok?'<span class="ok">✓</span>':'<span class="no">✗</span>';
+e.innerHTML=o.k>15?`<span class="no">Замірів ${o.k}: для статистики залиште 12–15.</span>`:`Перевірка обчислень: Z_ср ${m(a,Math.abs(a-o.mu)<=.2)} · Z_min ${m(b,Math.abs(b-o.mn)<=.5)} · частка підрізаних ${m(d,Math.abs(d-o.sh)<=5)}`}
+function s7(){const t=S.tr,l=t.last;let r='';
+if(l)r=`<h3>Прохід № ${t.n}: що відбувалося на гоні</h3><div class="kv"><div><span>пошкоджено рослин</span><b class="${l.dmg>1?'no':'ok'}">${F(l.dmg,1)} %</b></div><div><span>СКВ відхилення / макс.</span><b>${F(l.rms,1)} / ${F(l.mx,1)} см</b></div><div><span>камера не бачила рядка</span><b>${F(l.drop,1)} % шляху</b></div><div><span>знищено бур’янів</span><b>${F(l.Wk,1)} %</b></div></div>${pvHTML()}${adv()}${histTbl()}
+<h3>Заміри захисної зони лінійкою</h3><p class="note">Виміряйте відстань від осі рядка до лапи на 12–15 рослинах (похибка лінійки ±0,5 см): клацайте на графіку відхилення або вводьте відстань. Обчисліть Z_ср, Z_min та частку рослин із Z ≤ 1 см (це підрізані) і внесіть у поля.</p>
+<div class="pc np"><button class="g sm ${PV.rul?'on':''}" onclick="PV.rul=!PV.rul;R();if(PV.rul)$('c1').scrollIntoView({block:'center'})">${PV.rul?'Лінійка ввімкнена: клацайте на графіку відхилення':'Заміряти клацанням на графіку'}</button><input type="text" inputmode="decimal" id="mx" placeholder="або відстань від початку гону, м" style="max-width:250px"><button class="g sm" onclick="mx()">Заміряти</button><button class="g sm" onclick="mauto()">Авто: 12 точок</button><button class="g sm" onclick="mclr()">Очистити</button></div>
+${t.m.length?`<div class="tw"><table class="t2 c"><tr><th>x, м</th>${t.m.map(p=>`<td>${p[0]}</td>`).join('')}</tr><tr><th>Z, см</th>${t.m.map(p=>`<td><b class="${p[1]<=1?'no':''}">${F(p[1])}</b></td>`).join('')}</tr></table></div>`:''}
+${t.m.length>=12?`<div class="r3"><div><label>Z_ср, см</label><input type="text" inputmode="decimal" value="${vs(t.zs)}" oninput="S.tr.zs=this.value;save();chk7();navR()"></div><div><label>Z_min, см</label><input type="text" inputmode="decimal" value="${vs(t.zm)}" oninput="S.tr.zm=this.value;save();chk7();navR()"></div><div><label>Частка рослин із Z ≤ 1 см, %</label><input type="text" inputmode="decimal" value="${vs(t.dm)}" oninput="S.tr.dm=this.value;save();chk7();navR()"></div></div><p class="note" id="k7"></p>`:`<p class="note">Для розрахунку потрібно щонайменше 12 замірів (зараз ${t.m.length}).</p>`}`;
+return`<h2>Крок 7. Пробний прохід і корекція</h2><p class="hint">Задайте швидкість (${V.vr[0]}–${V.vr[1]} км/год) і за потреби скоригуйте Z. Мета — пошкодження ≤ 1 % при якомога меншій Z.</p>${info(7)}${pass()}
+<div class="r2"><div><label>Швидкість, км/год</label><input type="text" inputmode="decimal" value="${vs(t.v)}" oninput="S.tr.v=this.value;save();ds()"></div><div><label>Захисна зона Z, см</label><input type="text" inputmode="decimal" value="${vs(S.Z)}" oninput="u('Z',this.value)"></div></div>
+<button class="p" onclick="run()">${l?'Повторити прохід':'Почати пробний прохід'}</button> <span class="note">спроб: ${t.n}</span>${r}${rb(7)}`+navb(6,8)}
+function post7(){const l=S.tr.last;if(!l)return;pvBind(l.o,{Z:l.Z,ghost:S.prev,dots:S.tr.m,auto:AN,night:V.night&&!S.led,click:x=>{zm(x);R()}});AN=0;chk7()}
+
+function loop(){const r=score(),col=x=>x==null?'var(--sub)':x>=.85?'var(--ac)':x>=.6?'var(--am)':'var(--wn)',a=V.a,
+B=[[4,62,138,'Задавальний вплив','вісь міжряддя',vs(S.aE||'—')+' см / Z '+vs(S.Z||'—'),r[3]/10],[234,62,150,'Регулятор','обчислювач (ПІД)','Gain '+F(S.Gs)+' / Ki '+F(S.Ki),r[5]/10],[414,62,168,'Виконавчий механізм','розподільник + циліндр',vs(S.Qf||'—')+' л/хв',(r[0]+r[4])/23],[612,62,168,'Об’єкт керування','культиватор на каретці',a.n+' × '+a.a+' см',null],[300,196,220,'Датчики зворотного зв’язку','камера + датчик каретки','режим '+S.mode,(r[1]+r[2])/27]],
+bx=b=>`<rect x="${b[0]}" y="${b[1]}" width="${b[2]}" height="62" rx="7" fill="${col(b[6])}" fill-opacity=".22" stroke="${col(b[6])}" stroke-width="2"/><text x="${b[0]+b[2]/2}" y="${b[1]+20}" text-anchor="middle" font-size="12" font-weight="700" fill="var(--ink)">${b[3]}</text><text x="${b[0]+b[2]/2}" y="${b[1]+37}" text-anchor="middle" font-size="11" fill="var(--ink)">${b[4]}</text><text x="${b[0]+b[2]/2}" y="${b[1]+53}" text-anchor="middle" font-size="11" fill="var(--sub)">${b[5]}</text>`,
+ar=d=>`<path d="${d}" fill="none" stroke="var(--ink)" stroke-width="1.7" marker-end="url(#ah)"/>`,t=(x,y,s,an)=>`<text x="${x}" y="${y}" font-size="11" fill="var(--sub)" text-anchor="${an||'middle'}">${s}</text>`,c0=col(r[6]/30);
+return`<div class="tw"><svg viewBox="0 0 840 300" style="min-width:660px;width:100%;display:block" role="img" aria-label="Блок-схема замкненого контуру"><defs><marker id="ah" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0L8,4L0,8z" fill="var(--ink)"/></marker></defs>${B.map(bx).join('')}<circle cx="186" cy="93" r="16" fill="${c0}" fill-opacity=".22" stroke="${c0}" stroke-width="2"/><path d="M178,85L194,101M194,85L178,101" stroke="var(--ink)" stroke-width="1.4"/>
+${ar('M142,93H168')}${ar('M202,93H232')}${ar('M384,93H412')}${ar('M582,93H610')}${ar('M780,93H832')}${ar('M696,22V60')}${ar('M696,124V227H522')}${ar('M300,227H186V111')}
+${t(217,84,'e')}${t(398,84,'u')}${t(596,84,'c')}${t(806,84,'x')}${t(200,126,'−')}${t(92,146,'суматор: '+(S.tr.last?'СКВ e = '+F(S.tr.last.rms,1)+' см':'e — відхилення'))}${t(834,14,'збурення: схил, криві рядки, бур’яни, шум камери','end')}${t(410,284,'зворотний зв’язок: камера бачить рядок, датчик — зсув каретки')}
+</svg></div><p class="note">Колір блока — якість налаштування відповідних кроків: зелений ≥ 85 %, жовтий ≥ 60 %, червоний нижче.</p>`}
+function diag(){const d=[],l=S.tr.last,f=fe(),c=S.cal,q=Qs({}),g=geo(V,q),dd=det(V,q);if(f.press)d.push('Низький тиск у гідросистемі: повільна каретка (крок 1).');if(f.flow)d.push('Малий потік масла: повільне зміщення на розворотах (крок 1).');if(f.mast)d.push('Люфт щогли: шумне зображення (крок 1).');if(f.lens)d.push('Забруднений об’єктив: шум і втрати рядка (крок 1).');
+if(g.nv<V.nNeed)d.push('У кадрі недостатньо міжрядь: висота або кут камери (крок 2).');
+const bd=bestDet(V,q),db=det(V,{...q,mode:bd.mode,thr:bd.thr}),lim3=(dd.rec<.9&&dd.rec>=db.rec-.02)||(dd.fp>.15&&dd.fp<=db.fp+.03);
+if(dd.rec<.9&&dd.rec<db.rec-.02)d.push('Камера пропускає рослини: надто високий поріг або невдалий режим (крок 3).');if(dd.fp>.15&&dd.fp>db.fp+.03)d.push('Багато хибних спрацювань на бур’янах: зменште їх режимом або порогом (крок 3).');
+if(lim3)d.push(`За таких умов (забур’яненість ${V.weed}, висота рослин ${V.crop.ph} см) камера навіть із найкращими режимом і порогом розпізнає ${Math.round(db.rec*100)} % рослин і має ${Math.round(db.fp*100)} % хибних спрацювань. Це межа можливостей камери, а не помилка налаштування; у висновку поясніть, чому.`);if(V.night&&!S.led)d.push('Нічний обробіток без LED: зображення шумне (крок 3).');
+if(Math.abs((n(S.aE)||0)-V.a.a)>1)d.push('Хибна ширина міжряддя: зміщення центра рядка (крок 4).');
+if(!(c.L&&c.R&&c.N)||Math.abs(c.N.a)>2||V.a.lock-Math.abs(c.L.a)>3||V.a.lock-Math.abs(c.R.a)>3)d.push('Похибка калібрування каретки: нейтраль або упори (крок 5).');
+if(S.Gs>=7)d.push('Висока чутливість: схильність до автоколивань (крок 6).');if(V.slope>5&&S.Ki<1)d.push('На схилі Ki майже вимкнено: постійне зміщення (крок 6).');
+if(l){if(l.dmg>1)d.push(`Пошкодження рослин ${F(l.dmg,1)} % > 1 %.`);if(l.Wk<75)d.push(`Знищення бур’янів лише ${F(l.Wk,1)} %: надто широка зона Z.`);const st=satShare(l.o,V.a.lock/10);if(st>3)d.push(`Каретка на упорі ${st} % шляху: знос на схилі перевищує хід каретки.`)}return d}
+const C42={A:[['dY','ΔY, т/га','dY',.003],['E','E, грн/рік','E',0],['En','E_чист, грн/рік','En',0],['T','T, років','T',.02]],B:[['W1','W₁, га/год','W1',.015],['W2','W₂, га/год','W2',.015],['dW','приріст ΔW, %','dW',.4],['D1','D₁, днів','D1',.15],['D2','D₂, днів','D2',.15]]};
+function chk42(){const c=calc42();if(!c)return;for(const r of C42[V.odd?'A':'B']){const e=$('q_'+r[0]);if(!e)continue;const x=n((S.c42||{})[r[0]]),ref=c[r[2]];e.innerHTML=x==null||ref==null?'':Math.abs(x-ref)<=Math.max(r[3],.02*Math.abs(ref))?'<span class="ok">✓</span>':'<span class="no">✗</span>'}}
+const grn=x=>(Math.round(x/10)*10).toLocaleString('uk-UA');
+function c42HTML(){const c=calc42();if(!c)return'<p class="note">Дані з’являться після пробного проходу.</p>';
+const dA=`S = ${V.S} га; Y = ${F(V.Y)} т/га; C = ${V.C.toLocaleString('uk-UA')} грн/т; p₁ = ${F(c.p1,1)} % (ручне керування: Z = 10 см, v = ${F(V.v1)} км/год); p₂ = ${F(c.p2,1)} % (ваш прохід); C_системи = ${V.Cs.toLocaleString('uk-UA')} грн; експлуатаційні витрати 15 % вартості системи на рік`,
+dB=`B = ${F(c.B,1)} м (${V.a.n} рядків по ${F(V.a.a/100,2)} м); τ = ${F(TAU(),3)}; t = ${V.tz} год; S = ${V.S} га; v₁ = ${F(c.v1,1)} км/год (ручне керування); v₂ = ${F(c.v2,1)} км/год (ваш прохід)`,
+note=`<p class="note">p₁ — розрахункова частка підрізаних рослин за ручного керування (відхилення оператора зростає зі швидкістю); p₂ — результат вашого останнього проходу.</p>`;
+if(S.demo)return`<p><b>Варіант А.</b> ${dA}.</p><p class="note">ΔY = ${F(V.Y)} · (${F(c.p1,1)} − ${F(c.p2,1)}) / 100 = ${F(c.dY,4)} т/га; E = ${V.S} · ${F(c.dY,4)} · ${V.C.toLocaleString('uk-UA')} ≈ ${grn(c.E)} грн/рік; E_чист = ${grn(c.E)} − 0,15 · ${V.Cs.toLocaleString('uk-UA')} = ${grn(c.En)} грн/рік; T = ${V.Cs.toLocaleString('uk-UA')} / ${grn(c.En)} ≈ ${F(c.T,2)} року.</p>
+<p><b>Варіант Б.</b> ${dB}.</p><p class="note">W₁ = 0,1 · ${F(c.B,1)} · ${F(c.v1,1)} · ${F(TAU(),3)} = ${F(c.W1,4)} га/год; W₂ = 0,1 · ${F(c.B,1)} · ${F(c.v2,1)} · ${F(TAU(),3)} = ${F(c.W2,4)} га/год; приріст ${F(c.dW,1)} %; D₁ = ${V.S} / (${F(c.W1,4)} · ${V.tz}) = ${F(c.D1,1)} дня; D₂ = ${V.S} / (${F(c.W2,4)} · ${V.tz}) = ${F(c.D2,1)} дня.</p>${note}`;
+const bad=V.odd&&c.En<=0?`<p class="no">E_чист ≤ 0: за такого пошкодження система себе не окуповує. Зменште p₂ (крок 7) або поясніть результат у висновку.</p>`:'';
+return`<p>${V.odd?'Варіант А: '+dA:'Варіант Б: '+dB}.</p>${V.odd?note:'<p class="note">v₁ — швидкість, з якою оператор веде культиватор без системи; v₂ — швидкість вашого останнього проходу. Порахуйте W, приріст і тривалість обробітку D.</p>'}${bad}<div class="np"><p class="note"><b>Самоперевірка.</b> Порахуйте за формулами методички й введіть свої результати: симулятор покаже ✓ або ✗ (допуск 2 %), але правильних чисел не підкаже.</p><div class="r3">${C42[V.odd?'A':'B'].map(r=>`<div><label>${r[1]} <span id="q_${r[0]}"></span></label><input type="text" inputmode="decimal" value="${vs((S.c42||{})[r[0]])}" oninput="(S.c42=S.c42||{}).${r[0]}=this.value;save();chk42()"></div>`).join('')}</div></div>`}
+function s8(){const r=score(),tot=Math.round(r.reduce((a,b)=>a+b,0)),l=S.tr.last,dg=diag(),o=ownS(),code=hash(JSON.stringify([S.reg,S.h,S.th,S.mode,S.thr,S.Z,S.Gs,tot,S.tr.n])).toString(36).toUpperCase().slice(0,7),gr=tot>=90?'відмінно':tot>=75?'добре':tot>=60?'задовільно':'потребує повторного налаштування';
+return`${S.demo?'<div class="wm">ПРИКЛАД ІЗ МЕТОДИЧКИ — не є звітом студента</div>':''}<h2>Підсумковий протокол налаштування САК МК</h2>${info(8)}<table class="t2"><tr><th>Студент</th><td>${S.demo?'приклад із методички':`${esc(S.reg.name)}, група ${esc(S.reg.group)}, № ${S.reg.num}`}</td></tr><tr><th>Варіант</th><td>${V.id}: ${V.a.t} + ${V.a.im}; ${V.crop.c} (${V.crop.st}); міжряддя ${V.a.a} см</td></tr><tr><th>Результат</th><td><span class="big">${tot} / 100</span> — ${gr}; спроб: ${S.tr.n}; ${S.demo?'код протоколу в прикладі не видається':`код протоколу: <b>${code}</b>`}</td></tr></table>
+<div class="tw"><table class="t2"><tr><th style="width:auto">Крок</th><td><b>Фактичне значення (для табл. 2.4 методички)</b></td><td style="width:74px"><b>Бали</b></td></tr>${[1,2,3,4,5,6,7].map(i=>`<tr><td>${i}. ${NM[i-1]}</td><td>${rec(i)}</td><td>${F(r[i-1])} / ${MX[i-1]}</td></tr>`).join('')}</table></div>
+${r.map((x,i)=>`<div class="bar"><span>${NM[i]}</span><i style="width:${x/MX[i]*180}px"></i> ${Math.round(x/MX[i]*100)} %</div>`).join('')}
+${l?`<h3>Відхилення знаряддя від осі рядка</h3><div class="ch" id="p1"></div><p class="note">Безпечний коридор ±(Z − 1) = ±${F(f1(l.Z-1))} см. Пошкоджено ${F(l.dmg,1)} % рослин; СКВ ${F(l.rms,1)} см; камера не бачила рядка на ${F(l.drop,1)} % шляху.</p>
+<h3>Положення каретки</h3><div class="ch" id="p2"></div>
+<h3>Компроміс «захисна зона — пошкодження — бур’яни»</h3><div class="ch" id="p3"></div><p class="note">Крива пошкодження побудована за відхиленням e(x) вашого проходу: вона показує, яку Z можна було безпечно взяти за такої точності.${o?` Ваші заміри: Z_ср ${F(f1(o.mu))} см, Z_min ${F(f1(o.mn))} см.`:''}</p>${histTbl()}`:'<p class="note">Пробний прохід не виконано.</p>'}
+<h3>Блок-схема вашого контуру (для п. 4.1)</h3>${loop()}<h3>Діагностика (зіставте з табл. 1.4 методички)</h3>${dg.length?'<ul>'+dg.map(x=>`<li>${x}</li>`).join('')+'</ul>':'<p><span class="bd">Зауважень немає — налаштування виконано якісно.</span></p>'}
+<h3>Дані для розрахунку Завдання 4.2</h3>${c42HTML()}
+<div class="nb np"><button class="g" onclick="go(7)">До кроку 7</button><button class="p" onclick="window.print()">Друк / зберегти як PDF</button></div>`}
+function tradeChart(el,o,Z,ghost){const e=o.map(p=>Math.abs(p[1])),pd=[],pw=[];for(let z=2;z<=15;z+=.25){pd.push([z,100*e.filter(x=>x>z-1).length/e.length]);pw.push([z,W_(z)])}
+drawChart(el,{h:190,xMax:15,xu:'см',xn:5,y0:0,y1:100,ticks:4,aria:'Компроміс між захисною зоною, пошкодженням і бур’янами',leg:[['пошкоджено рослин, %','var(--wn)'],['знищено бур’янів, %','var(--ac)'],...(ghost?[['закріплений стан','var(--sub)','4 3']]:[])],hl:[[1,'var(--wn)','межа 1 %']],vl:[[Z,'var(--ink)','Z = '+F(Z)+' см']],
+ser:[...(ghost?[{p:ghost,c:'var(--sub)',d:'4 3',w:1.4}]:[]),{p:pd,c:'var(--wn)',w:2.2},{p:pw,c:'var(--ac)',w:2.2}],tip:x=>{const z=cl(Math.round(x*4)/4,2,15);return`<b>Z = ${F(z)} см</b><br>пошкоджено ${F(100*e.filter(v=>v>z-1).length/e.length,1)} %<br>бур’янів знищено ${F(W_(z),0)} %`}});return pd}
+function post8(){const l=S.tr.last;if(!l)return;PV.o=l.o;PV.V=V;PV.Z=l.Z;const lim=V.a.lock/10,yl=Math.ceil((lim+3)/5)*5;
+drawChart($('p1'),{h:200,xMax:V.L,y0:-12,y1:12,ticks:4,bands:[[-(l.Z-1),l.Z-1]],shade:lostRuns(l.o),aria:'Відхилення від осі рядка',leg:[['відхилення e, см','var(--wn)'],['безпечно: ±(Z − 1)','var(--ac)','band'],['камера не бачить рядка','var(--am)','band'],...(S.tr.m.length?[['ваші заміри','var(--ink)','dot']]:[])],ser:[{p:l.o.map(p=>[p[0],p[1]]),c:'var(--wn)',w:1.9}],dots:S.tr.m.map(m=>[m[0],pvE(m[0],1)]),tip:x=>`<b>${Math.round(x)} м</b><br>e = ${F(pvE(x,1),1)} см`});
+drawChart($('p2'),{h:150,xMax:V.L,y0:-yl,y1:yl,ticks:4,shade:lostRuns(l.o),aria:'Положення каретки',leg:[['зсув каретки c, см','var(--ac)']],hl:[[lim,'var(--wn)','упор'],[-lim,'var(--wn)','']],ser:[{p:l.o.map(p=>[p[0],p[2]]),c:'var(--ac)'}],tip:x=>`<b>${Math.round(x)} м</b><br>каретка ${F(pvE(x,2),1)} см`});
+tradeChart($('p3'),l.o,l.Z);chk42()}
+
+/* ===== Досліди «що буде, якщо…» ===== */
+const EXP=[['Дослід 1. Захисна зона','Поставте Z = 3, 5, 8 і 12 см. Запишіть для кожного: частку пошкоджених рослин і частку знищених бур’янів. За якої найменшої Z пошкодження не перевищує 1 %?'],
+['Дослід 2. Чутливість і Ki','Gain 2 → 5 → 9: запишіть СКВ відхилення й найбільше |e|. Потім поверніть Gain 5, поставте схил не менш як 8 % і порівняйте Ki 0 та Ki 3: що відбувається з постійним зміщенням?'],
+['Дослід 3. Швидкість і запізнення','Швидкість 8 → 10 → 12 → 14 км/год: запишіть СКВ і пошкодження. Потім за 14 км/год зменште кут камери θ до 5° (камера дивиться майже під себе, виніс d ≈ 10 см) і порівняйте.'],
+['Дослід 4. Розпізнавання','Перемкніть режим RGB → 3D → RGB+3D, потім поставте поріг 20, 50 і 80. Запишіть частку шляху без рядка й пошкодження. Насамкінець увімкніть «нічний обробіток без LED».'],
+['Дослід 5. Схил і хід каретки','Схил 0 %, 8 % і 15 %: запишіть, яку частку шляху каретка стоїть на упорі, СКВ і пошкодження. Потім поставте схил 10 % і порівняйте результат без позначки «упори знято не до кінця (хід 60 %)» і з нею.']];
+function labInit(){if(S.lab&&S.lab.id==V.id&&S.lab.ver==2)return;const I=V.ideal,bd=bestDet(V,{...I});S.lab={id:V.id,Z:n(S.Z)||V.Zopt,v:cl(n(S.tr.v)||9,6,14),Gs:S.Gs,Ki:S.Ki,Dd:S.Dd,Qf:cl(n(S.Qf)||45,15,70),h:n(S.h)||I.h,th:n(S.th)||I.th,mode:S.mode=='—'?bd.mode:S.mode,thr:S.mode=='—'?bd.thr:S.thr,sl:V.slope,rw:1,f:{},exp:0,pin:null,log:[],ver:2}}
+function labRun(){const L=S.lab,a=V.a,Vx=(L.sl==V.slope&&L.rw==1&&!L.f.dark)?V:Object.assign({},V,{slope:L.sl,r:L.rw==1?V.r:V.r.map(x=>x*L.rw),night:V.night||!!L.f.dark}),
+q={v:L.v,Gs:L.Gs,Ki:L.Ki,Dd:L.Dd,Qf:L.Qf,h:L.h,th:L.th,mode:L.mode,thr:L.thr,led:L.f.dark?0:1,aEnt:a.a,Z:L.Z,lockEff:L.f.stop?a.lock*.6:a.lock,zN:L.f.neu?30:0,fl:{press:L.f.prs?15:0,flow:L.f.flw?25:0,mast:L.f.mst?14:0,lens:L.f.lens?1:0},seed:hash(V.id)+Math.max(0,S.tr.n-1)},r=sim5(Vx,q),e=r.o.filter(p=>p[0]>20).map(p=>p[1]);
+let zn=null;for(let z=2;z<=20;z+=.5)if(100*r.o.filter(p=>Math.abs(p[1])>z-1).length/r.o.length<=1){zn=z;break}
+return{r,q,Vx,sat:satShare(r.o,Math.min(q.lockEff,a.lock)/10),mean:e.reduce((x,y)=>x+y,0)/Math.max(1,e.length),zn,lim:Math.min(q.lockEff,a.lock)/10}}
+let LR=null;
+const FN={lens:'забруднений об’єктив',mst:'люфт щогли',prs:'низький тиск',flw:'малий потік',neu:'нейтраль зміщено',stop:'упори не до кінця',dark:'LED вимкнено'};
+function labPar(){const L=S.lab,f=Object.keys(L.f).filter(k=>L.f[k]).map(k=>FN[k]);return`Z ${F(L.Z)} см; v ${F(L.v)} км/год; Gain ${F(L.Gs)}; Ki ${F(L.Ki)}; демпф. ${F(L.Dd)}; потік ${L.Qf} л/хв; ${L.mode}, поріг ${L.thr}; h ${L.h} см, θ ${L.th}°${L.sl!=V.slope?'; схил '+F(L.sl)+' %':''}${L.rw!=1?'; кривизна рядків ×'+F(L.rw):''}${f.length?'; '+f.join(', '):''}`}
+function labConcl(x){const s=x.r,L=S.lab,a=[];
+a.push(`Пошкоджено <b>${F(s.dmg,1)} %</b> рослин за Z = ${F(L.Z)} см; знищено ${F(s.Wk,0)} % бур’янів; СКВ відхилення ${F(s.rms,1)} см, найбільше ${F(s.mx,1)} см.`);
+if(s.dmg>1&&x.zn)a.push(`Щоб вкластися в 1 %, за такої точності утримання потрібна Z ≈ ${F(x.zn)} см (тоді бур’янів знищується ${F(W_(x.zn),0)} %).`);else if(s.dmg<=1&&x.zn&&x.zn<L.Z-1)a.push(`Точність дозволяє звузити зону до Z ≈ ${F(x.zn)} см: бур’янів знищувалося б ${F(W_(x.zn),0)} %.`);
+if(s.drop>6)a.push(`Камера не бачить рядка на ${F(s.drop,1)} % шляху: каретка тим часом повертається в нейтраль. Причини шукайте в режимі, порозі, чистоті об’єктива та геометрії камери.`);
+if(x.sat>3)a.push(`Каретка стоїть на упорі ${x.sat} % шляху: знаряддя зносить на схилі далі, ніж дозволяє хід ±${F(x.lim)} см.`);
+if(Math.abs(x.mean)>.8)a.push(`Знаряддя постійно зміщене на ${F(x.mean,1)} см в один бік: так проявляються малий Ki на схилі, зміщена нейтраль або каретка на упорі.`);
+{const g=geo(V,x.q),tl=g.d/100/(L.v/3.6);if(tl<.15)a.push(`Виніс d = ${Math.round(g.d)} см за ${F(L.v)} км/год дає лише ${F(tl,2)} с запасу (d / v). Системі потрібно близько 0,15 с, щоб обробити кадр і зрушити каретку, тож запізнення компенсується не повністю: каретка реагує із запізненням.`);if(g.nv<V.nNeed)a.push(`У кадрі лише ${MR(g.nv)} (потрібно щонайменше ${V.nNeed}): положення рядка визначається менш надійно.`)}
+if(s.rms>2&&L.Gs>=7)a.push('Велика чутливість: каретка «перелітає» рядок і коливається.');else if(s.rms>2&&L.Gs<=2.5)a.push('Мала чутливість: каретка не встигає за рядком.');
+if(a.length==1&&s.dmg<=1)a.push('Рядок утримується впевнено: пошкодження в нормі, каретка працює в межах ходу.');
+if(L.pin){const p=L.pin;a.push(`Порівняно із закріпленим станом: пошкодження ${F(p.dmg,1)} → ${F(s.dmg,1)} %, СКВ ${F(p.rms,1)} → ${F(s.rms,1)} см, втрата рядка ${F(p.drop,1)} → ${F(s.drop,1)} % шляху.`)}
+return`<div class="concl"><b>Висновок.</b><ul>${a.map(q=>`<li>${q}</li>`).join('')}</ul></div>`}
+function labTiles(x){const s=x.r,p=S.lab.pin,t=(nm,v,u,pv,good,dc)=>{let d='';if(pv!=null&&Math.abs(v-pv)>1e-9){const up=v>pv;d=`<em class="${good==null?'':up==good?'dn':'up'}">${up?'▲':'▼'} було ${F(pv,dc)}</em>`}return`<div><span>${nm}</span><b>${F(v,dc)}${u}</b>${d}</div>`};
+return`<div class="kv">${t('пошкоджено рослин',s.dmg,' %',p&&p.dmg,false,1)}${t('знищено бур’янів',s.Wk,' %',p&&p.Wk,true,0)}${t('СКВ відхилення',s.rms,' см',p&&p.rms,false,1)}${t('найбільше |e|',s.mx,' см',p&&p.mx,false,1)}${t('камера без рядка',s.drop,' % шляху',p&&p.drop,false,1)}${t('каретка на упорі',x.sat,' % шляху',p&&p.sat,false,0)}${t('постійне зміщення',Math.round(x.mean*10)/10,' см',p&&p.mean,null,1)}${t('безпечна Z',x.zn??20,' см',p&&p.zn,false,1)}</div>`}
+function labUpd(full){const L=S.lab;LR=labRun();const cfg={Z:L.Z,V:LR.Vx,lim:LR.lim,q:LR.q,ghost:L.pin?L.pin.o:null,ghostName:'закріплений стан',start:PV.o&&!full?PV.p:null};
+if(full||!$('tv')||!PV.o)pvBind(LR.r.o,cfg);else{const p=PV.p;pvBind(LR.r.o,cfg);pvSeek(p)}
+tradeChart($('lb_tr'),LR.r.o,L.Z,L.pin?L.pin.tr:null);$('lb_t').innerHTML=labTiles(LR);$('lb_c').innerHTML=labConcl(LR);$('lb_p').textContent=labPar();save()}
+function labSet(k,v){S.lab[k]=v;const e=$('lv_'+k);if(e)e.textContent=F(v);labUpd()}
+function labPin(){const L=S.lab,s=LR.r,e=s.o.map(p=>Math.abs(p[1])),tr=[];for(let z=2;z<=15;z+=.25)tr.push([z,100*e.filter(x=>x>z-1).length/e.length]);L.pin={o:s.o.map(p=>[p[0],p[1]]),tr,dmg:s.dmg,Wk:s.Wk,rms:s.rms,mx:s.mx,drop:s.drop,sat:LR.sat,mean:Math.round(LR.mean*10)/10,zn:LR.zn,par:labPar()};labUpd();$('lb_pn').textContent='Закріплено: '+L.pin.par}
+function labLog(){const L=S.lab,s=LR.r;L.log.push({par:labPar(),dmg:s.dmg,Wk:s.Wk,rms:s.rms,mx:s.mx,drop:s.drop,sat:LR.sat});if(L.log.length>24)L.log.shift();save();$('lb_l').innerHTML=labLogHTML()}
+function labLogHTML(){const g=S.lab.log;return g.length?`<div class="tw"><table class="t2 c"><tr><th>№</th><th style="text-align:left">Що задано</th><th>пошкоджено, %</th><th>бур’янів знищено, %</th><th>СКВ, см</th><th>макс. |e|, см</th><th>без рядка, %</th><th>на упорі, %</th></tr>${g.map((q,i)=>`<tr><td>${i+1}</td><td style="text-align:left">${q.par}</td><td>${F(q.dmg,1)}</td><td>${F(q.Wk,0)}</td><td>${F(q.rms,1)}</td><td>${F(q.mx,1)}</td><td>${F(q.drop,1)}</td><td>${q.sat}</td></tr>`).join('')}</table></div><button class="g sm np" onclick="S.lab.log=[];save();$('lb_l').innerHTML=labLogHTML()">Очистити журнал</button>`:'<p class="note">Журнал порожній. Кнопка «Записати в журнал» додає сюди рядок із поточними числами — перенесіть таблицю в зошит.</p>'}
+function labReset(){const e=S.lab.exp,I=V.ideal,bd=bestDet(V,{...I});S.lab={id:V.id,Z:V.Zopt,v:9,Gs:5,Ki:3,Dd:4,Qf:45,h:I.h,th:I.th,mode:bd.mode,thr:bd.thr,sl:V.slope,rw:1,f:{},exp:e,pin:null,log:S.lab.log,ver:2};R()}
+function s9(){labInit();const L=S.lab,sl=(k,nm,mn,mx,st,u)=>`<div><label>${nm}: <b id="lv_${k}">${F(L[k])}</b>${u||''}</label><input type="range" min="${mn}" max="${mx}" step="${st}" value="${L[k]}" oninput="labSet('${k}',+this.value)"></div>`,
+ck=(k,nm)=>`<label style="display:flex;gap:8px;align-items:center;color:var(--ink);margin:5px 0"><input type="checkbox" ${L.f[k]?'checked':''} onchange="S.lab.f.${k}=this.checked;labUpd()">${nm}</label>`;
+return`<h2>Досліди «що буде, якщо…»</h2><p class="hint">Агрегат і поле — вашого варіанта ${V.id}; нерівності рядків ті самі, що в останньому пробному проході. Досліди не змінюють протокол і бали.</p>${info(LAB)}
+<div class="pc np">${EXP.map((e,i)=>`<button class="g sm ${L.exp==i?'on':''}" onclick="S.lab.exp=${i};save();R()">${e[0].split('.')[0]}</button>`).join('')}</div>
+<div class="concl"><b>${EXP[L.exp][0]}.</b> ${EXP[L.exp][1]}</div>
+<div class="lab-g">${sl('Z','Захисна зона Z',2,15,.5,' см')}${sl('v','Швидкість',6,14,.5,' км/год')}${sl('Gs','Чутливість (Gain)',0,10,.5)}${sl('Ki','Ki',0,10,.5)}${sl('Dd','Демпфування',0,10,.5)}${sl('Qf','Потік масла',15,70,5,' л/хв')}${sl('h','Висота камери h',60,250,5,' см')}${sl('th','Кут камери θ',0,70,1,'°')}${sl('thr','Поріг розпізнавання',0,100,1)}
+<div><label>Режим розпізнавання</label><div class="pc" style="margin:2px 0">${['RGB','3D','RGB+3D'].map(m=>`<button class="g sm ${L.mode==m?'on':''}" onclick="S.lab.mode='${m}';save();R()">${m}</button>`).join('')}</div></div>${sl('sl','Схил поля',0,15,.1,' % (за паспортом '+F(V.slope)+' %)')}${sl('rw','Кривизна рядків ×',0,2,.5)}</div>
+<div class="lab-g" style="margin-top:6px"><div>${ck('lens','забруднений об’єктив')}${ck('mst','люфт щогли камери 14 мм')}${ck('prs','низький тиск (15 МПа)')}${ck('flw','малий потік на виносі (25 л/хв)')}</div><div>${ck('neu','нейтраль каретки зміщено на 3 см')}${ck('stop','упори знято не до кінця (хід 60 %)')}${V.night?ck('dark','нічний обробіток без LED'):''}</div></div>
+<div class="pc np"><button class="p sm" onclick="labPin()">Закріпити для порівняння</button><button class="g sm" onclick="labLog()">Записати в журнал</button><button class="g sm" onclick="labReset()">Скинути до рекомендованих</button><span class="note" id="lb_pn">${L.pin?'Закріплено: '+L.pin.par:''}</span></div>
+<p class="note">Зараз задано: <span id="lb_p"></span></p><div id="lb_t"></div><div id="lb_c"></div><div class="ch" id="lb_tr"></div>${pvHTML()}
+<h3>Журнал дослідів</h3><div id="lb_l">${labLogHTML()}</div><div class="nb np"><button class="g" onclick="go(7)">До кроку 7</button><button class="g" onclick="go(8)">До протоколу</button></div>`}
+
+/* ===== Каркас: меню, термінал, тема, перемальовування ===== */
+function u(k,v){S[k]=v;save();ds();navR()}
+function go(i){S.step=i;save();R();scrollTo(0,0)}
+function ds(){if(!V){$('ds').innerHTML='<div class="t">ТЕРМІНАЛ САК МК</div><div class="d"><span>Очікування</span><span>—</span></div>';return}
+const l=S.tr.last,c=S.cal,r=[['Варіант',V.id],['Камера h/θ',S.h&&S.th?S.h+' см / '+S.th+'°':'—'],['Режим',S.mode],['Поріг',S.thr],['LED',S.led?'увімк.':'вимк.'],['Міжряддя',S.aE?vs(S.aE)+' см':'—'],['Z',S.Z?vs(S.Z)+' см':'—'],['Каретка Л/П',c.L&&c.R?F(c.L.raw)+' / '+F(c.R.raw):'—'],['Gain/Ki/Dd',F(S.Gs)+' / '+F(S.Ki)+' / '+F(S.Dd)],['Потік',S.Qf?vs(S.Qf)+' л/хв':'—'],['Швидкість',S.tr.v?vs(S.tr.v)+' км/год':'—'],['Спроб',S.tr.n],...(l?[['Пошкоджено',F(l.dmg,1)+' %'],['СКВ e',F(l.rms,1)+' см']]:[])];
+$('ds').innerHTML='<div class="t">ТЕРМІНАЛ САК МК — ЖИВІ ПОКАЗАННЯ</div>'+r.map(x=>`<div class="d"><span>${x[0]}</span><span>${x[1]}</span></div>`).join('')}
+function theme(set){let t=null;try{t=localStorage.getItem(TKEY)}catch(e){}if(set!==0){t=t=='light'?'dark':t=='dark'?null:'light';try{t?localStorage.setItem(TKEY,t):localStorage.removeItem(TKEY)}catch(e){}}
+if(t)document.documentElement.setAttribute('data-theme',t);else document.documentElement.removeAttribute('data-theme');$('thb').textContent='Тема: '+(t=='light'?'світла':t=='dark'?'темна':'авто')}
+function navR(){$('nv').innerHTML=TT.map((t,i)=>{const d=i>=1&&i<=7?done(i):0;return`<button class="${i==S.step?'on':''}${i==LAB?' lab':''}" ${!V&&i?'disabled':''} onclick="go(${i})" ${i==S.step?'aria-current="step"':''}>${i>=1&&i<=7?`<i class="${d==1?'ok':d?'pt':''}" title="${d==1?'заповнено':d?'заповнено частково':'не заповнено'}"></i>`:''}${t}</button>`}).join('')}
+function R(){cancelAnimationFrame(PV.raf);PV.play=false;if(!V)S.step=0;navR();
+$('bn').innerHTML=S.demo&&V?`<div class="bn np"><span><b>Відкрито приклад із методички</b> (варіант ${V.id}). Усі кроки вже заповнено — розгляньте їх, а для звіту отримайте власний варіант.</span><button class="p sm" onclick="newReg()">Отримати свій варіант</button></div>`:'';
+$('chip').textContent=V?(S.demo?'приклад · ':'')+'варіант '+V.id:'варіант не видано';
+$('mn').innerHTML=[s0,s1,s2,s3,s4,s5,s6,s7,s8,s9][S.step]();
+const st=S.step;if(st==2)chk2();if(st==5)cv(S.pos);if(st==6)upd6();if(st==7)post7();if(st==8)post8();if(st==LAB)labUpd(1);ds()}
+
+/* ===== Запуск ===== */
+theme(0);
+if(!S){demoState();save()}            /* перше відкриття: приклад із методички */
+let RW=innerWidth;addEventListener('resize',()=>{if(Math.abs(innerWidth-RW)>8){RW=innerWidth;clearTimeout(R.t);R.t=setTimeout(R,180)}});
+R();
+</script></body></html>
