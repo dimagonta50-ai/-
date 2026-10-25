@@ -1,0 +1,761 @@
+<!DOCTYPE html>
+<html lang="uk"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Симулятор відводу садової фрези — ЛР №6</title>
+<style>
+:root{--bg:#ECEFE8;--pn:#FFFFFF;--pn2:#F5F7F2;--ink:#1C231D;--sub:#56635A;--ln:#D3DBD0;--ac:#2F6B3A;--aci:#FFFFFF;--wn:#B4412C;--am:#A66A00;--sky:#DDEAF0;--trk:#3F7D49;--trk2:#2C5B34;--plg:#B4412C;--stl:#59646B;--tyre:#22262A;--rim:#C9CFC6;--gls:#A9C9D6;--db:#14180F;--df:#FFB000;--dd:#8A6300;--soilink:#2B2118;--halo:#F2E6C8;--plowed:#5A4433;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#12150F;--pn:#1C2118;--pn2:#161A12;--ink:#ECEFE7;--sub:#A5AF9F;--ln:#343D2D;--ac:#77B76B;--aci:#0E130B;--wn:#E3705A;--am:#E2A93B;--sky:#18222A;--trk:#5E9E62;--trk2:#3F7446;--plg:#D2604B;--stl:#8C979D;--tyre:#0B0D0E;--rim:#7E877C;--gls:#3C5B68;--db:#0B0D08;--df:#FFC233;--dd:#6E4E00;--plowed:#3C2D22;--soilink:#F4EBD6;--halo:#2E261B}}
+:root[data-theme="dark"]{--bg:#12150F;--pn:#1C2118;--pn2:#161A12;--ink:#ECEFE7;--sub:#A5AF9F;--ln:#343D2D;--ac:#77B76B;--aci:#0E130B;--wn:#E3705A;--am:#E2A93B;--sky:#18222A;--trk:#5E9E62;--trk2:#3F7446;--plg:#D2604B;--stl:#8C979D;--tyre:#0B0D0E;--rim:#7E877C;--gls:#3C5B68;--db:#0B0D08;--df:#FFC233;--dd:#6E4E00;--plowed:#3C2D22;--soilink:#F4EBD6;--halo:#2E261B}
+html{scroll-padding-top:env(safe-area-inset-top,0px);height:100%}*{box-sizing:border-box}
+body{margin:0;min-height:100%;background:var(--bg);color:var(--ink);font:15px/1.5 -apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;-webkit-text-size-adjust:100%}
+.w{max-width:1240px;margin:0 auto;padding:14px 14px 48px}
+.top{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:10px}
+.top h1{font-size:1.12rem;line-height:1.25;margin:0;font-weight:700;letter-spacing:-.01em}.top h1 small{display:block;font-weight:400;font-size:.8rem;color:var(--sub);letter-spacing:0}
+.tools{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.chip{font-size:.78rem;border:1px solid var(--ln);border-radius:99px;padding:3px 10px;color:var(--sub);background:var(--pn)}
+.bn{border:1px solid var(--am);background:color-mix(in srgb,var(--am) 12%,var(--pn));border-radius:10px;padding:10px 14px;margin-bottom:12px;font-size:.9rem;display:flex;gap:10px 16px;align-items:center;justify-content:space-between;flex-wrap:wrap}
+.lay{display:grid;grid-template-columns:212px minmax(0,1fr) 232px;gap:14px;align-items:start}
+@media(max-width:1020px){.lay{grid-template-columns:200px minmax(0,1fr)}aside{grid-column:1/-1;position:static!important}}
+@media(max-width:760px){.lay{grid-template-columns:minmax(0,1fr)}}
+nav{display:flex;flex-direction:column;gap:4px;position:sticky;top:10px}
+@media(max-width:760px){nav{flex-direction:row;overflow-x:auto;position:static;padding-bottom:4px}}
+nav button{border:1px solid var(--ln);background:var(--pn);color:var(--sub);padding:7px 9px;border-radius:8px;font:inherit;font-size:.8rem;text-align:left;cursor:pointer;white-space:nowrap;display:flex;gap:7px;align-items:center}
+nav button i{flex:none;width:9px;height:9px;border-radius:50%;border:1.5px solid var(--sub);display:block}
+nav button i.ok{background:var(--ac);border-color:var(--ac)}nav button i.pt{background:linear-gradient(90deg,var(--am) 50%,transparent 50%);border-color:var(--am)}
+nav button.on{border-color:var(--ac);color:var(--ink);font-weight:700;box-shadow:inset 3px 0 0 var(--ac)}nav button:disabled{opacity:.4;cursor:not-allowed}
+nav button.lab{margin-top:8px;border-style:dashed}
+main{background:var(--pn);border:1px solid var(--ln);border-radius:12px;padding:18px 20px;min-height:340px;min-width:0}
+@media(max-width:760px){main{padding:14px 12px}}
+main h2{margin:0 0 4px;font-size:1.1rem;line-height:1.3}main h3{font-size:.98rem;margin:20px 0 6px}
+.hint,.note{color:var(--sub);font-size:.86rem;margin:4px 0 12px}.note{margin:6px 0}
+label{display:block;font-size:.84rem;margin:11px 0 3px;color:var(--sub)}
+input[type=text],input[type=number],select{width:100%;padding:8px 10px;border:1px solid var(--ln);border-radius:8px;background:var(--pn2);color:var(--ink);font:inherit;font-size:.95rem}
+input[type=range]{width:100%;accent-color:var(--ac);margin:2px 0}
+input[type=checkbox]{accent-color:var(--ac);width:16px;height:16px}
+:focus-visible{outline:2px solid var(--ac);outline-offset:2px}
+.r2{display:grid;grid-template-columns:1fr 1fr;gap:12px}.r3{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+@media(max-width:560px){.r3{grid-template-columns:1fr 1fr}}
+button.p,button.g{border:1px solid var(--ac);border-radius:8px;padding:8px 14px;font:inherit;font-size:.9rem;cursor:pointer;margin:4px 4px 4px 0}
+button.p{background:var(--ac);color:var(--aci);font-weight:600}button.g{background:none;color:var(--ac)}button:disabled{opacity:.4;cursor:not-allowed}
+button.sm{padding:4px 10px;font-size:.8rem;margin:0}button.g.on{background:color-mix(in srgb,var(--ac) 16%,transparent);font-weight:600}
+.nb{display:flex;justify-content:space-between;margin-top:20px}
+aside{background:var(--db);border-radius:12px;padding:13px 15px;font:.8rem/1.6 ui-monospace,SFMono-Regular,Consolas,monospace;color:var(--df);position:sticky;top:10px}
+aside .d{display:flex;justify-content:space-between;gap:8px;border-bottom:1px dashed var(--dd);padding:2px 0}aside .t{color:var(--dd);font-size:.7rem;margin-bottom:6px;letter-spacing:.04em}
+aside .d span:last-child{text-align:right}
+.t2{width:100%;border-collapse:collapse;font-size:.86rem;margin:8px 0}.t2 th,.t2 td{border:1px solid var(--ln);padding:6px 8px;text-align:left;vertical-align:top}.t2 th{width:32%;background:var(--pn2);font-weight:600}
+.t2.c td,.t2.c th{text-align:center;width:auto}.tw{overflow-x:auto}
+.rb{border:1px dashed var(--ac);border-radius:8px;padding:9px 12px;margin-top:14px;font-size:.86rem}
+.bd{display:inline-block;padding:2px 9px;border-radius:99px;font-size:.78rem;font-weight:600;background:color-mix(in srgb,var(--ac) 18%,transparent);color:var(--ac)}.bd.w{background:color-mix(in srgb,var(--wn) 18%,transparent);color:var(--wn)}.bd.a{background:color-mix(in srgb,var(--am) 20%,transparent);color:var(--am)}
+.big{font-size:1.5rem;font-weight:700;color:var(--ac);font-variant-numeric:tabular-nums}
+.cam2{display:flex;flex-wrap:wrap;gap:4px 8px;align-items:flex-end}.fig .cam2 svg{width:auto;min-width:0}.sx{overflow-x:auto}.fig .sx>svg,.sx>svg{min-width:540px}
+.fig{background:var(--pn2);border:1px solid var(--ln);border-radius:10px;margin:8px 0;overflow:hidden}.fig svg{display:block;width:100%;height:auto}
+.cap{font-size:.78rem;color:var(--sub);padding:5px 10px 7px;border-top:1px solid var(--ln)}
+.ch{position:relative;margin:8px 0;background:var(--pn2);border:1px solid var(--ln);border-radius:10px;touch-action:pan-y}.ch svg{display:block;width:100%;cursor:crosshair}
+.ch text,.fig text{font-family:inherit}
+.tip{position:absolute;top:6px;pointer-events:none;background:var(--pn);border:1px solid var(--ln);border-radius:6px;padding:4px 8px;font-size:.74rem;line-height:1.35;white-space:nowrap;box-shadow:0 2px 8px rgba(0,0,0,.15);display:none;z-index:2}
+.gs{display:grid;grid-template-columns:repeat(auto-fit,minmax(128px,1fr));gap:8px;margin:0 0 8px}@media(max-width:420px){.gs{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.gt{border:1px solid var(--ln);border-radius:8px;padding:6px 8px;background:var(--pn2);min-width:0}.gt b{display:block;font-size:1.05rem;font-variant-numeric:tabular-nums;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.gt span{display:block;font-size:.7rem;color:var(--sub);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mt{position:relative;height:7px;background:var(--ln);border-radius:4px;margin-top:4px;overflow:hidden}.mt i{position:absolute;top:0;bottom:0;left:0;background:var(--ac);border-radius:4px}.mt u{position:absolute;top:0;bottom:0;width:2px;background:var(--ink)}.mt s{position:absolute;top:0;bottom:0;background:color-mix(in srgb,var(--ac) 35%,transparent)}
+.pvw{display:grid;grid-template-columns:300px minmax(0,1fr);gap:10px;align-items:start}.pvw .fig{margin:0}@media(max-width:700px){.pvw{grid-template-columns:minmax(0,1fr)}.pvw .fig.lp{max-width:340px}}
+.pc{display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin:6px 0}.pc input[type=range]{flex:1;min-width:120px}.pc select{width:auto;padding:4px 8px;font-size:.82rem}
+.bar{display:flex;align-items:center;gap:8px;font-size:.84rem;margin:3px 0}.bar i{display:block;height:9px;background:var(--ac);border-radius:5px}.bar span{width:190px;flex:none}@media(max-width:560px){.bar span{width:120px}}
+details{margin-bottom:10px;font-size:.86rem}summary{cursor:pointer;color:var(--ac)}
+.inf{border-left:3px solid var(--ac);background:var(--pn2);border-radius:0 8px 8px 0;padding:6px 14px;margin:10px 0 14px;font-size:.87rem}.inf summary{font-weight:700;color:var(--ac);margin-bottom:4px}.inf p,.inf ul{margin:6px 0}.inf ul{padding-left:20px}
+.gg{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin:10px 0}@media(max-width:700px){.gg{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.gc{border:1px solid var(--ln);border-radius:10px;padding:8px;background:var(--pn2);text-align:center}.gc svg{width:100%;height:auto;display:block}.gc b{font-size:.84rem;display:block;margin:2px 0}.gc small{color:var(--sub);display:block;font-size:.74rem;margin-bottom:6px}.gc select{font-size:.84rem;padding:5px 6px}
+.sb{display:flex;gap:14px;align-items:stretch;flex-wrap:wrap}.sb .fig{flex:1 1 300px;margin:0}
+.vb{flex:none;width:92px;display:flex;flex-direction:column;align-items:center;gap:4px;font-size:.74rem;color:var(--sub)}.vb .col{position:relative;width:26px;flex:1;min-height:150px;background:var(--ln);border-radius:5px;overflow:hidden}.vb .col i{position:absolute;left:0;right:0;bottom:0;background:var(--am)}
+.mix{display:flex;height:22px;border-radius:6px;overflow:hidden;font-size:.74rem;font-weight:600;color:#fff;margin:4px 0}.mix i{display:flex;align-items:center;justify-content:center;font-style:normal;overflow:hidden;white-space:nowrap}.mix i:first-child{background:var(--wn)}.mix i:last-child{background:var(--ac);color:var(--aci)}
+.lab-g{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:4px 18px}@media(max-width:620px){.lab-g{grid-template-columns:minmax(0,1fr)}}
+.lab-g label{margin:6px 0 0}.kv{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin:10px 0}@media(max-width:620px){.kv{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.kv div{border:1px solid var(--ln);border-radius:8px;padding:6px 8px;background:var(--pn2)}.kv b{display:block;font-size:1.05rem;font-variant-numeric:tabular-nums}.kv span{font-size:.72rem;color:var(--sub)}.kv em{font-style:normal;font-size:.74rem;display:block}.up{color:var(--wn)}.dn{color:var(--ac)}
+.concl{border-radius:8px;padding:9px 12px;background:color-mix(in srgb,var(--ac) 10%,var(--pn));border:1px solid color-mix(in srgb,var(--ac) 40%,var(--ln));font-size:.9rem;margin:8px 0}.concl ul{margin:4px 0;padding-left:18px}
+.ok{color:var(--ac);font-weight:700}.no{color:var(--wn);font-weight:700}
+.st{display:flex;flex-wrap:wrap;gap:3px;margin:6px 0}.st button{width:24px;height:24px;border-radius:5px;border:0;padding:0;font:inherit;font-size:.62rem;font-weight:600;color:#fff;cursor:pointer;position:relative}.st button.po{border-radius:50%}.st button.se{outline:2.5px solid var(--ink);outline-offset:1px}.st button.me::after{content:"";position:absolute;right:1px;top:1px;width:6px;height:6px;border-radius:50%;background:#fff;border:1px solid #000}
+.k0{background:var(--ac)}.k1{background:#C99700}.k2{background:var(--wn)}.k3{background:#666}
+.sta{display:inline-block;min-width:118px;text-align:center;padding:2px 8px;border-radius:6px;font-weight:700;font-size:.82rem;color:#fff}
+.hs{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(0,1fr);gap:10px;align-items:start}@media(max-width:700px){.hs{grid-template-columns:minmax(0,1fr)}}
+.sen{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:8px 0}@media(max-width:560px){.sen{grid-template-columns:minmax(0,1fr)}}
+.sen button{border:1.5px solid var(--ln);border-radius:10px;background:var(--pn2);color:var(--ink);font:inherit;font-size:.8rem;padding:6px;cursor:pointer;text-align:center}.sen button.on{border-color:var(--ac);box-shadow:inset 0 0 0 1.5px var(--ac)}.sen button svg{display:block;width:100%;height:auto;max-width:210px;margin:0 auto}.sen button b{display:block;font-size:.88rem}.sen button small{color:var(--sub);display:block}
+.tlg{display:flex;flex-wrap:wrap;gap:4px 14px;font-size:.78rem;color:var(--sub);padding:4px 10px 8px}.tlg i{display:inline-block;width:11px;height:11px;border-radius:2px;margin-right:4px;vertical-align:-1px}
+.wm{display:none}
+@media print{nav,.nb,aside,.np,.top .tools,.bn{display:none!important}.tw,.sx{overflow:visible}.tw svg,.sx>svg,.fig .sx>svg{min-width:0!important}.lay{display:block}main{border:0;padding:0}body{background:#fff;color:#000}.wm{display:block;font-size:1.3rem;font-weight:700;color:#B4412C;border:2px solid #B4412C;padding:6px 12px;margin:0 0 10px;text-align:center}.ch,.fig,.tw,.bar,tr{break-inside:avoid}h2,h3{break-after:avoid}*{-webkit-print-color-adjust:exact;print-color-adjust:exact}details>summary{list-style:none}}
+@media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important}}
+</style></head><body><div class="w">
+<header class="top"><h1>Симулятор автоматичного відводу садової фрези<small>Обробіток пристовбурних смуг у садах і виноградниках. Лабораторна робота №6, завдання 2 і 3</small></h1>
+<div class="tools"><span class="chip" id="chip"></span><button class="g sm" id="thb" onclick="theme()" title="Перемкнути тему">Тема: авто</button></div></header>
+<div id="bn"></div>
+<div class="lay"><nav id="nv" aria-label="Кроки налаштування"></nav><main id="mn"></main><aside id="ds" aria-label="Термінал САК фрези"></aside></div></div>
+
+<script>
+/* ===== Модель (без змін відносно попередньої версії: ті самі варіанти, бали й коди протоколів) ===== */
+const cl=(x,a,b)=>Math.max(a,Math.min(b,x)),f1=x=>Math.round(x*10)/10,n=x=>{const v=parseFloat(String(x).replace(',','.'));return isNaN(v)?null:v};
+function hash(s){let h=2166136261;for(const c of s){h^=c.charCodeAt(0);h=Math.imul(h,16777619)}return h>>>0}
+function rng(a){return()=>{a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
+const AGG=[{t:'МТЗ-82.1 (Беларус)',D:40,o:12,dm:40},{t:'ЛТЗ-60АВ',D:40,o:10,dm:38},{t:'John Deere 5075GV',D:45,o:12,dm:42},{t:'New Holland T4.80F',D:50,o:12,dm:45},{t:'Fendt 209 V Vario',D:45,o:15,dm:45},{t:'Antonio Carraro TTR 4800',D:30,o:10,dm:35}];
+const ORCH=[{c:'яблуня',st:[300,450]},{c:'груша',st:[350,500]},{c:'слива',st:[300,450]},{c:'черешня',st:[400,550]},{c:'персик',st:[400,500]}];
+const kmh=v=>v*100/3.6;
+function mkV(r_){const R=rng(hash([r_.group,r_.name,r_.num].join('|').toLowerCase().replace(/\s+/g,' '))),pk=a=>a[Math.floor(R()*a.length)],ri=(a,b)=>Math.round(a+R()*(b-a)),rf=(a,b)=>a+R()*(b-a);
+const a=pk(AGG),orch=pk(ORCH),young=R()<.45,st=Math.round(ri(orch.st[0],orch.st[1])/10)*10,nT=30;
+const V={a,orch,young,r:young?ri(2,4):ri(8,14),st,nT,L:nT*st,sy:f1(rf(1,4)),grass:R()<.4?'висока':'низька',posts:R()<.35,Qh:ri(26,36),pn:f1(rf(16,18)),
+fl:{press:R()<.25?1:0,temp:R()<.2?1:0,valve:R()<.25?1:0,sens:R()<.25?1:0},vp:4,v1:3.5,id:'С-'+(hash(r_.group+r_.name+r_.num)%900+100),
+S:ri(30,90),N:pk([600,800,1000]),C:ri(12,18)*100,Cs:ri(8,12)*10000,B:0.8,tau:f1(rf(.72,.8)*100)/100,tz:8,p1:f1(rf(1.2,2.2)),odd:r_.num%2==1};
+V.rd={p:V.fl.press?f1(V.pn-rf(3.5,5)):V.pn,t:V.fl.temp?ri(82,92):ri(48,62),c:V.fl.valve?f1(rf(.4,.6)):f1(rf(1.05,1.35)),s:V.fl.sens?f1(rf(9,14)):f1(rf(.8,2.4))};
+V.ideal=idealQ(V);let g=2;for(;g<12;g++){const s=sim6(V,{...V.ideal,g,Dset:Math.min(a.dm,V.a.o+V.r*1.15+2*V.sy+g)});if(s.dmg==0&&s.scr==0)break}V.gopt=g;const s0=sim6(V,V.ideal);V.wkI=s0.wk;return V}
+function idealQ(V){const gr=V.grass=='висока',tp=gr?'Лідар':V.young?'Ультразвук':'Щуп',Ts={Щуп:.03,Ультразвук:.06,Лідар:.12}[tp],o=V.a.o,umax=3.2*V.Qh,uo=75,g=3,D=Math.min(V.a.dm,o+V.r*1.15+2*V.sy+g),Tv=Ts+.02+.08+(o+V.r+g)/(umax*uo/100),d=Math.max(45,Math.round(kmh(V.vp)*Tv)+15),Tp=(d+V.a.D+g)/kmh(V.vp)+.03;
+return{type:tp,d,p2:tp=='Щуп'?2.2:tp=='Ультразвук'?95:85,hm:28,uo,ui:70,Tp,g,Dset:D,v:V.vp,fl:{press:0,temp:0,valve:0,sens:0},seed:11}}
+function det6(V,Q){const gr=V.grass=='висока'?1.5:.2,f=Q.fl;let Ts,pd,rf_;if(Q.type=='Щуп'){Ts=.03;pd=.99;rf_=gr*Math.max(0,1.5-Q.p2)/1.5+(f.sens?.5:0)}
+else if(Q.type=='Ультразвук'){Ts=.06;const s=Q.p2;pd=cl(.55+.5*s/100-(V.r<5?.3*(1-s/100):0)+((Q.hm>=18&&Q.hm<=35)?0:-.15)-(f.sens?.1:0),0,1);rf_=gr*(Q.hm<25?1.4:.5)*(.3+1.4*s/100)+(f.sens?.8:0)}
+else{Ts=.12;pd=.99-(f.sens?.05:0);rf_=gr*.02*(1-Q.p2/100)+.01+(f.sens?.3:0)}return{Ts,pd,rf:rf_,F:Q.type=='Щуп'?Q.p2+.05*Q.v*Q.v:0,Fmax:V.young?1.2:3.5}}
+const hyd=(V,Q)=>{const f=Q.fl;return{umax:3.2*V.Qh*(f.press?.6:1)*(f.temp?.8:1),Tg:.08+(f.valve?.15:0)+(f.temp?.05:0),Tk:.02}};
+function event(V,Q,r,yo,det_,rg,noise){const a=V.a,h=hyd(V,Q),sp=det6(V,Q),gs=()=>noise?(rg()+rg()+rg()-1.5)*1.15:0,v=kmh(Q.v)*(1+.05*gs()),uo=h.umax*Q.uo/100,ui=h.umax*Q.ui/100,sd={Щуп:1,Ультразвук:3,Лідар:1}[Q.type],d=Q.d+gs()*sd,
+tarr=d/v,tm=sp.Ts+h.Tk+h.Tg,bounce=Q.uo>85?rg()*6:0,Ymax=Math.max(0,Q.Dset-bounce),tpass=(d+a.D+2*r)/v,tcl=2*r/v+sp.Ts+Q.Tp+h.Tk+h.Tg;
+const y=t=>{let u=t>tm?Math.min(Ymax,uo*(t-tm)):0;if(t>tcl){const yh=Math.min(Ymax,uo*(tcl-tm));u=Math.max(0,yh-ui*(t-tcl))}return det_?u:0};
+let cmin=1e9,unw=0,path=[];const T=tcl+Q.Dset/ui+.3;for(let t=0;t<T;t+=.005){const c=y(t)-a.o-r-yo;if(t>=tarr&&t<=tpass)cmin=Math.min(cmin,c);if(y(t)>2)unw+=.005*v;if(Math.round(t/.005)%8==0)path.push([f1((t-tarr)*v),f1(y(t)-a.o)])}
+if(cmin>1e8)cmin=y(tarr)-a.o-r-yo;return{cmin:f1(cmin),unw:f1(unw),path,tarr,v}}
+function sim6(V,Q){const rg=rng(Q.seed),gs=()=>(rg()+rg()+rg()-1.5)*1.15,sp=det6(V,Q),ev=[],obs=[];
+for(let i=0;i<V.nT;i++)obs.push({x:(i+1)*V.st,r:V.r*(1+.08*gs()),yo:V.sy*gs(),tree:1});if(V.posts)for(let x=900;x<V.L;x+=900)obs.push({x:x+40,r:3,yo:V.sy*gs()*.5,tree:0});obs.sort((a,b)=>a.x-b.x);
+let dm=0,sc=0,ms=0,bk=0,unw=0,tn=0,vs=0;
+for(const o of obs){const dtc=rg()<sp.pd,e=event(V,Q,o.r,o.yo,dtc,rg,1);let kind=0;if(!dtc)kind=3;else if(e.cmin<=0)kind=2;else if(o.tree&&Q.type=='Щуп'&&sp.F>sp.Fmax){kind=2;bk++}else if(e.cmin<1)kind=1;
+ev.push({x:o.x,r:f1(o.r),yo:f1(o.yo),tree:o.tree,c:e.cmin,kind,unw:e.unw,path:e.path,bark:o.tree&&Q.type=='Щуп'&&sp.F>sp.Fmax?1:0});unw+=e.unw;if(o.tree){tn++;if(kind>=2)dm++;else if(kind==1)sc++;if(kind==3)ms++}vs+=e.v}
+const nf=Math.round(sp.rf*V.L/1000*(.6+.8*rg())),fa=[];for(let i=0;i<nf;i++){const e=event(V,Q,0,0,true,rg,1);unw+=e.unw}
+return{ev,dmg:f1(100*dm/tn),scr:f1(100*sc/tn),miss:ms,bark:bk,nf,wk:f1(100*(1-unw/V.L)),unwTree:f1(ev.filter(e=>e.tree).reduce((s,e)=>s+e.unw,0)/tn),vm:f1(vs/ev.length/27.78),sp}}
+/* ===== Логіка кроків і оцінювання (без змін) ===== */
+const $=i=>document.getElementById(i);
+const KEY='lr6v1',pen=(e,t,s)=>e<=t?0:Math.min(1,(e-t)/s);
+const blank=()=>({reg:null,step:0,ck:{},cyc:null,fo:null,type:'—',d:60,p2:null,hm:28,vp:'',bd:{D:'',Tv:'',tau:'',dt:'',vmax:''},g:'',Dset:'',uo:70,ui:60,Tp:'',tr:{v:'',n:0,last:null,m:[],mn:'',mean:'',hit:'',sel:0}});
+const MX=[10,20,10,25,35],NM=['Гідравліка і тест','Сенсор і монтаж','Зазор і хід','Часовий бюджет','Пробний прохід'];
+const fe=()=>({press:S.ck.p==='Несправність'?0:V.fl.press,temp:S.ck.t==='Несправність'?0:V.fl.temp,valve:S.ck.c==='Несправність'?0:V.fl.valve,sens:S.ck.s==='Несправність'?0:V.fl.sens});
+const defp2=t=>t=='Щуп'?1.5:60,P2L={Щуп:'Натяг пружини щупа, кгс',Ультразвук:'Чутливість (поріг), %',Лідар:'Фільтр трави, %'};
+const ty=()=>S.type=='—'?'Щуп':S.type,p2=()=>S.p2==null?defp2(ty()):S.p2;
+function Qs(o){return{type:ty(),d:S.d,p2:p2(),hm:S.hm,uo:S.uo,ui:S.ui,Tp:n(S.Tp)??0,g:n(S.g)??3,Dset:n(S.Dset)??10,v:n(S.tr.v)||V.vp,fl:fe(),seed:hash(V.id)+S.tr.n,...o}}
+const vpl=()=>n(S.vp)||V.vp;
+function ref(){const q=Qs({}),sp=det6(V,q),h=hyd(V,q),g=n(S.g)??3,D=V.a.o+V.r+g,u=h.umax*S.uo/100,Tz=sp.Ts+.02+h.Tg,Tv=Tz+D/u,tau=S.d/kmh(vpl());return{D,Tz,u,Tv,tau,dt:tau-Tv,vmax:S.d/Tv/27.78,Tpm:(S.d+V.a.D+g)/kmh(vpl()),Tpv:(n(S.Dset)??10)/(h.umax*S.ui/100),h,sp}}
+function worst(){const e=S.tr.last.ev;let b=0,m=1e9;e.forEach((x,i)=>{if(x.tree&&x.c<m){m=x.c;b=i}});return b}
+function own(){const m=S.tr.m;if(!m.length)return null;const c=m.map(p=>p[1]);return{k:m.length,mn:Math.min(...c),mean:c.reduce((a,b)=>a+b,0)/c.length,hit:100*m.filter(p=>p[1]<=0||p[2]).length/m.length}}
+function ms(i){const l=S.tr.last;if(!l)return;const e=l.ev[i];if(!e||!e.tree)return;if(S.tr.m.find(p=>p[0]==i))return;const r=rng(hash(V.id+'m'+i+S.tr.n)),nz=(r()+r()-1)*.7;S.tr.m.push([i,Math.round((e.c+nz)*2)/2,e.bark||e.kind==3?1:0]);S.tr.m.sort((a,b)=>a[0]-b[0]);save()}
+function score(){const a=V.a,r=[],t=S.tr,l=t.last,q=Qs({}),sp=det6(V,q),rf=ref(),h=rf.h;
+r[0]=[['p',V.fl.press],['t',V.fl.temp],['c',V.fl.valve],['s',V.fl.sens]].reduce((s,[k,f])=>s+((f&&S.ck[k]==='Несправність')||(!f&&S.ck[k]==='Норма')?2:0),0)+(S.fo!=null?2:0);
+r[1]=S.type=='—'?0:(V.young&&S.type=='Щуп'?0:(V.grass=='висока'&&S.type!='Лідар'?3:6))+8*cl((sp.pd-.8)/.15,0,1)+6*(1-pen(sp.rf,.5,2));
+const g=n(S.g),Ds=n(S.Dset),Dw=a.o+V.r*1.1+2*V.sy+(g??0);r[2]=g!=null&&Ds!=null?6*(1-pen(Math.max(0,Dw-Ds),0,10))+4*(1-pen(Math.max(0,V.gopt-g,g-V.gopt-4),0,4)):0;
+const b=S.bd,ok=(x,y,tol)=>x!==''&&Math.abs(n(x)-y)<=tol;let bs=0;if(g!=null){bs+=ok(b.D,rf.D,Math.max(.5,rf.D*.05))?2:0;bs+=ok(b.Tv,rf.Tv,Math.max(.02,rf.Tv*.05))?2:0;bs+=ok(b.tau,rf.tau,Math.max(.02,rf.tau*.05))?2:0;bs+=ok(b.dt,rf.dt,.03)?2:0;bs+=ok(b.vmax,rf.vmax,Math.max(.2,rf.vmax*.05))?2:0}
+r[3]=bs+6*(1-pen(Math.max(0,-rf.dt),0,.2))+5*(1-pen(Math.max(0,rf.Tpm-(n(S.Tp)??0)),0,.5))+(S.uo<=85?2:0)+(rf.Tpv<=.7?2:0);
+r[4]=0;if(l){const o=own(),okm=o&&o.k>=12&&o.k<=15?[Math.abs(n(t.mn)-o.mn)<=.5,Math.abs(n(t.mean)-o.mean)<=.3,Math.abs(n(t.hit)-o.hit)<=5].filter(Boolean).length:0;
+r[4]=14*(1-pen(l.dmg+l.scr*.3,0,10))+8*cl((l.wk-(V.wkI-15))/15,0,1)+(l.v>=3&&l.v<=6?3:0)+(l.miss==0?2:0)+8*okm/3}
+return r.map(x=>Math.max(0,Math.round(x*10)/10))}
+function cycle(){const q=Qs({}),h=hyd(V,q),tm=h.Tg+h.Tk,s=20,to=s/h.umax,hold=.3,tr0=tm+to+hold,ti=s/h.umax,pts=[];for(let t=0;t<=2;t+=.02){let y=0;if(t>tm)y=Math.min(s,h.umax*(t-tm));if(t>tr0)y=Math.max(0,s-h.umax*(t-tr0-tm));pts.push([t,y])}return{pts,Tg:f1(tm*100)/100,um:Math.round(h.umax),to:f1(tm*100+to*100)/100,ti:f1((tm+ti)*100)/100}}
+function typical(){const q=Qs({v:vpl()}),rg=rng(5);return{...event(V,q,V.r,0,true,rg,0),r:V.r,yo:0}}
+/* ===== Стан, збереження, прохід, протокол ===== */
+const TKEY='lr6theme';
+/* Приклад із методички: цей «студент» дає демо-варіант, з яким симулятор відкривається вперше */
+const DEMO={group:'Приклад',name:'Приклад із методички',num:34};
+/* Число для показу: десяткова кома, мінус як «−» */
+const F=(x,d)=>{if(x===''||x==null||(typeof x=='number'&&isNaN(x)))return'—';const s=d==null?String(x):Number(x).toFixed(d);return s.replace('.',',').replace('-','−')};
+const r2=x=>Math.round(x*100)/100,r1=x=>Math.round(x*10)/10,r3=x=>Math.round(x*1000)/1000;
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const vs=x=>esc(String(x??'').replace('.',','));
+const NAR=()=>innerWidth<600;
+let S=null;try{S=JSON.parse(localStorage.getItem(KEY))}catch(e){}if(!S||!S.tr)S=null;
+const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}};
+let V=S&&S.reg?mkV(S.reg):null,AN=0;
+const TT=['Реєстрація й варіант','1. Гідравліка і тест циклу','2. Сенсор і монтаж','3. Зазор і хід відводу','4. Часовий бюджет і гідравліка','5. Пробний прохід','Підсумковий протокол','Досліди «що буде, якщо…»','Калькулятор бюджету часу'];
+const LAB=7,CALC=8;
+const RN={p:'Тиск у гідросистемі',t:'Температура оливи',c:'Струм електромагнітів УА',s:'Шум сенсора в спокої'};
+const wkS=x=>Math.max(0,x);              /* частка обробленого ряду не може бути від’ємною */
+const kmS=v=>v*.036;                      /* см/с → км/год */
+
+/* Прохід із записом усіх подій. sim6() викликається без змін; обгортка навколо event() лише запам’ятовує
+   траєкторії хибних спрацювань, яких sim6 не повертає (вони потрібні для анімації). */
+function simTrace(V_,Q){const ev0=event,calls=[];event=function(){const e=ev0.apply(null,arguments);calls.push(e);return e};let s;try{s=sim6(V_,Q)}finally{event=ev0}
+s.fa=calls.slice(s.ev.length).map(e=>({unw:e.unw,path:e.path}));return s}
+const packEv=r=>r.ev.map(e=>({x:e.x,r:e.r,yo:e.yo,tree:e.tree,c:e.c,kind:e.kind,unw:e.unw,bark:e.bark,path:e.path}));
+
+/* Пробний прохід: ті самі виклики моделі, що й у попередній версії симулятора */
+function runCore(){const t=S.tr,v=n(t.v),q=Qs({}),r=simTrace(V,q);
+t.last={ev:packEv(r),dmg:r.dmg,scr:r.scr,miss:r.miss,bark:r.bark,nf:r.nf,wk:r.wk,unwTree:r.unwTree,vm:r.vm,v,Fc:f1(r.sp.F),Fm:r.sp.Fmax,
+fa:r.fa,s:{d:q.d,type:q.type,Ds:q.Dset,g:q.g,Tp:q.Tp,uo:q.uo,ui:q.ui,seed:q.seed}};t.n++;t.m=[];t.sel=worst();
+(S.hist=S.hist||[]).push({n:t.n,v,type:q.type,d:q.d,g:q.g,Ds:q.Dset,uo:q.uo,ui:q.ui,Tp:q.Tp,dmg:r.dmg,scr:r.scr,miss:r.miss,nf:r.nf,wk:r.wk,unw:r.unwTree,cmin:Math.min(...r.ev.filter(e=>e.tree).map(e=>e.c))});if(S.hist.length>12)S.hist.shift()}
+function run(){const t=S.tr,v=n(t.v);if(!v||v<=0)return alert('Вкажіть швидкість, км/год.');if(S.type=='—')return alert('Оберіть сенсор (крок 2).');if(n(S.Dset)==null||n(S.Tp)==null)return alert('Задайте хід відводу (крок 3) і затримку повернення T_п (крок 4).');
+runCore();AN=1;save();R()}
+function mautoCore(){S.tr.m=[];const tr=S.tr.last.ev.map((e,i)=>e.tree?i:-1).filter(i=>i>=0),r=rng(hash(V.id+'a'+S.tr.n)),pick=[];while(pick.length<12){const i=tr[Math.floor(r()*tr.length)];if(!pick.includes(i))pick.push(i)}pick.forEach(ms)}
+function mauto(){mautoCore();R()}
+function mclr(){S.tr.m=[];save();R()}
+const forced=()=>{const h=hyd(V,Qs({}));return f1((h.Tg+.02+20/h.umax)*100)/100};
+/* найгірший випадок ходу (як в оцінюванні кроку 3) */
+const Dworst=()=>V.a.o+V.r*1.1+2*V.sy+(n(S.g)??0);
+
+/* Стан «приклад із методички»: усе заповнено правильно; дві спроби — завелика швидкість, потім планова */
+function demoState(){S=blank();S.demo=1;S.reg={...DEMO};V=mkV(S.reg);const I=V.ideal,a=V.a;
+for(const[k,f]of[['p',V.fl.press],['t',V.fl.temp],['c',V.fl.valve],['s',V.fl.sens]])S.ck[k]=f?'Несправність':'Норма';
+S.cyc=cycle();S.fo=forced();
+S.type=I.type;S.d=I.d;S.p2=I.p2;S.hm=I.hm;
+S.g='3';S.Dset=String(Math.min(a.dm,Math.ceil(Dworst()*2)/2));
+S.vp=String(V.vp);S.uo=75;S.ui=70;S.Tp=String(Math.ceil(((S.d+a.D+3)/kmh(V.vp))*20)/20);
+const rf=ref();S.bd={D:String(f1(rf.D)),Tv:rf.Tv.toFixed(2),tau:rf.tau.toFixed(2),dt:rf.dt.toFixed(2),vmax:rf.vmax.toFixed(1)};
+S.tr.v='6';runCore();S.tr.v=String(V.vp);runCore();
+mautoCore();const o=own();S.tr.mn=String(o.mn);S.tr.mean=o.mean.toFixed(1);S.tr.hit=o.hit.toFixed(1);
+S.step=0;return S}
+
+/* Рядки «Запишіть у таблицю методички» */
+function rec(i){const R_=V.rd,k=S.ck,t=S.tr,l=t.last,m=(x,u)=>x===''||x==null?'—':String(x).replace('.',',')+u,c=S.cyc,sp=det6(V,Qs({})),b=S.bd;
+return[0,c?`Тиск ${F(R_.p)} МПа (${k.p||'—'}); олива ${R_.t} °C (${k.t||'—'}); струм УА ${F(R_.c)} А (${k.c||'—'}); шум сенсора ${F(R_.s)} % (${k.s||'—'}); стенд: T_г = ${F(r3(c.Tg))} с, u_max = ${c.um} см/с, відвід ${F(r3(c.to))} с, повернення ${F(r3(c.ti))} с; примусовий відвід ${S.fo==null?'—':F(r3(S.fo))+' с'}`:'тест не виконано',
+S.type=='—'?'не налаштовано':`${S.type}; d = ${S.d} см; ${P2L[S.type].split(',')[0].toLowerCase()} ${F(p2())}${S.type=='Ультразвук'?'; висота монтажу '+S.hm+' см':''}; виявлення ${Math.round(sp.pd*100)} %; хибні ${F(f1(sp.rf))} на 10 м; T_s = ${F(sp.Ts)} с`,
+`g = ${m(S.g,' см')}; Δ_set = ${m(S.Dset,' см')}; потрібний у найгіршому випадку ≈ ${F(f1(Dworst()))} см`,
+`v_пл = ${F(vpl())} км/год; Δ = ${m(b.D,' см')}; T_відв = ${m(b.Tv,' с')}; τ = ${m(b.tau,' с')}; Δt = ${m(b.dt,' с')}; v_max = ${m(b.vmax,' км/год')}; u_відв ${S.uo} %, u_пов ${S.ui} %, T_п = ${m(S.Tp,' с')}`,
+l?`${F(l.v)} км/год; дерев ${l.ev.filter(e=>e.tree).length}; мін. зазор ${m(t.mn,' см')}, середній ${m(t.mean,' см')}; частка торкань ${m(t.hit,' %')}; необроблена ділянка ≈ ${Math.round(l.unwTree)} см; оброблено ряду ${F(wkS(l.wk))} %; спроб ${t.n}`:'не виконано'][i]}
+
+/* Чи заповнено крок (для позначок у меню): 1 — так, .5 — частково, 0 — ні */
+function done(i){if(!V)return 0;const c=S.ck,t=S.tr,b=S.bd;switch(i){
+case 1:{const k=['p','t','c','s'].filter(x=>c[x]&&c[x]!='—').length+(S.cyc?1:0)+(S.fo!=null?1:0);return k==6?1:k?.5:0}
+case 2:return S.type!='—'?1:0;
+case 3:{const k=[S.g,S.Dset].filter(x=>n(x)!=null).length;return k==2?1:k?.5:0}
+case 4:{const k=[b.D,b.Tv,b.tau,b.dt,b.vmax,S.Tp].filter(x=>x!==''&&x!=null).length;return k==6?1:k?.5:0}
+case 5:return t.last?(t.m.length>=12&&t.mn!==''&&t.mean!==''&&t.hit!==''?1:.5):0;
+default:return 0}}
+
+/* Розрахунок Завдання 4.2 за формулами методички (для самоперевірки) */
+const TAU=()=>Math.round(V.tau*1000)/1000;
+function calc42(){const l=S.tr.last;if(!l)return null;const p1=V.p1,p2=l.dmg,dN=V.S*V.N*(p1-p2)/100,E=dN*V.C,En=E-.1*V.Cs,T=En>0?V.Cs/En:null,
+B=V.B,tau=TAU(),v1=V.v1,v2=l.v,W1=.1*B*v1*tau,W2=.1*B*v2*tau,dW=(W2-W1)/W1*100,Z1=W1*V.tz,Z2=W2*V.tz,D1=V.S/Z1,D2=V.S/Z2;
+return{p1,p2,dN,E,En,T,B,tau,v1,v2,W1,W2,dW,Z1,Z2,D1,D2,dD:D1-D2}}
+
+/* ===== Калькулятор бюджету часу (формули п. 1.2 методички) ===== */
+const SC=[{nm:'Сценарій 1: молодий сад',v:4,d:45,r:3,o:10,g:3,Tz:.12,u:45,D:40,ui:40},{nm:'Сценарій 2: дорослий сад',v:3.5,d:60,r:12,o:10,g:5,Tz:.12,u:60,D:45,ui:50}];
+function bud(p){const vv=kmh(p.v),De=p.o+p.r+p.g,Tv=p.Tz+De/p.u,tau=p.d/vv,dt=tau-Tv,vmax=kmS(p.d/Tv),dmin=vv*Tv,Tpm=(p.d+p.D+p.g)/vv,Tp=p.auto?Tpm:p.Tp,Tpov=De/p.ui,lp=p.d+p.D+2*p.r+p.g+vv*Tpov;
+return{vv,De,Tv,tau,dt,vmax,dmin,Tpm,Tp,Tpov,lp}}
+/* Траєкторія відводу біля одного дерева: та сама залежність y(t), що й у функції event() моделі, але без випадкових відхилень */
+function budPath(p){const b=bud(p),v=b.vv,tarr=b.tau,tm=p.Tz,tpass=(p.d+p.D+2*p.r)/v,tcl=2*p.r/v+p.Tz+b.Tp,Ymax=b.De;
+const y=t=>{let u=t>tm?Math.min(Ymax,p.u*(t-tm)):0;if(t>tcl){const yh=Math.min(Ymax,p.u*(tcl-tm));u=Math.max(0,yh-p.ui*(t-tcl))}return u};
+let cmin=1e9,unw=0;const path=[],T=tcl+Ymax/p.ui+.3;for(let t=0;t<T;t+=.005){const c=y(t)-p.o-p.r;if(t>=tarr&&t<=tpass)cmin=Math.min(cmin,c);if(y(t)>2)unw+=.005*v;if(Math.round(t/.005)%2==0)path.push([r2((t-tarr)*v),r2(y(t)-p.o)])}
+return{b,path,cmin:r2(cmin),unw:Math.round(unw),T,tcl,tarr,tpass}}
+/* ===== Графіки з курсором ===== */
+function drawChart(el,c){if(!el)return;
+const W=Math.max(280,Math.round(el.clientWidth||640)),ml=40,mr=12,lg=[];let lx=ml,ly=13;for(const q of c.leg||[]){const w=28+q[0].length*6.1;if(lx+w>W-4&&lx>ml){lx=ml;ly+=15}lg.push([lx,ly,q]);lx+=w}
+const mt=c.leg?ly+13:10,H=(c.h||170)+(c.leg?ly-13:0),mb=24,xa=c.x0||0,x1=c.xMax,pw=W-ml-mr,ph=H-mt-mb;
+const X=x=>ml+(x-xa)/(x1-xa)*pw,Y=y=>{const f=(cl(y,c.y0,c.y1)-c.y0)/(c.y1-c.y0);return mt+(c.inv?f:1-f)*ph};
+let s='';
+for(const q of c.shade||[])s+=`<rect x="${X(q[0]).toFixed(1)}" y="${mt}" width="${Math.max(1.5,X(q[1])-X(q[0])).toFixed(1)}" height="${ph}" fill="${q[2]||c.shadeC||'var(--am)'}" opacity="${q[3]||.3}"/>`;
+for(const b of c.bands||[]){const ya=Y(b[0]),yb=Y(b[1]);s+=`<rect x="${ml}" y="${Math.min(ya,yb)}" width="${pw}" height="${Math.abs(yb-ya)}" fill="${b[2]||'var(--ac)'}" opacity="${b[3]||.25}"/>`}
+const nt=c.ticks||4;for(let k=0;k<=nt;k++){const v=c.y0+(c.y1-c.y0)*k/nt,y=Y(v);s+=`<line x1="${ml}" x2="${W-mr}" y1="${y}" y2="${y}" stroke="var(--ln)" stroke-width="1" opacity=".8"/><text x="${ml-5}" y="${y+3.5}" text-anchor="end" font-size="10.5" fill="var(--sub)">${F(Math.round(v*10)/10)}</text>`}
+{const raw=(x1-xa)/(W<430?3:5),p10=10**Math.floor(Math.log10(raw)),st=[1,2,2.5,5,10].map(m=>m*p10).find(m=>m>=raw-1e-9);for(let v=Math.ceil(xa/st-1e-9)*st;v<=x1+1e-9;v+=st){if(X(v)>W-mr-(c.xl?c.xl.length*5.6+16:44))break;s+=`<line x1="${X(v)}" x2="${X(v)}" y1="${mt+ph}" y2="${mt+ph+4}" stroke="var(--ln)"/><text x="${X(v)}" y="${H-7}" text-anchor="${X(v)<ml+8?'start':'middle'}" font-size="10.5" fill="var(--sub)">${F(Math.round(v*100)/100)}</text>`}s+=`<text x="${W-mr}" y="${H-7}" text-anchor="end" font-size="10.5" fill="var(--sub)">${c.xl||'шлях, м'}</text>`}
+for(const b of c.bars||[]){const y0=Y(0),y1=Y(b[1]),bw=c.bw||8;s+=`<rect x="${(X(b[0])-bw/2).toFixed(1)}" y="${Math.min(y0,y1).toFixed(1)}" width="${bw}" height="${Math.max(2,Math.abs(y1-y0)).toFixed(1)}" fill="${b[2]||'var(--ac)'}" opacity="${b[3]||1}"/>`}
+for(const h of c.hl||[])s+=`<line x1="${ml}" x2="${W-mr}" y1="${Y(h[0])}" y2="${Y(h[0])}" stroke="${h[1]}" stroke-width="1.2" stroke-dasharray="5 4"/>`+(h[2]?`<text x="${h[3]?ml+4:W-mr-3}" y="${Y(h[0])-5}" text-anchor="${h[3]?'start':'end'}" font-size="10" fill="${h[1]}" paint-order="stroke" stroke="var(--pn2)" stroke-width="3">${h[2]}</text>`:'');
+for(const q of c.ser||[])if(q.p&&q.p.length)s+=`<path d="${q.p.map((p,i)=>(i?'L':'M')+X(p[0]).toFixed(1)+','+Y(p[1]).toFixed(1)).join('')}" fill="none" stroke="${q.c}" stroke-width="${q.w||1.9}" ${q.d?`stroke-dasharray="${q.d}"`:''} stroke-linejoin="round"/>`;
+for(const q of c.vl||[]){const px=X(q[0]),rt=px>W-mr-(q[2]?q[2].length*5.6+8:0);s+=`<line x1="${px}" x2="${px}" y1="${mt}" y2="${mt+ph}" stroke="${q[1]||'var(--ink)'}" stroke-width="1.2" stroke-dasharray="3 3"/>`+(q[2]?`<text x="${rt?px-4:px+4}" y="${mt+(q[3]||12)}" text-anchor="${rt?'end':'start'}" font-size="10" fill="${q[1]||'var(--ink)'}" paint-order="stroke" stroke="var(--pn2)" stroke-width="3">${q[2]}</text>`:'')}
+for(const x of c.marks||[])s+=`<rect x="${X(x)-3}" y="${mt+ph-7}" width="6" height="6" fill="var(--stl)" stroke="var(--pn)" stroke-width="1"/>`;
+for(const p of c.dots||[])s+=`<circle cx="${X(p[0]).toFixed(1)}" cy="${Y(p[1]).toFixed(1)}" r="${p[3]||3.6}" fill="${p[2]||'var(--ink)'}" stroke="var(--pn)" stroke-width="1.3"/>`;
+for(const[lx,ly,q]of lg)s+=(q[2]=='band'?`<rect x="${lx}" y="${ly-5}" width="16" height="9" fill="${q[1]}" opacity=".3"/>`:q[2]=='dot'?`<circle cx="${lx+8}" cy="${ly-.5}" r="4" fill="${q[1]}"/>`:q[2]=='bar'?`<rect x="${lx+4}" y="${ly-6}" width="8" height="10" fill="${q[1]}"/>`:`<line x1="${lx}" x2="${lx+16}" y1="${ly}" y2="${ly}" stroke="${q[1]}" stroke-width="2.4" ${q[2]?`stroke-dasharray="${q[2]}"`:''}/>`)+`<text x="${lx+20}" y="${ly+3.5}" font-size="10.5" fill="var(--ink)">${q[0]}</text>`;
+s+=`<line class="cur" x1="0" x2="0" y1="${mt}" y2="${mt+ph}" stroke="var(--ink)" stroke-width="1.3" opacity="0"/>`;
+el.innerHTML=`<svg viewBox="0 0 ${W} ${H}" height="${H}" role="img" aria-label="${c.aria||'Графік'}">${s}</svg><div class="tip"></div>`;
+el._c=Object.assign({},c,{X,W,ml,pw,xa});
+if(!el._b){el._b=1;const fx=e=>{const k=el._c,r=el.getBoundingClientRect();return cl(k.xa+(e.clientX-r.left-k.ml)/k.pw*(k.xMax-k.xa),k.xa,k.xMax)};
+el.addEventListener('pointermove',e=>{const k=el._c,x=fx(e);chartCur(el,x,1);if(e.buttons&&k.scrub)k.scrub(x)});
+el.addEventListener('pointerdown',e=>{const k=el._c,x=fx(e);if(k.scrub)k.scrub(x)});
+el.addEventListener('pointerleave',()=>{const k=el._c;el.querySelector('.tip').style.display='none';if(k.pin==null)el.querySelector('.cur').setAttribute('opacity',0);else chartCur(el,k.pin,0)})}}
+function chartCur(el,x,tip){const c=el&&el._c;if(!c)return;const l=el.querySelector('.cur');if(!l)return;const px=c.X(cl(x,c.xa,c.xMax));l.setAttribute('x1',px);l.setAttribute('x2',px);l.setAttribute('opacity',.75);
+const t=el.querySelector('.tip');if(tip&&c.tip){t.innerHTML=c.tip(x);t.style.display='block';t.style.left=cl(px+10,4,c.W-t.offsetWidth-4)+'px'}}
+function chartPin(id,x){const el=$(id);if(el&&el._c){el._c.pin=x;chartCur(el,x,0)}}
+
+/* Стрілковий прилад (крок 1) */
+function gauge(v,mn,mx,z0,z1,txt){const cx=80,cy=74,r=58,ang=x=>Math.PI*(1-cl((x-mn)/(mx-mn),0,1)),pt=(x,rr)=>[cx+rr*Math.cos(ang(x)),cy-rr*Math.sin(ang(x))],arc=(a,b,c,w)=>{const p=pt(a,r),q=pt(b,r);return`<path d="M${p[0].toFixed(1)},${p[1].toFixed(1)} A${r},${r} 0 0 1 ${q[0].toFixed(1)},${q[1].toFixed(1)}" fill="none" stroke="${c}" stroke-width="${w}"/>`};
+let tk='';for(let i=0;i<=4;i++){const x=mn+(mx-mn)*i/4,p=pt(x,r+11);tk+=`<text x="${p[0].toFixed(1)}" y="${(p[1]+3).toFixed(1)}" font-size="9" text-anchor="middle" fill="var(--sub)">${F(Math.round(x*10)/10)}</text>`}
+const nd=v==null?null:pt(v,r-8),ok=v>=z0&&v<=z1;
+return`<svg viewBox="0 0 160 98" role="img" aria-label="Прилад: ${txt}">${arc(mn,mx,'var(--ln)',9)}${arc(z0,z1,'var(--ac)',9)}${tk}${nd?`<line x1="${cx}" y1="${cy}" x2="${nd[0].toFixed(1)}" y2="${nd[1].toFixed(1)}" stroke="${ok?'var(--ink)':'var(--wn)'}" stroke-width="2.6" stroke-linecap="round"/>`:''}<circle cx="${cx}" cy="${cy}" r="5" fill="var(--ink)"/><text x="${cx}" y="94" font-size="13" font-weight="700" text-anchor="middle" fill="var(--ink)">${txt}</text></svg>`}
+
+/* ===== Креслення ===== */
+const lab=(x,y,t,o={})=>`<text x="${r1(x)}" y="${r1(y)}" font-size="${o.s||11.5}" font-weight="${o.w||400}" fill="${o.c||'var(--ink)'}" text-anchor="${o.a||'start'}" ${o.halo===0?'':`paint-order="stroke" stroke="${o.halo||'var(--pn2)'}" stroke-width="3.5" stroke-linejoin="round"`}>${t}</text>`;
+const SOIL='#C9B48A',HALO='var(--halo)',TRUNK='#7A5A34',TRUNK2='#4B3720',WEED='#5E8F2E',STEEL='#59646B',BLU='#2B6CB0',VIO='#7A4FA3';
+const KC=['var(--ac)','#C99700','var(--wn)','#666'],KN=['безпечно','зазор менший за 1 см','торкання','штамб пропущено сенсором'];
+const STN=['РОБОТА','СИГНАЛ: запізнення','ВІДВІД','УТРИМАННЯ','ПОВЕРНЕННЯ'],STC=['#2F6B3A','#A66A00',BLU,STEEL,VIO];
+const dimH=(x1,x2,y,t,c,o={})=>{const a=Math.min(x1,x2),b=Math.max(x1,x2);return`<path d="M${r1(a)},${y-4}v8M${r1(b)},${y-4}v8M${r1(a)},${y}H${r1(b)}" stroke="${c}" stroke-width="1.5" fill="none"/>`+lab(o.out?b+5:(a+b)/2,o.out?y+4:y-(o.dy||5),t,{a:o.out?'start':'middle',c,s:o.s||11,w:600,halo:o.halo})};
+
+/* Доріжка для анімації: відвід y як функція положення переднього краю ротора X (см уздовж ряду) */
+function mkTrack(c){const o=c.a.o,step=2,X0=-(c.lead??260),X1=c.L+(c.tail??260),N=Math.ceil((X1-X0)/step)+1,Y=new Float32Array(N),segs=[];
+const add=(x0,P)=>{let sM=null;for(let i=0;i<P.length-1;i++){const xa=x0+P[i][0],xb=x0+P[i+1][0],ya=P[i][1]+o,yb=P[i+1][1]+o;if(sM==null&&yb>.05)sM=P[i][0];
+const k0=Math.max(0,Math.ceil((xa-X0)/step)),k1=Math.min(N-1,Math.floor((xb-X0)/step));for(let k=k0;k<=k1;k++){const f=xb>xa?(X0+k*step-xa)/(xb-xa):0,y=ya+(yb-ya)*f;if(y>Y[k])Y[k]=y}}
+segs.push({x0,sA:P[0][0],sM,sE:P[P.length-1][0]})};
+c.ev.forEach(e=>add(e.x-e.r,e.path));
+/* хибні спрацювання: модель знає лише їх кількість і тривалість, тому розставляємо їх у проміжках між деревами */
+const fa=[],rg=rng(hash(c.seed+'fa')),xs=[0,...c.ev.map(e=>e.x)];(c.fa||[]).forEach(f=>{const j=Math.floor(rg()*(xs.length-1)),x=xs[j]+(xs[j+1]-xs[j])*(.42+.2*rg());fa.push(x);add(x,f.path)});
+const k0=Math.round(-X0/step),cum=new Float32Array(N);for(let k=1;k<N;k++)cum[k]=cum[k-1]+(k>k0&&Y[k]>2?step:0);
+let ymax=0;for(let k=0;k<N;k++)if(Y[k]>ymax)ymax=Y[k];
+/* бур'яни: фіксований випадковий розсів у смузі, яку може обробити ротор */
+const w=[],rw=rng(hash(c.seed+'wd')),dn=c.grass=='висока'?.16:.07;for(let x=X0;x<X1;x+=1/dn)w.push([x+rw()/dn,-o-9+rw()*(c.a.D+11),rw()]);w.sort((a,b)=>a[0]-b[0]);
+const obs=c.ev.map((e,i)=>{const w=e.path.filter(p=>p[0]>=0&&p[0]<=c.a.D+2*e.r),hit=w.find(p=>p[1]-e.r-e.yo<=0);let m=null;for(const p of w)if(!m||p[1]<m[1])m=p;
+return{x:e.x,r:e.r,yo:e.yo,tree:e.tree,kind:e.kind,c:e.c,i,bark:e.bark,xc:e.x-e.r+(hit?hit[0]:0),xm:e.x-e.r+(m?m[0]:c.a.D/2+e.r)}});
+const T={a:c.a,d:c.d,type:c.type,L:c.L,X0,X1,step,Y,segs,fa,cum,k0,ymax:Math.max(ymax,c.Ds||0),rmax:Math.max(4,...obs.map(b=>b.r+Math.abs(b.yo))),w,obs,v:c.v,grass:c.grass,
+yAt(X){const u=(X-X0)/step,i=Math.floor(u);if(i<0||i>=N-1)return 0;return Y[i]+(Y[i+1]-Y[i])*(u-i)},
+stAt(X){const y=T.yAt(X);if(y<.05){for(const s of segs)if(s.sM!=null&&X>=s.x0+s.sA&&X<s.x0+s.sM+step)return 1;return 0}const dy=T.yAt(X+3)-T.yAt(X-3);return dy>.08?2:dy<-.08?4:3},
+near(X){if(T.yAt(X)>.05)return true;for(const s of segs)if(X>=s.x0+s.sA-25&&X<s.x0+Math.max(s.sE,c.a.D+30))return true;return false},
+wkAt(X){if(X<=10)return 100;const k=cl(Math.round((X-X0)/step),0,N-1);return 100*(1-cum[k]/X)},
+cur(X){for(const b of obs)if(b.x+b.r+c.a.D+40>X)return b.i;return obs.length-1}};
+return T}
+function seriesOf(T){const p=[],Y=T.Y,q=k=>Math.round(Y[k]*10)/10;let lk=T.k0,lv=q(T.k0);p.push([(T.X0+lk*T.step)/100,lv]);
+for(let k=T.k0+1;k<Y.length;k++){const y=q(k);if(y!==lv||k==Y.length-1){if(lk<k-1)p.push([(T.X0+(k-1)*T.step)/100,lv]);p.push([(T.X0+k*T.step)/100,y]);lk=k;lv=y}}return p}
+
+/* Вид зверху в масштабі: однакова кількість пікселів на сантиметр уздовж і впоперек ряду */
+function sceneSVG(T,X,W,op){op=op||{};const a=T.a,D=a.D,o=a.o,span=W<430?270:W<640?390:500,k=W/span;
+const top=Math.max(26,o+T.rmax+14),bot=D+Math.max(T.ymax,8)-o+22,H=Math.round((top+bot)*k),ya=top*k,xr=Math.round(W*.42);
+const sx=x=>r1(xr+(x-X)*k),sy=u=>r1(ya+u*k),y=T.yAt(X),ue=y-o,Xl=X-xr/k,Xr=X+(W-xr)/k,xe=X-D/2,tx=(x,y_,t,q)=>lab(x,y_,t,Object.assign({c:'var(--soilink)',halo:HALO},q));
+let s=`<rect width="${W}" height="${H}" fill="${SOIL}" opacity=".5"/>`;
+/* оброблена смуга позаду ротора */
+{const pa=[],pb=[];for(let P=Math.max(Xl-6,T.X0);P<xe;P+=4){const e=T.yAt(P+D/2)-o;pa.push(sx(P)+','+sy(e));pb.push(sx(P)+','+sy(e+D))}pa.push(sx(xe)+','+sy(ue));pb.push(sx(xe)+','+sy(ue+D));
+if(pa.length>1)s+=`<polygon points="${pa.join(' ')} ${pb.reverse().join(' ')}" fill="var(--plowed)" opacity=".72"/>`}
+/* бур'яни: зникають там, де пройшов ротор */
+{const w=T.w;let i=0,hi=w.length;while(i<hi){const m=(i+hi)>>1;if(w[m][0]<Xl)i=m+1;else hi=m}
+for(;i<w.length&&w[i][0]<=Xr;i++){const P=w[i][0],u=w[i][1];let alive=P>xe;if(!alive){const e=T.yAt(P+D/2)-o;alive=u<e||u>e+D}if(!alive)continue;const px=sx(P),py=sy(u),h=3+w[i][2]*3;s+=`<path d="M${px-2.4},${py+2}l1,${-h+1}M${px},${py+2}v${-h}M${px+2.4},${py+2}l-1,${-h+1}" stroke="${WEED}" stroke-width="1.3" fill="none" stroke-linecap="round"/>`}}
+s+=`<line x1="0" x2="${W}" y1="${r1(ya)}" y2="${r1(ya)}" stroke="var(--soilink)" stroke-width="1" stroke-dasharray="7 5" opacity=".55"/>`;
+/* місця хибних спрацювань */
+for(const x of T.fa)if(x>Xl-20&&x<Xr+20){const px=sx(x),py=sy(0);s+=`<path d="M${px-6},${py+5}l2,-13M${px-2},${py+5}v-17M${px+2},${py+5}v-15M${px+6},${py+5}l-2,-12" stroke="#3C7A1E" stroke-width="2.2" fill="none" stroke-linecap="round"/>`+tx(px,py-16,'бур’ян: хибне спрацювання',{a:'middle',s:10.5,c:'var(--wn)'})}
+/* ротор у робочому положенні (контур), якщо зараз відведений */
+const hx=sx(X-D),hy=sy(ue),hw=r1(D*k);
+if(y>.6)s+=`<rect x="${hx}" y="${sy(-o)}" width="${hw}" height="${hw}" rx="7" fill="none" stroke="var(--soilink)" stroke-width="1.2" stroke-dasharray="4 4" opacity=".6"/>`;
+/* рама, циліндр, важіль */
+{const cx=hx+hw/2,yb=hy+hw,fy=H-7,bl=Math.min(16*k,Math.max(8,fy-yb-4));s+=`<rect x="0" y="${fy}" width="${W}" height="7" fill="var(--trk2)"/><rect x="${r1(cx-2.5)}" y="${yb}" width="5" height="${r1(Math.max(0,fy-yb))}" fill="#C9CFC6" stroke="${STEEL}" stroke-width=".8"/><rect x="${r1(cx-6.5)}" y="${r1(fy-bl)}" width="13" height="${r1(bl)}" rx="2" fill="var(--trk)" stroke="var(--trk2)" stroke-width="1"/>`}
+/* перешкоди */
+let gap=null;for(const b of T.obs){if(b.x<Xl-40||b.x>Xr+40)continue;const cx=sx(b.x),cy=sy(b.yo),rr=Math.max(2.6,b.r*k),passed=b.x+b.r+D<X,inw=X>=b.x-b.r&&X<=b.x+b.r+D;
+if(b.tree)s+=`<circle cx="${cx}" cy="${cy}" r="${r1(rr+5)}" fill="#3F9A3A" opacity=".16"/><circle cx="${cx}" cy="${cy}" r="${r1(rr)}" fill="${TRUNK}" stroke="${TRUNK2}" stroke-width="1.2"/>`;
+else s+=`<rect x="${r1(cx-3*k)}" y="${r1(cy-3*k)}" width="${r1(6*k)}" height="${r1(6*k)}" fill="#8C979D" stroke="#3b4347" stroke-width="1.2"/>`;
+if(b.kind!=null&&!op.plain&&(passed||(b.kind>=2&&X>=b.xc)))s+=`<circle cx="${cx}" cy="${cy}" r="${r1(rr+4.5)}" fill="none" stroke="${KC[b.kind]}" stroke-width="2.6"/>`;
+if(op.num!==0)s+=tx(cx,13,(b.tree?'№ ':'стійка № ')+(b.i+1),{a:'middle',s:10.5,w:600});
+if(inw)gap=[b,ue-(b.yo+b.r),cx,cy,rr]}
+/* лінія сенсора і виніс d */
+{const Xs=X+T.d,xs=sx(Xs),us=9,yh=sy(us);if(xs<W+30){s+=`<line x1="${xs}" x2="${xs}" y1="24" y2="${yh}" stroke="var(--am)" stroke-width="1.7" stroke-dasharray="5 4"/><line x1="${xs}" x2="${xs}" y1="${yh+8}" y2="${H-7}" stroke="${STEEL}" stroke-width="2.2"/><rect x="${r1(xs-5)}" y="${yh}" width="10" height="9" rx="2" fill="var(--am)" stroke="#5c3b00" stroke-width="1"/>`;
+if(T.type=='Щуп')s+=`<path d="M${xs},${yh+2}L${r1(xs-4)},${sy(-5)}" stroke="var(--soilink)" stroke-width="2.4" stroke-linecap="round"/>`;
+else if(T.type=='Ультразвук')s+=[9,15,21].map(q=>`<path d="M${r1(xs-q*.55)},${r1(yh-q*.6)}A${q},${q} 0 0 1 ${r1(xs+q*.55)},${r1(yh-q*.6)}" fill="none" stroke="var(--am)" stroke-width="1.5"/>`).join('');
+else s+=`<path d="M${xs},${yh}L${r1(xs-13*k)},${sy(-o-6)}L${r1(xs+13*k)},${sy(-o-6)}Z" fill="var(--am)" opacity=".28"/>`;
+const yd=30;if(xs-sx(X)>52&&op.dim!==0)s+=dimH(sx(X),xs,yd,'d = '+F(r1(T.d))+' см','var(--soilink)',{halo:HALO});s+=tx(Math.min(xs+5,W-4),H-12,'сенсор',{s:10.5,a:xs+50>W?'end':'start'})}}
+/* ротор із кожухом */
+{const cx=hx+hw/2,cy=hy+hw/2,R=hw/2-3,an=X*.07;let bl='';for(let j=0;j<3;j++){const q=an+j*2.094;bl+=`M${r1(cx)},${r1(cy)}L${r1(cx+R*Math.cos(q))},${r1(cy+R*Math.sin(q))}`}
+s+=`<rect x="${hx}" y="${hy}" width="${hw}" height="${hw}" rx="7" fill="${STEEL}" fill-opacity=".3" stroke="${STEEL}" stroke-width="2"/><circle cx="${r1(cx)}" cy="${r1(cy)}" r="${r1(R)}" fill="${STEEL}" opacity=".55"/><path d="${bl}" stroke="#E8ECE6" stroke-width="2.2" stroke-linecap="round"/><circle cx="${r1(cx)}" cy="${r1(cy)}" r="3.4" fill="#E8ECE6"/>`}
+/* зазор до штамба, поки ротор поряд із деревом */
+if(gap){const[b,g,cx,cy,rr]=gap,col=g<=0?'var(--wn)':g<1?'#8a6500':'var(--ac)';if(g>0)s+=`<line x1="${cx}" x2="${cx}" y1="${sy(b.yo+b.r)}" y2="${sy(ue)}" stroke="${col}" stroke-width="3.2"/>`;else s+=`<circle cx="${cx}" cy="${cy}" r="${r1(rr+7)}" fill="none" stroke="var(--wn)" stroke-width="3.4"/>`;
+s+=tx(cx+rr+4,r1(cy-rr-9),g<=0?'ТОРКАННЯ: '+F(g,1)+' см':'зазор '+F(g,1)+' см',{a:'end',c:col,w:700,s:12})}
+/* підписи */
+s+=tx(W-6,ya+14,'вісь ряду',{a:'end',s:10.5})+tx(W-6,13,'рух →',{a:'end',s:10.5,w:600});
+{const bw=50*k;s+=`<path d="M${r1(W-10-bw)},${H-22}v6M${W-10},${H-22}v6M${r1(W-10-bw)},${H-19}H${W-10}" stroke="var(--soilink)" stroke-width="1.5" fill="none"/>`+tx(W-10-bw/2,H-25,'50 см',{a:'middle',s:10})}
+return{s,H}}
+
+/* Гідросхема: розподільник 4/3 з електромагнітами УА1, УА2, двосторонній циліндр, насос, запобіжний клапан, фільтр.
+   st: 0 робота, 1 сигнал (запізнення), 2 відвід, 3 утримання, 4 повернення; fr — частка ходу відводу 0…1 */
+function hydSVG(st,fr){fr=cl(fr||0,0,1);const P='var(--wn)',Rt=BLU,N='var(--sub)',ext=st==4,ret=st==2,px=138-80*fr,
+ln=(d,c,w,ds)=>`<path d="${d}" fill="none" stroke="${c}" stroke-width="${w||2.2}" ${ds?`stroke-dasharray="${ds}"`:''} stroke-linejoin="round"/>`,
+t=(x,y,s,o={})=>`<text x="${x}" y="${y}" font-size="${o.s||10}" font-weight="${o.w||400}" text-anchor="${o.a||'middle'}" fill="${o.c||'var(--ink)'}">${s}</text>`,
+box=(x,on)=>`<rect x="${x}" y="118" width="44" height="30" fill="${on?'color-mix(in srgb,var(--ac) 30%,var(--pn))':'var(--pn)'}" stroke="var(--ink)" stroke-width="1.5"/>`,
+ar=(x1,y1,x2,y2)=>`<path d="M${x1},${y1}L${x2},${y2}" stroke="var(--ink)" stroke-width="1.3" marker-end="url(#hya)"/>`;
+let s=`<defs><marker id="hya" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="6" markerHeight="6" markerUnits="userSpaceOnUse" orient="auto"><path d="M0,0L8,4L0,8z" fill="var(--ink)"/></marker></defs>`;
+/* лінії до порожнин циліндра: A — штокова (відвід), B — поршнева (повернення) */
+s+=ln('M163,118V84H142V62',ret?P:ext?Rt:N,ret||ext?3:2)+ln('M141,118V96H50V62',ext?P:ret?Rt:N,ret||ext?3:2);
+/* напірна і зливна лінії */
+s+=ln('M141,148V186',P,3)+ln('M163,148V226',ret||ext?Rt:N,ret||ext?3:2)+ln('M141,208V226',N,2);
+/* запобіжний клапан: у нейтралі потік насоса йде через нього в бак */
+s+=ln('M141,168H112',ret||ext?N:P,2,ret||ext?'':'5 3')+ln('M100,180V226',ret||ext?N:P,2,ret||ext?'':'5 3')+`<rect x="88" y="156" width="24" height="24" fill="var(--pn)" stroke="var(--ink)" stroke-width="1.4"/>`+ar(94,174,106,162)+t(84,172,'КЗ',{a:'end',s:9.5});
+/* бак, насос, фільтр */
+s+=ln('M84,226V238H180V226','var(--ink)',1.6)+`<circle cx="141" cy="197" r="11" fill="var(--pn)" stroke="var(--ink)" stroke-width="1.5"/><path d="M141,188l-5,8h10z" fill="var(--ink)"/>`+t(124,201,'Н',{a:'end',s:9.5})+`<path d="M163,192l9,9l-9,9l-9,-9z" fill="var(--pn)" stroke="var(--ink)" stroke-width="1.4"/><path d="M156,201h14" stroke="var(--ink)" stroke-width="1" stroke-dasharray="2 2"/>`+t(176,205,'Ф',{a:'start',s:9.5})+t(132,249,'бак',{s:9.5});
+/* розподільник: три позиції */
+s+=box(86,ext)+box(130,!ret&&!ext)+box(174,ret);
+s+=ar(97,146,97,121)+ar(119,121,119,146);                                   /* УА1: P→B, A→T */
+s+=`<path d="M137,148v-8M133,140h8M145,118v8M141,126h8M159,118v8M155,126h8M167,148v-8M163,140h8" stroke="var(--ink)" stroke-width="1.4" fill="none"/>`;   /* нейтраль: усе закрито */
+s+=ar(185,146,207,121)+ar(185,121,207,146);                                  /* УА2: P→A, B→T */
+s+=`<rect x="68" y="124" width="18" height="18" fill="${ext?'var(--am)':'var(--pn)'}" stroke="var(--ink)" stroke-width="1.4"/><path d="M70,140l14,-14" stroke="var(--ink)" stroke-width="1.1"/><rect x="218" y="124" width="18" height="18" fill="${ret?'var(--am)':'var(--pn)'}" stroke="var(--ink)" stroke-width="1.4"/><path d="M220,140l14,-14" stroke="var(--ink)" stroke-width="1.1"/>`;
+s+=t(77,114,'УА1',{s:9.5,w:ext?700:400})+t(227,114,'УА2',{s:9.5,w:ret?700:400})+t(137,160,'P',{s:8.5,a:'end'})+t(168,160,'T',{s:8.5,a:'start'})+t(137,112,'B',{s:8.5,a:'end'})+t(168,112,'A',{s:8.5,a:'start'});
+/* циліндр, шток, ротор, вісь ряду */
+s+=`<line x1="258" x2="258" y1="6" y2="86" stroke="var(--sub)" stroke-width="1" stroke-dasharray="4 3"/><circle cx="258" cy="13" r="5" fill="${TRUNK}" stroke="${TRUNK2}"/>`+t(266,17,'штамб',{s:9,a:'start'})+t(262,84,'вісь ряду',{s:9,a:'start'});
+s+=`<rect x="40" y="34" width="110" height="28" fill="var(--pn)" stroke="var(--ink)" stroke-width="1.6"/><rect x="${r1(px+3)}" y="45" width="100" height="6" fill="#C9CFC6" stroke="${STEEL}" stroke-width="1"/><rect x="${r1(px-3)}" y="35" width="7" height="26" fill="${STEEL}"/>`;
+s+=`<circle cx="${r1(px+115)}" cy="48" r="12" fill="${STEEL}" opacity=".6" stroke="${STEEL}" stroke-width="1.5"/>`+t(r1(px+115),74,'ротор',{s:9});
+/* кінцеві вимикачі: стежать за кінцем штока */
+s+=`<path d="M241,31l-5,-9h10z" fill="${fr<.02?'var(--ac)':'var(--pn)'}" stroke="var(--ink)" stroke-width="1.2"/><path d="M161,31l-5,-9h10z" fill="${fr>.98?'var(--ac)':'var(--pn)'}" stroke="var(--ink)" stroke-width="1.2"/>`+t(232,17,'SQ1 робоче',{s:9,a:'end'})+t(150,17,'SQ2 відведено',{s:9,a:'end'});
+/* блок керування і сигнали */
+s+=`<rect x="4" y="106" width="52" height="54" rx="5" fill="var(--pn2)" stroke="var(--ink)" stroke-width="1.5"/>`+t(30,122,'Блок',{s:9.5,w:700})+t(30,134,'керування',{s:9.5,w:700})+`<circle cx="16" cy="148" r="5" fill="${st>=1&&st<=3?'var(--am)':'var(--pn)'}" stroke="var(--ink)" stroke-width="1.2"/>`+t(24,151.5,'сенсор',{s:8.5,a:'start'});
+s+=ln('M56,133H68',ext?'var(--am)':N,1.5,'3 3')+ln('M30,160V172H227V142',ret?'var(--am)':N,1.5,'3 3');
+s+=`<rect x="4" y="176" width="74" height="19" rx="4" fill="${STC[st]}"/>`+t(41,189,STN[st].split(':')[0],{s:10,w:700,c:'#fff'});
+return s}
+
+/* Піктограми сенсорів (крок 2) */
+function senPic(tp){const tr=`<circle cx="150" cy="30" r="9" fill="${TRUNK}" stroke="${TRUNK2}" stroke-width="1.5"/><path d="M96,30l2,-10M100,30v-13M104,30l-2,-10" stroke="${WEED}" stroke-width="1.8" fill="none"/><line x1="6" x2="194" y1="30" y2="30" stroke="var(--sub)" stroke-dasharray="5 4"/>`,box=`<rect x="34" y="52" width="24" height="16" rx="3" fill="var(--am)" stroke="#5c3b00"/>`;
+let s=tr+box;
+if(tp=='Щуп')s+=`<path d="M46,52L132,24" stroke="var(--ink)" stroke-width="3" stroke-linecap="round"/><path d="M52,58l8,-5l3,6l8,-5l3,6l8,-5" fill="none" stroke="var(--sub)" stroke-width="1.5"/><circle cx="134" cy="24" r="3" fill="var(--wn)"/>`;
+else if(tp=='Ультразвук')s+=`<path d="M58,56L170,8V52Z" fill="var(--am)" opacity=".18"/>`+[26,48,70,92].map(q=>`<path d="M${58+q*.92},${56-q*.5}a${q*.4},${q*.4} 0 0 1 ${q*.1},${q*.42}" fill="none" stroke="var(--am)" stroke-width="1.8"/>`).join('');
+else s+=[-30,-22,-14,-6,2].map(a=>{const q=a*Math.PI/180;return`<line x1="58" y1="56" x2="${r1(58+118*Math.cos(q))}" y2="${r1(56+118*Math.sin(q))}" stroke="var(--wn)" stroke-width="1" opacity=".75"/>`}).join('')+`<circle cx="142" cy="33" r="2.4" fill="var(--wn)"/><circle cx="144" cy="26" r="2.4" fill="var(--wn)"/>`;
+return`<svg viewBox="0 0 200 76" aria-hidden="true">${s}</svg>`}
+
+/* Часова шкала бюджету: складники T_відв проти запасу τ. q.parts = [[позначення, тривалість, колір, пояснення], …] */
+const TLC=['#6C84C9','#9B84C9','#C98F4E','#4C9A3A'];
+function tlSVG(q){const W=NAR()?350:640,ml=10,pw=W-2*ml,tm=Math.max(q.tau,q.Tv,.1)*1.12,X=t=>ml+t/tm*pw,ok=q.dt>=0,col=ok?'var(--ac)':'var(--wn)',P=q.parts;
+let x=0,s='';for(const p of P){s+=`<rect x="${r1(X(x))}" y="34" width="${r1(Math.max(1.5,p[1]/tm*pw))}" height="26" fill="${p[2]}"/>`;x+=p[1]}
+const tx=X(q.tau),rt=tx>W*.5,st=tm>1.2?.2:tm>.45?.1:.05;
+s+=`<line x1="${ml}" x2="${W-ml}" y1="60" y2="60" stroke="var(--sub)"/>`;for(let t=0;t<=tm+1e-9;t+=st)s+=`<line x1="${r1(X(t))}" x2="${r1(X(t))}" y1="60" y2="65" stroke="var(--sub)"/><text x="${r1(X(t))}" y="77" font-size="10.5" text-anchor="${t==0?'start':'middle'}" fill="var(--sub)">${F(r2(t))}</text>`;
+s+=`<text x="${W-ml}" y="92" font-size="10.5" text-anchor="end" fill="var(--sub)">час від сигналу сенсора, с</text>`;
+s+=`<line x1="${r1(tx)}" x2="${r1(tx)}" y1="14" y2="66" stroke="${col}" stroke-width="3"/><text x="${r1(rt?tx-6:tx+6)}" y="24" font-size="12" font-weight="700" text-anchor="${rt?'end':'start'}" fill="${col}">ротор біля штамба: τ = ${F(q.tau,2)} с</text>`;
+s+=`<text x="${ml}" y="110" font-size="12.5" font-weight="700" fill="${col}">${ok?'Встигає: запас Δt = +'+F(q.dt,2)+' с':'Не встигає: Δt = '+F(q.dt,2)+' с, ротор торкнеться штамба'}</text>`;
+return`<svg viewBox="0 0 ${W} 118" role="img" aria-label="Часова шкала відводу">${s}</svg><div class="tlg">${P.map(p=>`<span><i style="background:${p[2]}"></i>${p[3]} ${F(p[1],2)} с</span>`).join('')}<span><b>разом T_відв = ${F(q.Tv,2)} с</b></span></div>`}
+
+/* Вид зверху на зазор і хід відводу (крок 3), у масштабі */
+function gapSVG(){const g=n(S.g),Ds=n(S.Dset);if(g==null||Ds==null)return'<p class="note" style="padding:10px">Введіть g і Δ_set, щоб побачити креслення.</p>';
+const a=V.a,o=a.o,r=V.r,D=a.D,W=NAR()?350:640,rw=1.1*r,sh=2*V.sy,k=Math.min(NAR()?4.2:5.2,(W-40)/(D+Math.max(Ds,o+rw+sh+g)+rw+34)),cx=W-20-(o+rw+12)*k,cy=24+(D/2+2)*k,H=Math.round(cy+(D/2)*k+62);
+const X=u=>r1(cx-u*k),c=Ds-o-r,cw=Ds-o-rw-sh,col=c>0?'var(--ac)':'var(--wn)',colw=cw>0?'var(--ac)':'var(--wn)',hw=r1(D*k),hy=r1(cy-D*k/2);
+let s=`<rect width="${W}" height="${H}" fill="${SOIL}" opacity=".45"/><line x1="${X(0)}" x2="${X(0)}" y1="6" y2="${H-48}" stroke="var(--soilink)" stroke-dasharray="6 4" opacity=".6"/>`+lab(X(0)+4,16,'вісь ряду',{s:10.5,c:'var(--soilink)',halo:HALO});
+/* ротор: робоче положення (пунктир) і відведений */
+s+=`<rect x="${X(D-o)}" y="${hy}" width="${hw}" height="${hw}" rx="8" fill="none" stroke="var(--soilink)" stroke-width="1.4" stroke-dasharray="5 4"/>`;
+s+=`<rect x="${X(Ds-o+D)}" y="${hy}" width="${hw}" height="${hw}" rx="8" fill="${STEEL}" fill-opacity=".32" stroke="${STEEL}" stroke-width="2"/><circle cx="${X(Ds-o+D/2)}" cy="${r1(cy)}" r="${r1(hw/2-4)}" fill="${STEEL}" opacity=".5"/>`;
+/* штамб типовий і найгірший */
+s+=`<circle cx="${X(sh)}" cy="${r1(cy)}" r="${r1(Math.max(3,rw*k))}" fill="none" stroke="${TRUNK}" stroke-width="1.6" stroke-dasharray="4 3"/><circle cx="${X(0)}" cy="${r1(cy)}" r="${r1(Math.max(3,r*k))}" fill="${TRUNK}" stroke="${TRUNK2}" stroke-width="1.5"/>`;
+s+=lab(X(Ds-o+D)+7,hy+16,'ротор у відводі',{s:10.5,c:'var(--soilink)',halo:HALO})+lab(X(-o)-6,hy+hw-7,'ротор у роботі',{a:'end',s:10.5,c:'var(--soilink)',halo:HALO});
+const y1=Math.round(cy+hw/2+18),y2=y1+22;
+s+=dimH(X(-o),X(Ds-o),y1,'Δ_set = '+F(Ds)+' см','var(--soilink)',{halo:HALO})+dimH(X(-o),X(0),y2,'o = '+o+' см','var(--soilink)',{halo:HALO,out:1})+dimH(X(r),X(Ds-o),y2,c>0?'зазор '+F(r1(c))+' см':'зазору немає',col,{halo:HALO,out:c>0&&(Ds-o-r)*k<86?0:0,dy:5});
+return`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Зазор і хід відводу, вид зверху в масштабі">${s}</svg>`}
+
+/* ===== Програвач проходу: вид зверху + гідросхема + прилади + графіки ===== */
+const PV={T:null,p:0,play:false,mode:'n',raf:0,cfg:{},cur:-1,Xa:0,Xb:1};
+const RATE={d:[.5,10],n:[2,10],r:[1,1],f:[10,10]};
+function pvHTML(op){op=op||{};return`<div class="fig"><svg id="tv" viewBox="0 0 720 240" role="img" aria-label="Фреза обходить штамби, вид зверху в масштабі"></svg><div class="cap">Вид зверху, масштаб однаковий уздовж і впоперек ряду. Сірий квадрат — кожух ротора (довжина D): зазор до штамба рахується від його краю. Зелена смуга внизу — рама агрегату з гідроциліндром. Темна смуга — оброблений ґрунт; там, де фреза відведена, бур’яни лишаються.</div></div>
+<div class="pvw"><div class="fig lp"><svg id="hy" viewBox="0 0 310 252" role="img" aria-label="Гідросхема відводу"></svg><div class="cap">Гідросхема наживо: активна позиція розподільника зафарбована, червона лінія — тиск, синя — злив.</div></div>
+<div><div class="gs"><div class="gt"><span>Стан автомата</span><b id="g_s" class="sta">—</b></div>
+<div class="gt"><span>Відвід y, см</span><b id="g_y">—</b><div class="mt"><i id="g_ym"></i></div></div>
+<div class="gt"><span>Зазор до штамба, см</span><b id="g_c">—</b><div class="mt"><i id="g_cm"></i></div></div>
+<div class="gt"><span>${op.one?'Час від сигналу, с':'Об’єкт попереду'}</span><b id="g_o">—</b></div>
+<div class="gt"><span>${op.one?'Найменший зазор, см':'Торкань досі'}</span><b id="g_d">—</b></div>
+<div class="gt"><span>${op.one?'Необроблено, см':'Оброблено досі, %'}</span><b id="g_w">—</b><div class="mt"><i id="g_wm"></i></div></div></div>
+<div class="pc np"><button class="p sm" id="pv_b" onclick="pvToggle()">▶ Пуск</button><button class="g sm" onclick="pvSeek(0)">На початок</button>${op.one?'':'<button class="g sm" onclick="pvWorst()">Найгірше дерево</button>'}<select id="pv_s" onchange="PV.mode=this.value" aria-label="Швидкість перегляду">${op.one?'<option value="d">сповільнено ×0,5</option><option value="r">реальний час</option>':`<option value="d"${PV.mode=='d'?' selected':''}>біля дерев сповільнено ×0,5</option><option value="n"${PV.mode=='n'?' selected':''}>біля дерев ×2</option><option value="r"${PV.mode=='r'?' selected':''}>реальний час</option><option value="f"${PV.mode=='f'?' selected':''}>швидко ×10</option>`}</select></div>
+<input type="range" class="np" id="pv_r" min="0" max="1000" value="0" oninput="pvSeek(this.value/1000)" aria-label="Положення агрегату в ряду">
+<p class="note np">Перетягніть повзунок або ведіть курсором по графіку — агрегат стане в цю точку ряду.</p></div></div>
+${op.one?'':'<div class="ch" id="c1"></div>'}${op.zoom?'<div class="ch" id="c3"></div>':''}`}
+function pvBind(T,cfg){cancelAnimationFrame(PV.raf);PV.play=false;PV.T=T;PV.cfg=cfg=cfg||{};PV.cur=-1;PV.Xa=cfg.Xa??-140;PV.Xb=cfg.Xb??T.L+220;if(cfg.one&&PV.mode!='r')PV.mode='d';
+/* сумарні торкання до кожного об’єкта */
+PV.hitX=T.obs.filter(b=>b.tree&&b.kind>=2).map(b=>b.xc).sort((a,b)=>a-b);
+pvCharts();const auto=cfg.auto&&!matchMedia('(prefers-reduced-motion:reduce)').matches;pvSeek(auto?0:cfg.start!=null?cl((cfg.start-PV.Xa)/(PV.Xb-PV.Xa),0,1):0);if(auto)pvToggle()}
+function pvCharts(){const T=PV.T,cfg=PV.cfg,o=T.a.o;if(cfg.one)return;
+const ym=Math.ceil((T.ymax+4)/10)*10;
+drawChart($('c1'),{h:170,xMax:PV.Xb/100,y0:0,y1:ym,ticks:4,aria:'Відвід фрези вздовж ряду',xl:'положення в ряду, м',
+leg:[['відвід фрези y, см','var(--ac)'],...(cfg.ghost?[[cfg.ghostName||'закріплений стан','var(--sub)','4 3']]:[]),['штамб: потрібно щонайменше o + r','var(--ink)','dot'],['торкання','var(--wn)','dot'],...(T.obs.some(b=>!b.tree)?[['стійка','var(--stl)','bar']]:[])],
+ser:[...(cfg.ghost?[{p:cfg.ghost,c:'var(--sub)',d:'4 3',w:1.2}]:[]),{p:seriesOf(T),c:'var(--ac)',w:1.7}],dots:T.obs.filter(b=>b.tree).map(b=>[b.x/100,o+b.r+b.yo,b.kind>=2?'var(--wn)':b.kind==1?'#C99700':'var(--ink)',b.kind>=2?4.6:3.2]),marks:T.obs.filter(b=>!b.tree).map(b=>b.x/100),
+tip:x=>{const X=x*100,i=T.cur(X),b=T.obs[i];return`<b>${F(x,1)} м</b><br>відвід ${F(T.yAt(X),1)} см<br>${b.tree?'дерево':'стійка'} № ${i+1}: зазор ${F(b.c,1)} см`},scrub:x=>pvSeekX(x*100)})}
+function pvZoom(i){const T=PV.T,el=$('c3');if(!el||!PV.cfg.ev)return;const e=PV.cfg.ev[i];if(!e)return;const o=T.a.o,D=T.a.D,P=e.path,need=o+e.r+e.yo,ym=Math.ceil((Math.max(T.ymax,need)+4)/10)*10;
+drawChart(el,{h:180,x0:P[0][0],xMax:P[P.length-1][0],y0:0,y1:ym,ticks:4,xl:'передній край ротора відносно штамба, см',aria:'Траєкторія відводу біля вибраного об’єкта',shade:[[0,D+2*e.r,'var(--wn)',.13]],
+leg:[[(e.tree?'дерево':'стійка')+' № '+(i+1)+': відвід y, см','var(--ac)'],['вікно небезпеки: ротор поряд зі штамбом','var(--wn)','band'],['межа торкання','#9A7446','5 4']],
+hl:[[need,'#9A7446','межа торкання: o + r + зміщення = '+F(r1(need))+' см',1]],ser:[{p:P.map(p=>[p[0],p[1]+o]),c:'var(--ac)',w:2.4}],dots:P.filter(p=>p[0]>=0&&p[0]<=D+2*e.r&&p[1]+o<=need).map(p=>[p[0],p[1]+o,'var(--wn)',3]),
+tip:x=>{const j=cl(P.findIndex(p=>p[0]>=x),0,P.length-1);return`<b>${F(x,0)} см</b><br>відвід ${F(P[j][1]+o,1)} см<br>зазор ${F(P[j][1]-e.r-e.yo,1)} см`},scrub:x=>pvSeekX(e.x-e.r+x)})}
+function pvSeekX(X){pvSeek(cl((X-PV.Xa)/(PV.Xb-PV.Xa),0,1))}
+function pvSeek(p){PV.p=cl(+p,0,1);pvDraw()}
+function pvObj(i){const T=PV.T,b=T.obs[i];if(!b)return;PV.play=false;cancelAnimationFrame(PV.raf);pvBtn();pvSeekX(b.xm)}
+function pvWorst(){let w=0,m=1e9;PV.T.obs.forEach(b=>{if(b.tree&&b.c<m){m=b.c;w=b.i}});pvObj(w)}
+function pvToggle(){if(!PV.T)return;if(PV.play){PV.play=false;cancelAnimationFrame(PV.raf)}else{if(PV.p>=1)PV.p=0;PV.play=true;PV.t0=0;PV.raf=requestAnimationFrame(pvTick)}pvBtn()}
+function pvBtn(){const b=$('pv_b');if(b)b.textContent=PV.play?'⏸ Пауза':'▶ Пуск'}
+function pvTick(t){if(!PV.play||!$('tv'))return;const T=PV.T;if(PV.t0){const X=PV.Xa+PV.p*(PV.Xb-PV.Xa),rt=RATE[PV.mode]||RATE.n,k=T.near(X)?rt[0]:rt[1];PV.p=Math.min(1,PV.p+Math.min(.1,(t-PV.t0)/1000)*k*T.v/(PV.Xb-PV.Xa))}PV.t0=t;pvDraw();if(PV.p>=1){PV.play=false;pvBtn()}else PV.raf=requestAnimationFrame(pvTick)}
+function pvDraw(){const T=PV.T,tv=$('tv');if(!T||!tv)return;const cfg=PV.cfg,X=PV.Xa+PV.p*(PV.Xb-PV.Xa),W=cl(Math.round(tv.clientWidth||720),300,760),sc=sceneSVG(T,X,W,cfg.scene),y=T.yAt(X),st=T.stAt(X),i=T.cur(X),b=T.obs[i],D=T.a.D,o=T.a.o;
+tv.setAttribute('viewBox','0 0 '+W+' '+sc.H);tv.innerHTML=sc.s+lab(6,sc.H-12,'x = '+F(Math.max(0,X)/100,1)+' м'+(cfg.one||W<430?'':' із '+F(T.L/100,0)+' м')+' · t = '+F(Math.max(0,(X-(cfg.one?PV.Xa:0))/T.v),1)+' с',{c:'var(--soilink)',halo:HALO,w:700,s:11});
+const hy=$('hy');if(hy)hy.innerHTML=hydSVG(st,T.ymax>0?y/T.ymax:0);
+const set=(id,t,cls)=>{const el=$(id);if(el){el.textContent=t;if(cls!=null)el.className=cls}},sty=(id,p)=>{const el=$(id);if(el)for(const k in p)el.style[k]=p[k]};
+set('g_s',STN[st].split(':')[0]);sty('g_s',{background:STC[st]});
+set('g_y',F(y,1));sty('g_ym',{width:cl(y/Math.max(1,T.ymax)*100,0,100)+'%',background:STC[st]});
+const inw=b&&X>=b.x-b.r&&X<=b.x+b.r+D,gp=inw?y-o-b.r-b.yo:null;
+set('g_c',gp==null?'—':F(gp,1),gp!=null&&gp<=0?'no':gp!=null&&gp<1?'':'');sty('g_cm',{width:gp==null?'0%':cl(gp/10*100,0,100)+'%',background:gp!=null&&gp<1?'var(--wn)':'var(--ac)'});
+if(cfg.one){const ts=(X-(b.x-b.r-T.d))/T.v;set('g_o',ts>=0?F(ts,2):'—');set('g_d',F(cfg.cmin,1),cfg.cmin<=0?'no':'ok');set('g_w',cfg.unw);sty('g_wm',{width:'0%'})}
+else{set('g_o',(b.tree?'дерево':'стійка')+' № '+(i+1));const h=PV.hitX.filter(q=>q<=X).length;set('g_d',h,h?'no':'ok');const wk=cl(T.wkAt(X),0,100);set('g_w',F(wk,0));sty('g_wm',{width:wk+'%'})}
+const r=$('pv_r');if(r&&document.activeElement!==r)r.value=Math.round(PV.p*1000);chartPin('c1',X/100);
+if(i!==PV.cur){PV.cur=i;pvZoom(i);if(cfg.onCur)cfg.onCur(i)}if(PV.cfg.ev&&PV.cfg.ev[i])chartPin('c3',X-(b.x-b.r))}
+/* ===== Довідкові тексти ===== */
+const INF=[
+`<p><b>Ідея.</b> Садова фреза обробляє пристовбурну смугу збоку агрегату. Штамби — перешкоди <i>в самому ряду</i>, тому фреза має відійти від кожного дерева й повернутися після його проходу. Контур: <i>сенсор → блок керування → електромагніт і золотник → гідроциліндр → фреза → положення фрези → сенсор бачить наступне дерево</i>.</p>
+<p><b>Головна задача — «перегони з часом».</b> Сенсор виявляє штамб за d до ротора. Фреза встигає відвестися, якщо <b>τ = d / v ≥ T_відв = T_зат + Δ / u_відв</b>. Повернутися вона може лише після того, як ротор минув дерево: <b>T_п ≥ (d + D + g) / v</b>. Збільшення d дає запас часу, але подовжує необроблену ділянку <b>ℓ_п ≈ d + D + 2r + g + v · T_пов</b>.</p>
+<p><b>Як працювати.</b> П’ять кроків. Кожен вносить свою можливу похибку, і всі вони проявляться на пробному проході.</p>`,
+`<p><b>Принцип.</b> Швидкість і надійність відводу залежать від гідравліки: тиск і потік задають найбільшу швидкість циліндра u_max, а золотник і електромагніти — запізнення T_г.</p>
+<p><b>Що буде, якщо помилитися.</b> Низький тиск уповільнює відвід. Перегріта олива змінює в’язкість і збільшує запізнення. Слабкий струм електромагніта — «ліниве» перемикання золотника. Шумний сенсор дає хибні спрацювання. Несправність, яку ви не розпізнали, залишиться й проявиться на пробному проході.</p>
+<p><b>Що робимо.</b> Порівняйте показання з нормою, вкажіть висновок і виконайте тестовий цикл: з нього беремо T_г та u_max для кроку 4. Перевірте примусовий відвід з кабіни (норма — не довше 0,5 с).</p>`,
+`<p><b>Принцип.</b> Три способи виявлення. <b>Щуп</b> торкається штамба, тому для молодих дерев небезпечний (сила = натяг пружини + швидкісна складова), а за слабкого натягу реагує на траву. <b>Ультразвук</b> безконтактний, але чутливий до висоти монтажу й трави: за низької чутливості пропускає тонкі штамби. <b>Лідар / 3D</b> точніший і фільтрує траву, але має більшу затримку.</p>
+<p><b>Що буде, якщо помилитися.</b> Пропуск штамба — зіткнення; хибні спрацювання — зайві відводи й необроблені ділянки. Виніс d задає запас часу τ = d / v (крок 4).</p>
+<p><b>Що робимо.</b> Підберіть тип і параметри так, щоб виявлення було не менш як 95 %, а хибних спрацювань — не більш як 1 на 10 м.</p>`,
+`<p><b>Принцип.</b> Потрібний відвід Δ = o + r + g: ротор перекриває вісь ряду на o, штамб має радіус r, і ще потрібен зазор g. У найгіршому випадку (товстіший штамб, зміщення ряду) потрібно більше: Δ ≈ o + 1,1 r + 2σ + g.</p>
+<p><b>Що буде, якщо помилитися.</b> Замалий хід Δ_set — торкання. Надмірний хід — довше повернення (більша необроблена ділянка). Обмежувачі ходу виставляють за Δ_set.</p>
+<p><b>Що робимо.</b> Оберіть g (кілька сантиметрів) і Δ_set із запасом на нерівність ряду.</p>`,
+`<p><b>Принцип.</b> Фреза встигає, якщо запас часу <b>Δt = τ − T_відв ≥ 0</b>, де T_відв = T_s + T_к + T_г + Δ / u_відв (T_к = 0,02 с — час контролера). Звідси <b>v_max = d / T_відв</b>. Повернення має початися пізніше, ніж ротор минув дерево: <b>T_п ≥ (d + D + g) / v</b>, а час повернення T_пов = Δ_set / u_пов визначає довжину необробленої ділянки.</p>
+<p><b>Що буде, якщо помилитися.</b> Швидкість відводу понад 85 % від u_max — відскік штока й удари. Повільне повернення — довгі необроблені ділянки. Замала T_п — ротор ще біля дерева, а фреза вже повертається в смугу.</p>
+<p><b>Що робимо.</b> Розрахуйте бюджет на папері, перевірте себе за позначками, підберіть швидкості й T_п за часовою шкалою та анімацією обходу одного дерева.</p>`,
+`<p><b>Принцип.</b> Агрегат проходить ряд із десятків дерев, і кожне має власні випадкові відхилення (радіус, зміщення, швидкість, затримка). Зазор на дереві c — найменша відстань від краю ротора до штамба у «вікні небезпеки», коли ротор поряд із деревом. Торкання: c ≤ 0; ризик: 0 < c < 1 см.</p>
+<p><b>Порядок.</b> 1) Запустіть прохід і подивіться анімацію: які дерева стали червоними. 2) Розгляньте найгірше дерево на графіку: чи опускається лінія відводу нижче межі торкання у вікні небезпеки? 3) Виміряйте зазори на 12–15 деревах і обчисліть показники. 4) Змінюйте один параметр за раз.</p>
+<p><b>Чому результат трохи змінюється.</b> Кожна нова спроба — новий ряд випадкових відхилень. Навіть найкращий сенсор зрідка пропускає штамб (близько 1 % дерев): це властивість сенсора, а не ваша помилка — повторіть прохід і запишіть обидва результати.</p>`,
+`<p><b>Як читати протокол.</b> <i>Зазори по деревах</i> показують, де були торкання. <i>Крива «швидкість — торкання — оброблено ряду»</i> — наскільки далеко ви від межі бюджету часу. <i>Блок-схема</i> — яка частина контуру налаштована гірше. <i>Діагностика</i> — зіставлення з таблицею несправностей у методичці.</p>`,
+`<p><b>Навіщо.</b> Тут можна безпечно «зламати» налаштування й побачити наслідок. Досліди не впливають на протокол і бали: гідравліка вважається справною, а ви змінюєте один параметр за раз.</p>
+<p><b>Як працювати.</b> 1) Оберіть дослід — симулятор підкаже, що змінювати і що записати. 2) Натисніть «Закріпити для порівняння» на вихідному стані. 3) Рухайте повзунок: прохід і числа перераховуються одразу, сіра лінія на графіку — закріплений стан. 4) «Записати в журнал» додає рядок у таблицю, яку переносите в зошит.</p>`,
+`<p><b>Навіщо.</b> Це калькулятор до Завдання 2: він рахує за тими самими формулами, що й методичка, і показує обхід одного дерева в масштабі. Спершу порахуйте сценарій на папері, потім звірте числа.</p>
+<p><b>Формули.</b> Δ = o + r + g; T_відв = T_зат + Δ / u_відв; τ = d / v; Δt = τ − T_відв; v_max = d / T_відв; d_min = v · T_відв; T_п ≥ (d + D + g) / v; T_пов = Δ / u_пов; ℓ_п ≈ d + D + 2r + g + v · T_пов. Швидкість у формули підставляйте в см/с: 1 км/год = 27,78 см/с.</p>`];
+const info=i=>`<div class="inf np"><details ${S.infc?'':'open'} ontoggle="S.infc=!this.open;save()"><summary>${i==0?'Як влаштована система відводу садової фрези':i==6?'Як читати протокол':i==LAB?'Як користуватися дослідами':i==CALC?'Що рахує калькулятор':'Принцип і порядок дій'}</summary>${INF[i]}${i==0?flow()+hy0HTML():''}</details></div>`;
+const rb=i=>`<div class="rb np"><b>Запишіть у табл. 2.4 методички (рядок ${i}, «Фактичне значення»):</b><br>${rec(i)}<br><span class="note">У колонці «Логіка» поясніть своїми словами, чому саме такі значення й на що вони впливають.</span></div>`;
+const navb=(p,nx)=>`<div class="nb np"><button class="g" onclick="go(${p})">Назад</button><button class="p" onclick="go(${nx})">Далі</button></div>`;
+const pass=()=>{const a=V.a;return`<details class="np"><summary>Паспорт варіанта ${V.id}</summary><table class="t2">
+<tr><th>Агрегат</th><td>${a.t} + садова фреза з бічним відводом: діаметр ротора D = ${a.D} см, перекриття осі ряду o = ${a.o} см, найбільший хід відводу ${a.dm} см</td></tr>
+<tr><th>Сад</th><td>${V.orch.c}, ${V.young?'молоді дерева (тонкі гнучкі штамби)':'дорослі дерева'}; радіус штамба r ≈ ${V.r} см; відстань між деревами ${V.st} см; відхилення дерев від осі ряду σ ≈ ${F(V.sy)} см</td></tr>
+<tr><th>Умови</th><td>трава: ${V.grass}; шпалерні стійки: ${V.posts?'є (приблизно кожні 9 м)':'немає'}; планова швидкість ${V.vp} км/год</td></tr>
+<tr><th>Гідравліка</th><td>насос: ${F(V.pn)} МПа (норма ±1,5); потік ${V.Qh} л/хв; температура оливи до 70 °C; струм УА 1,0–1,4 А; шум сенсора до 3 %</td></tr></table></details>`};
+
+/* Схема контуру (вкладка «Як влаштована система») */
+const flow=()=>{const B=[['Сенсор','бачить штамб'],['Блок керування','логіка, T_п'],['УА + золотник','перемикання'],['Гідроциліндр','відвід / повернення'],['Фреза','край ротора'],['Дерево','перешкода']],w=98,g=14,x0=6,
+b=i=>{const x=x0+i*(w+g);return`<rect x="${x}" y="24" width="${w}" height="50" rx="7" fill="var(--bg)" stroke="var(--ac)" stroke-width="1.6"/><text x="${x+w/2}" y="45" text-anchor="middle" font-size="12" font-weight="700" fill="var(--ink)">${B[i][0]}</text><text x="${x+w/2}" y="62" text-anchor="middle" font-size="10.5" fill="var(--sub)">${B[i][1]}</text>`+(i<5?`<path d="M${x+w+1},49h${g-4}" stroke="var(--ink)" stroke-width="1.4" marker-end="url(#fa)"/>`:'')},X=x0+5*(w+g)+w/2;
+return`<div class="sx"><svg viewBox="0 0 684 124" style="display:block;width:100%" role="img" aria-label="Схема контуру: сенсор, блок керування, золотник, гідроциліндр, фреза, дерево; зворотний зв’язок через сенсор і кінцеві вимикачі"><defs><marker id="fa" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="7" markerHeight="7" markerUnits="userSpaceOnUse" orient="auto"><path d="M0,0L8,4L0,8z" fill="var(--ink)"/></marker><marker id="fb" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="7" markerHeight="7" markerUnits="userSpaceOnUse" orient="auto"><path d="M0,0L8,4L0,8z" fill="var(--ac)"/></marker></defs>${B.map((q,i)=>b(i)).join('')}<path d="M${X},74V102H${x0+w/2}V77" fill="none" stroke="var(--ac)" stroke-width="1.7" marker-end="url(#fb)"/><text x="342" y="117" text-anchor="middle" font-size="11" fill="var(--ac)">зворотний зв’язок: сенсор бачить наступний штамб, кінцеві вимикачі — крайні положення фрези</text></svg></div>`};
+const HYT=['<b>Робота.</b> Дерева в зоні сенсора немає. Обидва електромагніти знеструмлені, золотник у нейтралі: порожнини циліндра замкнені, фреза стоїть у робочому положенні (SQ1). Потік насоса йде в бак через запобіжний клапан.','<b>Сигнал.</b> Сенсор побачив штамб, але фреза ще не рушила: триває запізнення T_зат (сенсор, контролер, золотник). Агрегат за цей час проїжджає v · T_зат.','<b>Відвід.</b> Увімкнено УА2: тиск іде в штокову порожнину (лінія A), олива з поршневої зливається в бак. Фреза відходить від ряду, доки не спрацює SQ2.','<b>Утримання.</b> Фреза відведена (SQ2), золотник знову в нейтралі, порожнини замкнені. Ротор проходить повз дерево, блок керування відлічує T_п.','<b>Повернення.</b> Штамб минув і T_п вичерпано: увімкнено УА1, тиск іде в поршневу порожнину (лінія B). Фреза повертається в смугу до SQ1.'];
+let HY0=0;
+const hy0HTML=()=>`<div class="hs" style="margin-top:8px"><div class="fig" style="margin:0"><svg id="hy0" viewBox="0 0 310 252" role="img" aria-label="Гідросхема відводу фрези">${hydSVG(HY0,HY0==3||HY0==4?1:HY0==2?.5:0)}</svg></div><div><div class="pc">${[0,1,2,3,4].map(i=>`<button class="g sm ${HY0==i?'on':''}" id="hb${i}" onclick="hy0(${i})">${STN[i].split(':')[0].toLowerCase()}</button>`).join('')}</div><p id="hy0t" style="margin:6px 0">${HYT[HY0]}</p><p class="note">Н — насос, КЗ — запобіжний клапан, Ф — фільтр, УА1 і УА2 — електромагніти розподільника, SQ1 і SQ2 — кінцеві вимикачі. Перемикайте стани кнопками.</p></div></div>`;
+function hy0(i){HY0=i;$('hy0').innerHTML=hydSVG(i,i==3||i==4?1:i==2?.5:0);$('hy0t').innerHTML=HYT[i];for(let k=0;k<5;k++)$('hb'+k).classList.toggle('on',k==i)}
+
+/* ===== Екрани ===== */
+function s0(){if(V){const a=V.a;return`<h2>${S.demo?'Приклад із методички: варіант '+V.id:'Ваш персональний варіант '+V.id}</h2>
+<p class="hint">${S.demo?'Усі п’ять кроків уже заповнено так, як у прикладі з методички. Пройдіть їх по черзі, запустіть анімацію проходу, спробуйте досліди, а потім отримайте власний варіант.':`${esc(S.reg.name)}, група ${esc(S.reg.group)}, № ${S.reg.num}. Варіант однозначно визначається цими даними.`}</p>${info(0)}
+<table class="t2"><tr><th>Агрегат</th><td>${a.t}, фреза D = ${a.D} см, перекриття осі o = ${a.o} см</td></tr><tr><th>Сад</th><td>${V.orch.c}, ${V.young?'молоді':'дорослі'} дерева (r ≈ ${V.r} см), відстань між деревами ${V.st} см</td></tr><tr><th>Умови</th><td>трава: ${V.grass}; стійки: ${V.posts?'є':'немає'}; у ряду ${V.nT} дерев, довжина ${F(V.L/100,0)} м</td></tr><tr><th>Розрахунок (Завдання 4.2)</th><td>${S.demo?'у прикладі показано обидва варіанти: А і Б':'Варіант '+(V.odd?'А (непарний №)':'Б (парний №)')}</td></tr></table>
+<p class="note">Параметри навчальні. Одиниці в паспорті можуть відрізнятися від одиниць у формулах (см, с, км/год): перераховуйте уважно.</p>
+<button class="p" onclick="go(1)">${S.demo?'Переглянути приклад крок за кроком':'Почати налаштування'}</button> <button class="g" onclick="go(CALC)">Калькулятор до Завдання 2</button> <button class="g" onclick="go(LAB)">Досліди</button> <button class="g" onclick="${S.demo?'newReg()':'rs()'}">${S.demo?'Отримати свій варіант':'Інший студент / скинути'}</button>`}
+return`<h2>Реєстрація студента</h2><p class="hint">Введіть дані — симулятор видасть унікальний варіант: сад, штамби, агрегат і умови. Ті самі дані завжди дають той самий варіант.</p>
+<label for="g">Група</label><input type="text" id="g" placeholder="напр. АІ-31" autocomplete="off"><label for="p">ПІБ</label><input type="text" id="p" placeholder="Прізвище Ім’я По батькові" autocomplete="name"><label for="nn">Номер у списку групи</label><input type="number" id="nn" min="1" max="99">
+<p><button class="p" onclick="reg()">Отримати варіант</button> <button class="g" onclick="demo()">Відкрити приклад із методички</button></p>`}
+function reg(){const g=$('g').value.trim(),p=$('p').value.trim(),m=parseInt($('nn').value);if(g.length<2||p.length<5||!(m>=1&&m<=99))return alert('Заповніть групу, ПІБ і номер у списку (1–99).');S=blank();S.reg={group:g,name:p,num:m};V=mkV(S.reg);save();R()}
+function rs(){if(confirm('Скинути протокол і почати з новою реєстрацією?')){S=blank();V=null;save();R()}}
+function newReg(){S=blank();V=null;save();R();scrollTo(0,0)}
+function demo(){demoState();save();R();scrollTo(0,0)}
+
+/* --- Крок 1 --- */
+const FIX1={p:'тиск відрегульовано, насос перевірено',t:'оливу охолоджено, радіатор очищено',c:'котушку електромагніта замінено',s:'сенсор очищено, кабель екрановано'};
+function dyn1(){const fx=Object.keys(FIX1).filter(k=>S.ck[k]=='Несправність'),c=S.cyc;
+return`<div class="pc np"><button class="p" onclick="cyc()">Тестовий цикл</button><button class="g" onclick="S.fo=forced();save();upd1()">Примусовий відвід з кабіни</button>${S.fo!=null?`<span class="bd ${S.fo<=.5?'':'w'}">час ${F(r3(S.fo))} с (норма не більш як 0,5 с)</span>`:''}</div>
+${fx.length?`<p class="note">Позначено як несправність, виконано: ${fx.map(k=>FIX1[k]).join('; ')}.</p>`:''}
+${c?`<div class="ch" id="cc"></div><p class="note">Команда «відвід» на 20 см, утримання 0,3 с, команда «повернення». Фреза рушає через <b>T_г + T_к = ${F(r3(c.Tg))} с</b> після команди. Нахил лінії — швидкість циліндра <b>u_max = ${c.um} см/с</b> (дросель відкрито повністю). Відвід на 20 см разом із запізненням: <b>${F(r3(c.to))} с</b>; повернення: <b>${F(r3(c.ti))} с</b>.</p>`:`<p class="note">${S.cycP?'Висновок змінено — повторіть тестовий цикл: графік покаже, як змінилися запізнення і швидкість.':'Виконайте тестовий цикл, щоб побачити графік руху фрези.'}</p>`}${rb(1)}`}
+const cycP=p=>p.map(q=>[q[0],Math.min(20,q[1])]);
+function post1(){const c=S.cyc;if(!c||!$('cc'))return;const pts=cycP(c.pts);drawChart($('cc'),{h:180,xMax:2,y0:0,y1:24,ticks:4,xl:'час, с',aria:'Тестовий цикл: положення фрези в часі',leg:[['положення фрези, см','var(--ac)'],...(S.cycP?[['до зміни висновку','var(--sub)','4 3']]:[])],ser:[...(S.cycP?[{p:cycP(S.cycP),c:'var(--sub)',d:'4 3',w:1.4}]:[]),{p:pts,c:'var(--ac)',w:2.4}],vl:[[c.Tg,'var(--wn)','початок руху: '+F(r3(c.Tg))+' с']],tip:x=>`<b>${F(x,2)} с</b><br>положення ${F(pts[cl(Math.round(x/.02),0,pts.length-1)][1],1)} см`})}
+function upd1(){$('dyn1').innerHTML=dyn1();post1();navR();ds()}
+function cyc(){S.cyc=cycle();save();upd1()}
+function set1(k,v){S.ck[k]=v;if(S.cyc)S.cycP=S.cyc.pts;S.cyc=null;save();upd1()}
+function s1(){const R_=V.rd,sel=k=>`<select onchange="set1('${k}',this.value)" aria-label="Ваш висновок: ${RN[k]}">${['—','Норма','Несправність'].map(o=>`<option ${S.ck[k]==o?'selected':''}>${o}</option>`).join('')}</select>`,
+card=(k,g,nm)=>`<div class="gc">${g}<b>${RN[k]}</b><small>${nm}</small>${sel(k)}</div>`;
+return`<h2>Крок 1. Гідравліка та тест циклу</h2><p class="hint">Зніміть показання, для кожного вузла вкажіть висновок і виконайте тестовий цикл: з графіка отримаєте запізнення золотника T_г і швидкість циліндра u_max — вони знадобляться для часового бюджету. Зелена дуга на шкалі — норма.</p>${info(1)}${pass()}
+<div class="gg">${card('p',gauge(R_.p,8,22,V.pn-1.5,V.pn+1.5,F(R_.p)+' МПа'),'норма '+F(f1(V.pn-1.5))+'–'+F(f1(V.pn+1.5))+' МПа')}${card('t',gauge(R_.t,20,100,20,70,R_.t+' °C'),'норма до 70 °C')}${card('c',gauge(R_.c,0,2,1,1.4,F(R_.c)+' А'),'норма 1,0–1,4 А')}${card('s',gauge(R_.s,0,16,0,3,F(R_.s)+' %'),'норма до 3 %')}</div>
+<div id="dyn1">${dyn1()}</div>`+navb(0,2)}
+
+/* --- Крок 2 --- */
+/* ділянка ряду, вид зверху: які штамби сенсор бачить і де реагує на траву (умовна схема) */
+function rowSVG(){const q=Qs({}),sp=det6(V,q),r=rng(hash(V.id+'sc')),O=[],W=NAR()?350:640,kx=W/580;for(let i=0;i<7;i++)O.push({k:'t',x:40+i*75+(r()-.5)*10,z:r()});for(let i=0;i<12;i++)O.push({k:'g',x:30+r()*520,y:44+r()*46,z:r()});if(V.posts)O.push({k:'p',x:30+r()*200,z:r()},{k:'p',x:300+r()*200,z:r()});
+let s=`<rect width="${W}" height="112" fill="${SOIL}" opacity=".45"/><line x1="8" x2="${W-8}" y1="62" y2="62" stroke="var(--soilink)" stroke-dasharray="6 4" opacity=".55"/>`;
+for(const o of O){const x=r1(o.x*kx);if(o.k=='t'){const det=o.z<sp.pd,rr=Math.max(4,V.r*.75);s+=`<circle cx="${x}" cy="62" r="${rr}" fill="${TRUNK}" stroke="${TRUNK2}"/><circle cx="${x}" cy="62" r="${rr+5}" fill="none" stroke="${det?BLU:'var(--wn)'}" stroke-width="2.6" ${det?'':'stroke-dasharray="4 3"'}/>`}
+else if(o.k=='p')s+=`<rect x="${x-4}" y="58" width="8" height="8" fill="#8C979D" stroke="#3b4347"/>`;
+else{const fp=o.z<sp.rf/4;s+=`<path d="M${x-4},${r1(o.y+5)}l2,-10M${x},${r1(o.y+5)}v-13M${x+4},${r1(o.y+5)}l-2,-10" stroke="${WEED}" stroke-width="2" fill="none" stroke-linecap="round"/>`+(fp?`<circle cx="${x}" cy="${r1(o.y-1)}" r="10" fill="none" stroke="var(--wn)" stroke-width="2.4"/>`:'')}}
+return`<svg viewBox="0 0 ${W} 112" role="img" aria-label="Ділянка ряду: які штамби виявлено">${s}${lab(8,14,'ділянка ряду, вид зверху (умовно)',{s:10.5,c:'var(--soilink)',halo:HALO})}</svg>`}
+function senScene(){const o=V.a.o,d=S.d,T=mkTrack({a:V.a,d,type:ty(),L:d+V.r+200,ev:[{x:d+V.r,r:V.r,yo:0,tree:1,kind:null,c:0,path:[[-d-10,-o],[400,-o]]}],fa:[],grass:V.grass,seed:V.id,v:kmh(V.vp),lead:320,tail:320}),tv=$('sv');if(!tv)return;
+const W=cl(Math.round(tv.clientWidth||720),300,760),sc=sceneSVG(T,0,W,{plain:1,num:0});tv.setAttribute('viewBox','0 0 '+W+' '+sc.H);tv.innerHTML=sc.s}
+function nm2(){const q=Qs({}),sp=det6(V,q),tl=(nm,v,ok)=>`<div><span>${nm}</span><b class="${ok==null?'':ok?'ok':'no'}">${v}</b></div>`;
+return`<div class="kv">${tl('виявлення штамба',Math.round(sp.pd*100)+' %',sp.pd>=.95)}${tl('хибних на 10 м ряду',F(f1(sp.rf)),sp.rf<=1)}${tl('затримка сенсора T_s',F(sp.Ts)+' с')}${q.type=='Щуп'?tl('сила на кору при '+F(q.v)+' км/год',F(f1(sp.F))+' кгс (доп. '+F(sp.Fmax)+')',sp.F<=sp.Fmax):tl('контакт із корою','немає',true)}</div>
+${q.type=='Щуп'&&sp.F>sp.Fmax?'<p class="no">Щуп тисне на кору сильніше, ніж допустимо для цих дерев: кожне дерево буде пошкоджене.</p>':''}`}
+function upd2(){senScene();$('rv').innerHTML=rowSVG();$('nm').innerHTML=nm2();$('rb2').innerHTML=rb(2);save();ds();navR()}
+function s2(){const tp=S.type,sl=(id,k,nm,mn,mx,st,u)=>`<div><label>${nm}: <b id="${id}">${F(k=='p2'?p2():S[k])}</b>${u}</label><input type="range" min="${mn}" max="${mx}" step="${st}" value="${k=='p2'?p2():S[k]}" oninput="S.${k}=+this.value;$('${id}').textContent=F(+this.value);upd2()"></div>`;
+return`<h2>Крок 2. Сенсор і монтаж</h2><p class="hint">Оберіть тип сенсора й налаштуйте виніс d та чутливість: система має виявляти кожен штамб (у тому числі тонкий) і не реагувати на траву. Виніс d пізніше визначить запас часу (крок 4).</p>${info(2)}${pass()}
+<div class="sen">${[['Щуп','механічний важіль із пружиною','T_s = 0,03 с'],['Ультразвук','вимірює відстань за луною','T_s = 0,06 с'],['Лідар','сканує контур ряду, фільтрує траву','T_s = 0,12 с']].map(q=>`<button class="${tp==q[0]?'on':''}" onclick="S.type='${q[0]}';S.p2=null;S.d=${q[0]=='Щуп'?50:q[0]=='Ультразвук'?70:100};save();R()">${senPic(q[0])}<b>${q[0]}</b><small>${q[1]}</small><small>${q[2]}</small></button>`).join('')}</div>
+${tp=='—'?'<p class="note">Оберіть сенсор, щоб побачити параметри.</p><div id="rb2">'+rb(2)+'</div>':`<div class="lab-g">${sl('vd','d','Виніс сенсора d до переднього краю ротора',30,200,1,' см')}${tp=='Щуп'?sl('v2','p2','Натяг пружини щупа',.5,4,.1,' кгс'):sl('v2','p2',tp=='Ультразвук'?'Чутливість (поріг)':'Фільтр трави',0,100,1,' %')}${tp=='Ультразвук'?sl('vh','hm','Висота монтажу сенсора',10,60,1,' см'):''}</div>
+<div class="fig"><svg id="sv" viewBox="0 0 720 200" role="img" aria-label="Положення сенсора відносно ротора, вид зверху в масштабі"></svg><div class="cap">У масштабі: жовта штрихова лінія — місце, де сенсор «бачить» штамб; вона на d попереду переднього краю ротора. Показано мить, коли сенсор щойно спрацював.</div></div>
+<div id="nm">${nm2()}</div><div class="fig"><div id="rv">${rowSVG()}</div><div class="cap">Синє кільце — штамб виявлено, червоний пунктир — пропущено; червоне кільце на траві — хибне спрацювання. Квадрати — шпалерні стійки.</div></div><div id="rb2">${rb(2)}</div>`}`+navb(1,3)}
+
+/* --- Крок 3 --- */
+function upd3(){$('cv').innerHTML=gapSVG();$('k3').innerHTML=chk3();$('rb3').innerHTML=rb(3)}
+function chk3(){const g=n(S.g),Ds=n(S.Dset),a=V.a;if(g==null||Ds==null)return'';const need=a.o+V.r+g,w=Dworst();return`<div class="kv"><div><span>типово потрібно Δ = o + r + g</span><b>${F(f1(need))} см</b></div><div><span>найгірший випадок: потрібно</span><b class="${Ds>=w?'ok':'no'}">${F(f1(w))} см</b></div><div><span>ваш хід Δ_set</span><b class="${Ds>a.dm?'no':''}">${F(Ds)} см</b></div><div><span>зазор у найгіршому випадку</span><b class="${Ds-w+g>0?'':'no'}">${F(f1(Ds-w+g))} см</b></div></div>${Ds>a.dm?'<p class="no">Хід більший за можливості циліндра: зменште Δ_set або зазор g.</p>':Ds<w?'<p class="no">Хід не покриває найгірший випадок: товстіший або зміщений штамб буде зачеплено.</p>':''}`}
+function s3(){const a=V.a;return`<h2>Крок 3. Зазор і хід відводу</h2><p class="hint">Оберіть захисний зазор g до штамба та хід відводу Δ_set. Хід має покривати найгірший випадок (товстіший штамб, зміщення ряду), але не бути надмірним: від нього залежить час повернення.</p>${info(3)}${pass()}
+<div class="r2"><div><label>Захисний зазор g, см</label><input type="text" inputmode="decimal" value="${vs(S.g)}" oninput="u('g',this.value);upd3()"></div><div><label>Хід відводу Δ_set, см (не більш як ${a.dm})</label><input type="text" inputmode="decimal" value="${vs(S.Dset)}" oninput="u('Dset',this.value);upd3()"></div></div>
+<div class="fig"><div id="cv">${gapSVG()}</div><div class="cap">Вид зверху в масштабі. Пунктир — ротор у роботі (заходить за вісь ряду на o), сірий — ротор у відводі на Δ_set. Штриховий штамб — найгірший випадок: товстіший на 10 % і зміщений до агрегату на 2σ.</div></div><div id="k3">${chk3()}</div>
+<p class="note">Що більший g, то безпечніше, але більший хід і довше повернення. Зазор, менший за точність системи, призводить до торкань (див. крок 5). Обмежувачі ходу (кінцеві вимикачі) виставляють відповідно до Δ_set.</p><div id="rb3">${rb(3)}</div>`+navb(2,4)}
+
+/* --- Крок 4 --- */
+const TOL=rf=>({D:[rf.D,Math.max(.5,rf.D*.05)],Tv:[rf.Tv,Math.max(.02,rf.Tv*.05)],tau:[rf.tau,Math.max(.02,rf.tau*.05)],dt:[rf.dt,.03],vmax:[rf.vmax,Math.max(.2,rf.vmax*.05)]});
+function chk4(){const t=TOL(ref());for(const k in t){const e=$('c'+k);if(e)e.innerHTML=S.bd[k]===''||n(S.bd[k])==null?'':Math.abs(n(S.bd[k])-t[k][0])<=t[k][1]?'<span class="ok">✓</span>':'<span class="no">✗</span>'}}
+function tl4(){const rf=ref();return tlSVG({tau:rf.tau,Tv:rf.Tv,dt:rf.dt,parts:[['T_s',rf.sp.Ts,TLC[0],'T_s — сенсор'],['T_к',.02,TLC[1],'T_к — контролер'],['T_г',rf.h.Tg,TLC[2],'T_г — золотник'],['рух',rf.D/rf.u,TLC[3],'рух Δ / u_відв ='] ]})}
+function hv4(){const rf=ref(),tp=n(S.Tp);return`<p class="note">${tp==null?'Задайте T_п, щоб побачити обхід дерева.':(tp<rf.Tpm?`<b class="no">Повернення починається раніше, ніж ротор минув дерево: T_п має бути не менш як (d + D + g) / v = ${F(rf.Tpm,2)} с.</b> `:`Повернення починається після проходу ротора (найменша допустима T_п = ${F(rf.Tpm,2)} с). `)} Швидкості циліндра: відвід ≈ ${Math.round(rf.u)} см/с, повернення ≈ ${Math.round(rf.h.umax*S.ui/100)} см/с (час повернення ≈ ${F(rf.Tpv,2)} с).${S.uo>85?' <b class="no">Швидкість відводу понад 85 % дає удари й відскік штока.</b>':''}</p>`}
+function one4(){const can=n(S.Dset)!=null&&n(S.Tp)!=null&&S.type!='—',w=$('one4w');if(w)w.style.display=can?'':'none';const w0=$('one4n');if(w0)w0.style.display=can?'none':'';if(!can||!$('tv'))return;const e=typical(),a=V.a,x=S.d+V.r+70,kind=e.cmin<=0?2:e.cmin<1?1:0,E={x,r:V.r,yo:0,tree:1,kind,c:e.cmin,path:e.path},
+T=mkTrack({a,d:S.d,type:ty(),L:x+e.path[e.path.length-1][0],ev:[E],fa:[],grass:V.grass,seed:V.id,v:kmh(vpl()),Ds:n(S.Dset),lead:120,tail:60});
+pvBind(T,{one:1,ev:[E],Xa:-30,Xb:x-V.r+e.path[e.path.length-1][0]+20,cmin:e.cmin,unw:Math.round(e.unw),start:PV.keep!=null?PV.keep:T.obs[0].xm});PV.keep=null}
+function upd4(){$('tlv').innerHTML=tl4();$('hv').innerHTML=hv4();chk4();const e=$('rb4');if(e)e.innerHTML=rb(4);if(PV.T&&$('tv'))PV.keep=PV.Xa+PV.p*(PV.Xb-PV.Xa);one4();save();ds();navR()}
+function s4(){const b=S.bd,inp=(k,l)=>`<div><label>${l} <span id="c${k}"></span></label><input type="text" inputmode="decimal" value="${vs(b[k])}" oninput="S.bd.${k}=this.value;save();chk4();$('rb4').innerHTML=rb(4);navR()"></div>`;
+return`<h2>Крок 4. Часовий бюджет і гідравліка</h2><p class="hint">Розрахуйте, чи встигає фреза відвестися до дерева, і налаштуйте швидкості та затримку повернення. Дані беріть із кроків 1–3: T_г + T_к та u_max (крок 1), T_s і d (крок 2), g (крок 3).</p>${info(4)}${pass()}
+<label>Планова швидкість v, км/год</label><input type="text" inputmode="decimal" value="${vs(S.vp)}" oninput="S.vp=this.value;upd4()" style="max-width:180px">
+<div class="r3">${inp('D','Δ = o + r + g, см')}${inp('Tv','T_відв, с')}${inp('tau','τ = d / v, с')}${inp('dt','запас Δt = τ − T_відв, с')}${inp('vmax','v_max = d / T_відв, км/год')}</div>
+<p class="note">Позначка ✓ або ✗ показує, чи збігається ваш розрахунок із симулятором (допуск ±5 %). Якщо ✗ — перевірте одиниці: швидкість у формулах має бути в см/с (1 км/год = 27,78 см/с).</p>
+<div class="r2"><div><label>Швидкість відводу u_відв: <b id="vo">${S.uo}</b> % від u_max</label><input type="range" min="10" max="100" step="5" value="${S.uo}" oninput="S.uo=+this.value;$('vo').textContent=this.value;upd4()"></div>
+<div><label>Швидкість повернення u_пов: <b id="vi">${S.ui}</b> % від u_max</label><input type="range" min="10" max="100" step="5" value="${S.ui}" oninput="S.ui=+this.value;$('vi').textContent=this.value;upd4()"></div></div>
+<label>Затримка повернення T_п, с</label><input type="text" inputmode="decimal" value="${vs(S.Tp)}" oninput="S.Tp=this.value;upd4()" style="max-width:180px">
+<div class="fig"><div id="tlv">${tl4()}</div></div><div id="hv">${hv4()}</div>
+<div id="one4w"><h3>Обхід одного типового дерева за вашими налаштуваннями</h3>${pvHTML({one:1,zoom:1})}</div><p class="note" id="one4n">Анімація обходу дерева з’явиться, коли будуть задані сенсор (крок 2), хід Δ_set (крок 3) і T_п.</p><div id="rb4">${rb(4)}</div>`+navb(3,5)}
+
+/* --- Крок 5 --- */
+function adv(){const l=S.tr.last,o=own(),a=[],f=fe(),rf=ref();
+if(f.press||f.temp||f.valve||f.sens)a.push('Є невизнані несправності кроку 1: це збільшує затримки й шум.');
+if(l.miss>0)a.push(`Пропущено штамбів: ${l.miss} — сенсор не виявив їх. Якщо виявлення на кроці 2 менше ніж 95 %, змініть чутливість, висоту монтажу або тип сенсора; якщо 99 % — це рідкісний випадковий пропуск, повторіть прохід.`);
+if(l.bark>0)a.push(`Щуп пошкоджує кору: сила ${F(l.Fc)} кгс > ${F(l.Fm)} кгс. Для таких дерев потрібен безконтактний сенсор або менший натяг пружини.`);
+if(l.dmg>0&&l.miss==0&&l.bark==0)a.push(rf.dt<0||kmh(l.v)*rf.Tv>S.d?`Запас часу від’ємний (за ${F(l.v)} км/год Δt = ${F(S.d/kmh(l.v)-rf.Tv,2)} с): збільште d, зменште v або прискорте відвід (крок 4).`:(S.Tp!==''&&n(S.Tp)<rf.Tpm?'Повернення починається надто рано: збільште T_п (крок 4).':'Перевірте хід відводу Δ_set і зазор g (крок 3); запас часу має бути з резервом — близько 0,1 с.'));
+if(l.nf>2)a.push(`Хибних відводів на траві: ≈ ${l.nf} — знизьте чутливість або ввімкніть фільтр трави (крок 2).`);
+if(l.wk<V.wkI-15)a.push(`Оброблено лише ${F(wkS(l.wk))} % ряду: необроблені ділянки надто довгі (зменште d й T_п у межах бюджету, збільште u_пов).`);
+if(l.v<3||l.v>6)a.push('Швидкість поза діапазоном 3–6 км/год.');
+if(!o||o.k<12)a.push('Виконайте 12–15 замірів зазору до штамбів.');
+if(!a.length)a.push('Норма: жодного торкання, достатня оброблена частка ряду.');return`<div class="rb np"><b>Що показав прохід і що робити:</b><ul>${a.map(x=>`<li>${x}</li>`).join('')}</ul></div>`}
+function histTbl(){const h=S.hist||[];if(h.length<1)return'';return`<details ${h.length>1?'open':''}><summary>Журнал спроб (${h.length})</summary><div class="tw"><table class="t2 c"><tr><th>№</th><th>v, км/год</th><th>сенсор, d</th><th>g / Δ_set, см</th><th>u_відв / u_пов, %</th><th>T_п, с</th><th>торкань, %</th><th>зазор &lt; 1 см, %</th><th>пропущено</th><th>хибних відводів</th><th>мін. зазор, см</th><th>оброблено ряду, %</th></tr>
+${h.map(q=>`<tr><td>${q.n}</td><td>${F(q.v)}</td><td>${q.type}, ${q.d} см</td><td>${F(q.g)} / ${F(q.Ds)}</td><td>${q.uo} / ${q.ui}</td><td>${F(q.Tp)}</td><td><b class="${q.dmg>0?'no':'ok'}">${F(q.dmg,1)}</b></td><td>${F(q.scr,1)}</td><td>${q.miss}</td><td>${q.nf}</td><td>${F(q.cmin,1)}</td><td>${F(wkS(q.wk),1)}</td></tr>`).join('')}</table></div><p class="note">Кожна спроба — новий ряд випадкових відхилень (товщина й зміщення штамбів, коливання швидкості), тому два проходи з однаковими налаштуваннями трохи відрізняються.</p></details>`}
+function chips(){const l=S.tr.last,ms_=new Set(S.tr.m.map(p=>p[0]));return l.ev.map((e,i)=>`<button class="k${e.kind}${e.tree?'':' po'}${i==PV.cur?' se':''}${ms_.has(i)?' me':''}" id="ch${i}" onclick="pvObj(${i})" title="${e.tree?'Дерево':'Стійка'} ${i+1}: зазор ${F(e.c)} см">${i+1}</button>`).join('')}
+function objTxt(i){const l=S.tr.last,e=l.ev[i];if(!e)return'';const st=e.kind==3?'сенсор пропустив штамб, фреза не відвелась':e.bark?'ротор не зачепив, але щуп пошкодив кору (сила '+F(l.Fc)+' кгс > '+F(l.Fm)+' кгс)':e.c<=0?'торкання':e.c<1?'зазор менший за 1 см':'безпечно';
+return`<b>${e.tree?'Дерево':'Стійка'} № ${i+1}:</b> <span class="${e.kind>=2?'no':e.kind==0?'ok':''}">${st}</span>. Найменший зазор ${F(e.c,1)} см; необроблена довжина навколо ≈ ${Math.round(e.unw)} см.${e.tree?` <button class="g sm np" onclick="meas(${i})">Заміряти зазор лінійкою</button>`:''}`}
+function measHTML(){const t=S.tr;return`${t.m.length?`<div class="tw"><table class="t2 c"><tr><th>дерево №</th>${t.m.map(p=>`<td>${p[0]+1}</td>`).join('')}</tr><tr><th>зазор, см</th>${t.m.map(p=>`<td><b class="${p[1]<=0?'no':''}">${F(p[1])}</b></td>`).join('')}</tr><tr><th>слід на корі</th>${t.m.map(p=>`<td>${p[2]?'<span class="no">є</span>':'—'}</td>`).join('')}</tr></table></div>`:''}
+${t.m.length>=12?`<div class="r3"><div><label>Мін. зазор, см</label><input type="text" inputmode="decimal" value="${vs(t.mn)}" oninput="S.tr.mn=this.value;save();chk5();navR()"></div><div><label>Середній зазор, см</label><input type="text" inputmode="decimal" value="${vs(t.mean)}" oninput="S.tr.mean=this.value;save();chk5();navR()"></div><div><label>Частка дерев із торканням, %</label><input type="text" inputmode="decimal" value="${vs(t.hit)}" oninput="S.tr.hit=this.value;save();chk5();navR()"></div></div><p class="note" id="k5"></p>`:`<p class="note">Для розрахунку потрібно щонайменше 12 замірів (зараз ${t.m.length}).</p>`}`}
+function chk5(){const o=own(),t=S.tr,e=$('k5');if(!e||!o)return;const a=n(t.mn),b=n(t.mean),d=n(t.hit),m=(v,ok)=>v==null?'—':ok?'<span class="ok">✓</span>':'<span class="no">✗</span>';
+e.innerHTML=o.k>15?`<span class="no">Замірів ${o.k}: для статистики залиште 12–15.</span>`:`Перевірка обчислень: мін. зазор ${m(a,Math.abs(a-o.mn)<=.5)} · середній ${m(b,Math.abs(b-o.mean)<=.3)} · частка торкань ${m(d,Math.abs(d-o.hit)<=5)}`}
+function measUpd(){$('ms').innerHTML=measHTML();$('st').innerHTML=chips();chk5();const e=$('rb5');if(e)e.innerHTML=rb(5);navR()}
+function meas(i){ms(i);measUpd()}
+function mx(){const x=n($('mx').value);if(x==null)return alert('Вкажіть номер дерева.');const i=Math.round(x)-1,l=S.tr.last;if(!l||!l.ev[i]||!l.ev[i].tree)return alert('Об’єкт із таким номером — не дерево.');meas(i)}
+function trackOfPass(l,Vx,ghost){return mkTrack({a:Vx.a,d:l.s?l.s.d:S.d,type:l.s?l.s.type:ty(),L:Vx.L,ev:l.ev,fa:l.fa||[],grass:Vx.grass,seed:Vx.id+(l.s?l.s.seed:0),v:kmh(l.v),Ds:l.s?l.s.Ds:n(S.Dset)})}
+function s5(){const t=S.tr,l=t.last;let r='';
+if(l){const nt=l.ev.filter(e=>e.tree).length;r=`<h3>Прохід № ${t.n}: що відбувалося в ряду</h3><div class="kv"><div><span>торкань (пошкоджено дерев)</span><b class="${l.dmg>0?'no':'ok'}">${F(l.dmg,1)} %</b></div><div><span>зазор менший за 1 см</span><b>${F(l.scr,1)} %</b></div><div><span>пропущено штамбів / хибних відводів</span><b>${l.miss} / ${l.nf}</b></div><div><span>оброблено ряду</span><b>${F(wkS(l.wk),1)} %</b></div></div>
+${pvHTML({zoom:1})}<div class="st np" id="st">${chips()}</div><p class="note">Квадрати — дерева (${nt}), кола — стійки. <span class="ok">Зелений</span> — безпечно, <span style="color:#C99700;font-weight:700">жовтий</span> — зазор менший за 1 см, <span class="no">червоний</span> — торкання, <span style="color:#666;font-weight:700">сірий</span> — штамб пропущено сенсором; біла цятка — заміряно. Натисніть номер — агрегат стане біля цього об’єкта.</p><p id="ob"></p>${adv()}${histTbl()}
+<h3>Заміри зазору до штамбів</h3><p class="note">Виміряйте найменший зазор між краєм ротора та штамбом (похибка лінійки ±0,5 см) на 12–15 деревах: оберіть дерево і натисніть «Заміряти зазор лінійкою» або введіть номер. Ознака «слід» — видимий слід щупа чи пошкодження кори. Обчисліть мінімальний і середній зазор та частку дерев із торканням (зазор ≤ 0 або слід).</p>
+<div class="pc np"><input type="text" inputmode="numeric" id="mx" placeholder="номер дерева" style="max-width:150px"><button class="g sm" onclick="mx()">Заміряти</button><button class="g sm" onclick="mautoCore();measUpd()">Авто: 12 дерев</button><button class="g sm" onclick="S.tr.m=[];save();measUpd()">Очистити</button></div><div id="ms">${measHTML()}</div>`}
+return`<h2>Крок 5. Пробний прохід по ряду</h2><p class="hint">Задайте швидкість і запустіть прохід по ряду з ${V.nT} дерев${V.posts?' та стійками':''}. Мета — жодного торкання при якомога більшій обробленій частці ряду.</p>${info(5)}${pass()}
+<label>Швидкість, км/год (орієнтир ${V.vp}, допустимо 3–6)</label><input type="text" inputmode="decimal" value="${vs(t.v)}" oninput="S.tr.v=this.value;save();ds()" style="max-width:180px">
+<p><button class="p" onclick="run()">${l?'Повторити прохід':'Почати пробний прохід'}</button> <span class="note">спроб: ${t.n}</span></p>${r}<div id="rb5">${rb(5)}</div>`+navb(4,6)}
+function onCur5(i){S.tr.sel=i;const st=$('st');if(st)for(const b of st.children)b.classList.toggle('se',b.id=='ch'+i);const e=$('ob');if(e)e.innerHTML=objTxt(i)}
+function post5(){const l=S.tr.last;if(!l)return;const T=trackOfPass(l,V),w=T.obs[S.tr.sel]||T.obs[worst()];pvBind(T,{ev:l.ev,auto:AN,start:w.xm,onCur:onCur5});AN=0;chk5()}
+
+/* --- Протокол --- */
+function loop(){const r=score(),col=x=>x==null?'var(--sub)':x>=.85?'var(--ac)':x>=.6?'var(--am)':'var(--wn)',a=V.a,
+B=[[4,62,146,'Задавальний вплив','робоче положення + зазор','g '+vs(S.g||'—')+' см / Δ_set '+vs(S.Dset||'—'),r[2]/10],[238,62,146,'Регулятор','блок керування','T_п '+vs(S.Tp||'—')+' с',r[3]/25],[414,62,172,'Виконавчий механізм','УА + золотник + циліндр','u '+S.uo+' / '+S.ui+' %',r[0]/10],[616,62,160,'Об’єкт керування','ротор фрези','D = '+a.D+' см',null],[290,196,240,'Датчики зворотного зв’язку','сенсор штамба + кінцеві вимикачі',S.type=='—'?'—':S.type+', d = '+S.d+' см',r[1]/20]],
+bx=b=>`<rect x="${b[0]}" y="${b[1]}" width="${b[2]}" height="62" rx="7" fill="${col(b[6])}" fill-opacity=".22" stroke="${col(b[6])}" stroke-width="2"/><text x="${b[0]+b[2]/2}" y="${b[1]+20}" text-anchor="middle" font-size="12" font-weight="700" fill="var(--ink)">${b[3]}</text><text x="${b[0]+b[2]/2}" y="${b[1]+37}" text-anchor="middle" font-size="11" fill="var(--ink)">${b[4]}</text><text x="${b[0]+b[2]/2}" y="${b[1]+53}" text-anchor="middle" font-size="11" fill="var(--sub)">${b[5]}</text>`,
+ar=d=>`<path d="${d}" fill="none" stroke="var(--ink)" stroke-width="1.7" marker-end="url(#ah)"/>`,t=(x,y,s,an)=>`<text x="${x}" y="${y}" font-size="11" fill="var(--sub)" text-anchor="${an||'middle'}">${s}</text>`,c0=col(r[4]/35);
+return`<div class="tw"><svg viewBox="0 0 840 300" style="min-width:660px;width:100%;display:block" role="img" aria-label="Блок-схема замкненого контуру"><defs><marker id="ah" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="7" markerHeight="7" markerUnits="userSpaceOnUse" orient="auto"><path d="M0,0L8,4L0,8z" fill="var(--ink)"/></marker></defs>${B.map(bx).join('')}<circle cx="194" cy="93" r="16" fill="${c0}" fill-opacity=".22" stroke="${c0}" stroke-width="2"/><path d="M186,85L202,101M202,85L186,101" stroke="var(--ink)" stroke-width="1.4"/>
+${ar('M150,93H176')}${ar('M210,93H236')}${ar('M384,93H412')}${ar('M586,93H614')}${ar('M776,93H832')}${ar('M696,22V60')}${ar('M696,124V227H532')}${ar('M290,227H194V111')}
+${t(223,84,'e')}${t(398,84,'u')}${t(600,84,'y')}${t(806,84,'c')}${t(208,126,'−')}${t(100,146,'суматор: '+(S.tr.last?'торкань '+F(S.tr.last.dmg,1)+' %':'зазор до штамба'))}${t(834,14,'збурення: трава, стійки, нерівність ряду, товщина штамбів','end')}${t(410,284,'зворотний зв’язок: сенсор бачить штамб, вимикачі — крайні положення фрези')}
+</svg></div><p class="note">Колір блока — якість налаштування відповідних кроків: зелений — 85 % і більше, жовтий — від 60 %, червоний — нижче.</p>`}
+function diag(){const d=[],l=S.tr.last,f=fe(),q=Qs({}),sp=det6(V,q),rf=ref();if(f.press)d.push('Низький тиск у гідросистемі: повільний відвід (крок 1).');if(f.temp)d.push('Перегріта олива: збільшені запізнення (крок 1).');if(f.valve)d.push('Слабкий струм УА: «ліниве» перемикання золотника (крок 1).');if(f.sens)d.push('Шум сенсора: хибні спрацювання (крок 1).');
+if(S.fo==null)d.push('Примусовий відвід з кабіни не перевірено (крок 1).');if(V.young&&S.type=='Щуп')d.push('Щуп на молодих деревах: ризик пошкодження кори (крок 2).');if(sp.pd<.95)d.push('Сенсор пропускає частину штамбів (крок 2).');if(sp.rf>1)d.push('Багато хибних спрацювань на траві або стійках (крок 2).');
+if(n(S.Dset)!=null&&n(S.Dset)<V.a.o+V.r*1.1+2*V.sy+(n(S.g)||0))d.push('Хід відводу менший за потрібний у найгіршому випадку (крок 3).');
+if(rf.dt<0)d.push('Запас часу від’ємний: фреза не встигає (крок 4).');if(n(S.Tp)!=null&&n(S.Tp)<rf.Tpm)d.push('T_п замала: повернення починається, поки ротор біля дерева (крок 4).');if(S.uo>85)d.push('Швидкість відводу понад 85 % від u_max: удари й відскік (крок 4).');
+if(l){if(l.dmg>0)d.push(`Торкання: ${F(l.dmg,1)} % дерев.`);if(l.miss>0)d.push(`Пропущено штамбів: ${l.miss}.`);if(l.wk<V.wkI-15)d.push(`Оброблено лише ${F(wkS(l.wk))} % ряду — довгі необроблені ділянки.`)}return d}
+const C42={A:[['dN','ΔN, дерев/рік','dN',1],['E','E, грн/рік','E',0],['En','E_чист, грн/рік','En',0],['T','T, років','T',.02]],B:[['W1','W₁, га/год','W1',.004],['W2','W₂, га/год','W2',.004],['dW','приріст ΔW, %','dW',.5],['D1','D₁, днів','D1',.3],['D2','D₂, днів','D2',.3]]};
+function chk42(){const c=calc42();if(!c)return;for(const r of C42[V.odd?'A':'B']){const e=$('q_'+r[0]);if(!e)continue;const x=n((S.c42||{})[r[0]]),rf_=c[r[2]];e.innerHTML=x==null||rf_==null?'':Math.abs(x-rf_)<=Math.max(r[3],.02*Math.abs(rf_))?'<span class="ok">✓</span>':'<span class="no">✗</span>'}}
+const grn=x=>Math.round(x).toLocaleString('uk-UA');
+function c42HTML(){const c=calc42();if(!c)return'<p class="note">Дані з’являться після пробного проходу.</p>';const U=x=>x.toLocaleString('uk-UA');
+const dA=`S = ${V.S} га; N = ${V.N} дерев/га; C = ${U(V.C)} грн (заміна дерева і втрати до плодоношення); p₁ = ${F(c.p1,1)} % (ручне керування, v = 3,5 км/год); p₂ = ${F(c.p2,1)} % (ваш прохід); C_САК = ${U(V.Cs)} грн; експлуатаційні витрати 10 % вартості системи на рік`,
+dB=`B = ${F(c.B,1)} м; τ = ${F(c.tau,3)}; t = ${V.tz} год; S = ${V.S} га; v₁ = ${F(c.v1,1)} км/год (ручне керування); v₂ = ${F(c.v2,1)} км/год (ваш прохід)`,
+note=`<p class="note">p₁ — частка дерев, пошкоджених за ручного керування; p₂ — частка торкань у вашому останньому проході. У ряду 30 дерев, тому одне торкання — це вже 3,3 %.</p>`;
+if(S.demo)return`<p><b>Варіант А.</b> ${dA}.</p><p class="note">ΔN = ${V.S} · ${V.N} · (${F(c.p1,1)} − ${F(c.p2,1)}) / 100 = ${grn(c.dN)} дерев/рік; E = ${grn(c.dN)} · ${U(V.C)} = ${grn(c.E)} грн/рік; E_чист = ${grn(c.E)} − 0,10 · ${U(V.Cs)} = ${grn(c.En)} грн/рік; T = ${U(V.Cs)} / ${grn(c.En)} ≈ ${F(c.T,2)} року.</p>
+<p><b>Варіант Б.</b> ${dB}.</p><p class="note">W₁ = 0,1 · ${F(c.B,1)} · ${F(c.v1,1)} · ${F(c.tau,3)} = ${F(c.W1,4)} га/год; W₂ = 0,1 · ${F(c.B,1)} · ${F(c.v2,1)} · ${F(c.tau,3)} = ${F(c.W2,4)} га/год; приріст ${F(c.dW,1)} %; за зміну ${F(c.Z1,2)} і ${F(c.Z2,2)} га; D₁ = ${V.S} / ${F(c.Z1,2)} = ${F(c.D1,1)} дня; D₂ = ${V.S} / ${F(c.Z2,2)} = ${F(c.D2,1)} дня.</p>${note}`;
+const bad=V.odd&&c.En<=0?`<p class="no">E_чист ≤ 0: у пробному проході пошкоджено більше дерев, ніж за ручного керування, тож система себе не окуповує. Доможіться проходу без торкань (крок 5) або поясніть результат у висновку.</p>`:'';
+return`<p>${V.odd?'Варіант А: '+dA:'Варіант Б: '+dB}.</p>${V.odd?note:'<p class="note">v₁ — швидкість, з якою оператор відводить фрезу вручну; v₂ — швидкість вашого останнього проходу. Порахуйте W, приріст і тривалість обробітку D.</p>'}${bad}<div class="np"><p class="note"><b>Самоперевірка.</b> Порахуйте за формулами методички й введіть свої результати: симулятор покаже ✓ або ✗ (допуск 2 %), але правильних чисел не підкаже.</p><div class="r3">${C42[V.odd?'A':'B'].map(r=>`<div><label>${r[1]} <span id="q_${r[0]}"></span></label><input type="text" inputmode="decimal" value="${vs((S.c42||{})[r[0]])}" oninput="(S.c42=S.c42||{}).${r[0]}=this.value;save();chk42()"></div>`).join('')}</div></div>`}
+function s6(){const r=score(),tot=Math.round(r.reduce((a,b)=>a+b,0)),l=S.tr.last,dg=diag(),o=own(),code=hash(JSON.stringify([S.reg,S.type,S.d,S.g,S.Dset,S.uo,S.ui,S.Tp,tot,S.tr.n])).toString(36).toUpperCase().slice(0,7),gr=tot>=90?'відмінно':tot>=75?'добре':tot>=60?'задовільно':'потребує повторного налаштування';
+return`${S.demo?'<div class="wm">ПРИКЛАД ІЗ МЕТОДИЧКИ — не є звітом студента</div>':''}<h2>Підсумковий протокол налаштування САК садової фрези</h2>${info(6)}<table class="t2"><tr><th>Студент</th><td>${S.demo?'приклад із методички':`${esc(S.reg.name)}, група ${esc(S.reg.group)}, № ${S.reg.num}`}</td></tr><tr><th>Варіант</th><td>${V.id}: ${V.a.t} + садова фреза D = ${V.a.D} см; ${V.orch.c} (${V.young?'молоді':'дорослі'} дерева); відстань між деревами ${V.st} см</td></tr><tr><th>Результат</th><td><span class="big">${tot} / 100</span> — ${gr}; спроб: ${S.tr.n}; ${S.demo?'код протоколу в прикладі не видається':`код протоколу: <b>${code}</b>`}</td></tr></table>
+<div class="tw"><table class="t2"><tr><th style="width:auto">Крок</th><td><b>Фактичне значення (для табл. 2.4 методички)</b></td><td style="width:74px"><b>Бали</b></td></tr>${[1,2,3,4,5].map(i=>`<tr><td>${i}. ${NM[i-1]}</td><td>${rec(i)}</td><td>${F(r[i-1])} / ${MX[i-1]}</td></tr>`).join('')}</table></div>
+${r.map((x,i)=>`<div class="bar"><span>${NM[i]}</span><i style="width:${x/MX[i]*180}px"></i> ${Math.round(x/MX[i]*100)} %</div>`).join('')}
+${l?`<h3>Відвід фрези вздовж ряду</h3><div class="ch" id="p1"></div><h3>Найменший зазор до штамба на кожному об’єкті</h3><div class="ch" id="p2"></div>
+<p class="note">Торкань: ${F(l.dmg,1)} % дерев; зазор менший за 1 см: ${F(l.scr,1)} %; пропущено штамбів: ${l.miss}; хибних відводів: ${l.nf}; оброблено ряду ${F(wkS(l.wk),1)} %; необроблена ділянка на дерево ≈ ${Math.round(l.unwTree)} см.${o?` Ваші заміри: мін. ${F(f1(o.mn))} см, середній ${F(f1(o.mean))} см, частка торкань ${F(f1(o.hit))} %.`:''}</p>
+<h3>Швидкість, торкання й оброблена частка ряду</h3><div class="ch" id="p3"></div><p class="note">Крива побудована за вашими налаштуваннями: вона показує, до якої швидкості система встигає відвестися. Правіше цієї межі різко зростає кількість торкань. Торкання ліворуч від планової швидкості мають іншу причину: T_п розрахована на планову швидкість, і коли агрегат їде повільніше, фреза повертається, поки ротор ще біля дерева.</p>${histTbl()}`:'<p class="note">Пробний прохід не виконано.</p>'}
+<h3>Часовий бюджет відводу</h3><div class="fig">${tl4()}</div><h3>Блок-схема вашого контуру (для завдання 4.1)</h3>${loop()}<h3>Діагностика (зіставте з табл. 1.5 методички)</h3>${dg.length?'<ul>'+dg.map(x=>`<li>${x}</li>`).join('')+'</ul>':'<p><span class="bd">Зауважень немає — налаштування виконано якісно.</span></p>'}
+<h3>Дані для розрахунку Завдання 4.2</h3>${c42HTML()}
+<div class="nb np"><button class="g" onclick="go(5)">До кроку 5</button><button class="p" onclick="window.print()">Друк / зберегти як PDF</button></div>`}
+function tradeChart(el,pts,vNow,ghost,vmax){drawChart(el,{h:190,x0:2,xMax:8,y0:0,y1:100,ticks:4,xl:'швидкість, км/год',aria:'Швидкість, торкання й оброблена частка ряду',leg:[['торкань, % дерев','var(--wn)'],['оброблено ряду, %','var(--ac)'],...(ghost?[['закріплений стан','var(--sub)','4 3']]:[])],
+vl:[[vNow,'var(--ink)','v = '+F(vNow)+' км/год'],...(vmax&&vmax>2&&vmax<8?[[vmax,BLU,'v_max = '+F(vmax,1),26]]:[])],ser:[...(ghost?[{p:ghost,c:'var(--sub)',d:'4 3',w:1.4}]:[]),{p:pts.map(p=>[p[0],p[1]]),c:'var(--wn)',w:2.2},{p:pts.map(p=>[p[0],wkS(p[2])]),c:'var(--ac)',w:2.2}],dots:[...pts.map(p=>[p[0],p[1],'var(--wn)',3]),...pts.map(p=>[p[0],wkS(p[2]),'var(--ac)',3])],
+tip:x=>{const p=pts[cl(Math.round(x)-2,0,pts.length-1)];return`<b>${p[0]} км/год</b><br>торкань ${F(p[1],1)} %<br>оброблено ${F(wkS(p[2]),1)} %`}})}
+function post6(){const l=S.tr.last;if(!l)return;const T=trackOfPass(l,V),o=V.a.o,ym=Math.ceil((T.ymax+4)/10)*10;
+drawChart($('p1'),{h:180,xMax:(T.L+220)/100,y0:0,y1:ym,ticks:4,xl:'положення в ряду, м',aria:'Відвід фрези вздовж ряду',leg:[['відвід фрези y, см','var(--ac)'],['штамб: потрібно щонайменше o + r','var(--ink)','dot'],['торкання','var(--wn)','dot']],ser:[{p:seriesOf(T),c:'var(--ac)',w:1.6}],dots:T.obs.filter(b=>b.tree).map(b=>[b.x/100,o+b.r+b.yo,b.kind>=2?'var(--wn)':b.kind==1?'#C99700':'var(--ink)',b.kind>=2?4.6:3.2]),marks:T.obs.filter(b=>!b.tree).map(b=>b.x/100),tip:x=>`<b>${F(x,1)} м</b><br>відвід ${F(T.yAt(x*100),1)} см`});
+const nE=l.ev.length;drawChart($('p2'),{h:180,x0:0,xMax:nE+1,y0:-10,y1:25,ticks:7,xl:'номер об’єкта в ряду',aria:'Найменший зазор на кожному об’єкті',bw:Math.max(4,Math.min(12,Math.floor(($('p2').clientWidth||600)/nE*.6))),leg:[['безпечно','var(--ac)','bar'],['менш як 1 см','#C99700','bar'],['торкання','var(--wn)','bar'],['пропущено','#666','bar']],bars:l.ev.map((e,i)=>[i+1,cl(e.c,-10,25),KC[e.kind],e.tree?1:.5]),hl:[[0,'var(--ink)','нижче нуля — торкання',1]],
+tip:x=>{const i=cl(Math.round(x)-1,0,nE-1),e=l.ev[i];return`<b>${e.tree?'дерево':'стійка'} № ${i+1}</b><br>зазор ${F(e.c,1)} см<br>${KN[e.kind]}`}});
+const pts=[2,3,4,5,6,7,8].map(v=>{const s=sim6(V,Qs({v,seed:77}));return[v,s.dmg,s.wk]});tradeChart($('p3'),pts,l.v,null,ref().vmax);chk42()}
+
+/* ===== Досліди «що буде, якщо…» ===== */
+const EXP=[['Дослід 1. Швидкість і запас часу','Збільшуйте швидкість: 3 → 4 → 5 → 6 → 7 км/год. Для кожної запишіть запас Δt, найменший зазор і частку торкань. За якої швидкості з’являються перші торкання? Порівняйте її з v_max.'],
+['Дослід 2. Виніс сенсора','Поверніть швидкість 4 км/год. Ставте d = 40, 60, 90 і 130 см (T_п підлаштовується автоматично). Запишіть запас Δt, необроблену ділянку на дерево та оброблену частку ряду. Що дає і чого коштує великий виніс?'],
+['Дослід 3. Повернення фрези','Зніміть позначку «T_п автоматично». Поставте T_п удвічі меншу за найменшу допустиму, потім удвічі більшу. Далі поверніть автоматичну й порівняйте швидкість повернення 30 % і 100 %. Запишіть торкання й необроблену ділянку.'],
+['Дослід 4. Сенсор, трава й молоді дерева','Перемкніть сенсор: щуп → ультразвук → лідар. Для ультразвуку поставте чутливість 40, 70 і 95 %. Увімкніть «висока трава», потім «молоді дерева». Запишіть пропущені штамби, хибні відводи й пошкодження кори.'],
+['Дослід 5. Несправності гідравліки','По одній вмикайте несправності: низький тиск, перегріта олива, слабкий струм електромагніта. Запишіть T_відв, v_max і частку торкань. Яка несправність забирає найбільше запасу часу?']];
+function labDef(){const I=V.ideal,a=V.a;return{id:V.id,ver:1,v:V.vp,d:I.d,type:I.type,p2:I.p2,hm:28,g:3,Ds:Math.min(a.dm,Math.ceil((a.o+V.r*1.1+2*V.sy+3)*2)/2),uo:75,ui:70,Tp:1,auto:1,f:{},gh:V.grass=='висока',yg:V.young,exp:0,pin:null,log:[]}}
+function labInit(){if(S.lab&&S.lab.id==V.id&&S.lab.ver==1)return;S.lab=labDef();if(S.type!='—'){const L=S.lab;L.type=S.type;L.d=S.d;L.p2=p2();L.hm=S.hm;if(n(S.g)!=null)L.g=n(S.g);if(n(S.Dset)!=null)L.Ds=n(S.Dset);L.uo=S.uo;L.ui=S.ui}}
+const labV=()=>{const L=S.lab;return Object.assign({},V,{grass:L.gh?'висока':'низька',young:L.yg,r:L.yg==V.young?V.r:L.yg?3:11})};
+/* ряд для дослідів: той самий набір випадкових відхилень, але без рідкісного випадкового пропуску штамба справним сенсором */
+function labSeed(){const b=hash(V.id)+Math.max(0,S.tr.n-1);if(S.lab.sb===b&&S.lab.seed!=null)return S.lab.seed;const I=V.ideal;let sd=b;for(let k=0;k<40;k++){sd=b+1000*k;if(sim6(V,{...I,type:'Лідар',p2:85,seed:sd}).miss==0)break}S.lab.sb=b;S.lab.seed=sd;return sd}
+function labQ(Vx,v){const L=S.lab,a=V.a,Tpm=(L.d+a.D+L.g)/kmh(v??L.v);return{type:L.type,d:L.d,p2:L.p2,hm:L.hm,uo:L.uo,ui:L.ui,Tp:L.auto?Math.ceil((Tpm+.03)*20)/20:L.Tp,g:L.g,Dset:L.Ds,v:v??L.v,fl:{press:L.f.press?1:0,temp:L.f.temp?1:0,valve:L.f.valve?1:0,sens:L.f.sens?1:0},seed:labSeed()}}
+function labRun(){const L=S.lab,a=V.a,Vx=labV(),q=labQ(Vx),r=simTrace(Vx,q),sp=det6(Vx,q),h=hyd(Vx,q),De=a.o+Vx.r+L.g,Tz=sp.Ts+.02+h.Tg,u=h.umax*L.uo/100,Tv=Tz+De/u,tau=L.d/kmh(L.v);
+const tr=[2,3,4,5,6,7,8].map(v=>{const s=sim6(Vx,labQ(Vx,v));return[v,s.dmg,s.wk]});
+return{r,q,Vx,sp,h,De,Tz,u,Tv,tau,dt:tau-Tv,vmax:kmS(L.d/Tv),Tpm:(L.d+a.D+L.g)/kmh(L.v),tr,cmin:Math.min(...r.ev.filter(e=>e.tree).map(e=>e.c)),Dw:a.o+Vx.r*1.1+2*V.sy+L.g}}
+let LR=null;
+const FN={press:'низький тиск',temp:'перегріта олива',valve:'слабкий струм УА',sens:'шумний сенсор'};
+function labPar(){const L=S.lab,q=LR?LR.q:labQ(labV()),f=Object.keys(L.f).filter(k=>L.f[k]).map(k=>FN[k]);return`v ${F(L.v)} км/год; ${L.type}, d ${L.d} см, ${L.type=='Щуп'?'натяг '+F(L.p2)+' кгс':L.type=='Ультразвук'?'чутливість '+L.p2+' %':'фільтр '+L.p2+' %'}; g ${F(L.g)} см; Δ_set ${F(L.Ds)} см; u_відв ${L.uo} %, u_пов ${L.ui} %; T_п ${F(q.Tp,2)} с${L.auto?' (авто)':''}; трава ${L.gh?'висока':'низька'}; ${L.yg?'молоді':'дорослі'} дерева${f.length?'; '+f.join(', '):''}`}
+function labConcl(x){const s=x.r,L=S.lab,a=[],nt=s.ev.filter(e=>e.tree).length;
+a.push(`Торкань: <b>${F(s.dmg,1)} %</b> дерев (${Math.round(s.dmg*nt/100)} із ${nt}); найменший зазор ${F(x.cmin,1)} см; оброблено ${F(wkS(s.wk),0)} % ряду, необроблена ділянка на дерево ≈ ${Math.round(s.unwTree)} см.`);
+if(x.dt<0)a.push(`Запас часу від’ємний: τ = ${F(x.tau,2)} с менший за T_відв = ${F(x.Tv,2)} с. Ротор доходить до штамба раніше, ніж фреза встигає відійти. За такого виносу й такої гідравліки v_max = ${F(x.vmax,1)} км/год.`);
+else if(x.dt<.06)a.push(`Запас часу лише ${F(x.dt,2)} с. Швидкість і положення дерев трохи «гуляють», тому частина штамбів усе одно під загрозою: потрібен резерв близько 0,1 с.`);
+else a.push(`Запас часу Δt = +${F(x.dt,2)} с (τ = ${F(x.tau,2)} с, T_відв = ${F(x.Tv,2)} с); v_max = ${F(x.vmax,1)} км/год.`);
+if(x.q.Tp<x.Tpm-.005)a.push(`T_п = ${F(x.q.Tp,2)} с менша за найменшу допустиму ${F(x.Tpm,2)} с: фреза починає повертатися, коли ротор ще біля дерева, і зачіпає штамб наприкінці обходу.`);
+else if(x.q.Tp>x.Tpm*1.5)a.push(`T_п = ${F(x.q.Tp,2)} с значно більша за потрібну ${F(x.Tpm,2)} с: фреза довго їде відведеною, необроблена ділянка зростає.`);
+if(L.Ds<x.Dw)a.push(`Хід Δ_set = ${F(L.Ds)} см менший за потрібний у найгіршому випадку ${F(f1(x.Dw))} см: товстіші або зміщені штамби зачіпаються навіть за достатнього запасу часу.`);
+if(s.miss>0)a.push(`Сенсор пропустив штамбів: ${s.miss} (імовірність виявлення ${Math.round(x.sp.pd*100)} %). Біля пропущеного дерева фреза не відводиться — це завжди удар.`);
+if(s.bark>0)a.push(`Щуп тисне на кору із силою ${F(f1(x.sp.F))} кгс за допустимих ${F(x.sp.Fmax)} кгс: кора пошкоджується на кожному дереві, хоч ротор штамба й не зачіпає.`);
+if(s.nf>2)a.push(`Хибних відводів: ${s.nf} (≈ ${F(f1(x.sp.rf))} на 10 м). Кожен лишає необроблену ділянку — подивіться позначки «бур’ян» на анімації.`);
+if(L.uo>85)a.push('Швидкість відводу понад 85 % від u_max: шток б’є в упор і відскакує, тож фактичний хід менший за Δ_set на кілька сантиметрів.');
+if(L.f.press)a.push('Низький тиск: швидкість циліндра падає на 40 %, відвід і повернення тривають довше.');if(L.f.temp)a.push('Перегріта олива: швидкість циліндра менша на 20 %, запізнення золотника більше на 0,05 с.');if(L.f.valve)a.push('Слабкий струм електромагніта: золотник перемикається на 0,15 с пізніше — це найбільша втрата запасу часу.');if(L.f.sens)a.push('Шумний сенсор: більше хибних спрацювань, а ультразвук ще й гірше виявляє штамби.');
+if(a.length==2&&s.dmg==0)a.push('Система обходить усі штамби: торкань немає, запас часу достатній.');
+if(L.pin){const p=L.pin;a.push(`Порівняно із закріпленим станом: торкання ${F(p.dmg,1)} → ${F(s.dmg,1)} %, найменший зазор ${F(p.cmin,1)} → ${F(x.cmin,1)} см, оброблено ${F(wkS(p.wk),0)} → ${F(wkS(s.wk),0)} %, Δt ${F(p.dt,2)} → ${F(x.dt,2)} с.`)}
+return`<div class="concl"><b>Висновок.</b><ul>${a.map(q=>`<li>${q}</li>`).join('')}</ul></div>`}
+function labTiles(x){const s=x.r,p=S.lab.pin,t=(nm,v,u,pv,good,dc)=>{let d='';if(pv!=null&&Math.abs(v-pv)>1e-9){const up=v>pv;d=`<em class="${good==null?'':up==good?'dn':'up'}">${up?'▲':'▼'} було ${F(pv,dc)}</em>`}return`<div><span>${nm}</span><b>${F(v,dc)}${u}</b>${d}</div>`};
+return`<div class="kv">${t('торкань',s.dmg,' %',p&&p.dmg,false,1)}${t('найменший зазор',x.cmin,' см',p&&p.cmin,true,1)}${t('запас часу Δt',r2(x.dt),' с',p&&p.dt,true,2)}${t('v_max',f1(x.vmax),' км/год',p&&p.vmax,true,1)}${t('T_відв',r2(x.Tv),' с',p&&p.Tv,false,2)}${t('пропущено штамбів',s.miss,'',p&&p.miss,false,0)}${t('хибних відводів',s.nf,'',p&&p.nf,false,0)}${t('оброблено ряду',wkS(s.wk),' %',p&&wkS(p.wk),true,1)}</div>`}
+function labUpd(full){const L=S.lab;LR=labRun();const l={ev:packEv(LR.r),fa:LR.r.fa,v:L.v,s:{d:L.d,type:L.type,Ds:L.Ds,seed:LR.q.seed}},T=trackOfPass(l,LR.Vx),keep=PV.T&&$('tv')&&!full?PV.Xa+PV.p*(PV.Xb-PV.Xa):null;
+pvBind(T,{ev:l.ev,ghost:L.pin?L.pin.ser:null,start:keep!=null?keep:T.obs[0].xm,onCur:i=>{const e=$('ob');if(e){const b=l.ev[i];e.innerHTML=`<b>${b.tree?'Дерево':'Стійка'} № ${i+1}:</b> <span class="${b.kind>=2?'no':b.kind==0?'ok':''}">${KN[b.kind]}</span>, найменший зазор ${F(b.c,1)} см.`}}});
+tradeChart($('lb_tr'),LR.tr,L.v,L.pin?L.pin.tr:null,LR.vmax);$('lb_t').innerHTML=labTiles(LR);$('lb_c').innerHTML=labConcl(LR);$('lb_p').textContent=labPar();const tp=$('lv_Tp');if(tp)tp.textContent=F(LR.q.Tp,2);save()}
+function labSet(k,v){S.lab[k]=v;const e=$('lv_'+k);if(e)e.textContent=F(v);labUpd()}
+function labPin(){const L=S.lab,s=LR.r;L.pin={ser:seriesOf(PV.T),tr:LR.tr.map(p=>[p[0],p[1]]),dmg:s.dmg,cmin:LR.cmin,wk:s.wk,dt:r2(LR.dt),vmax:f1(LR.vmax),Tv:r2(LR.Tv),miss:s.miss,nf:s.nf,par:labPar()};labUpd();$('lb_pn').textContent='Закріплено: '+L.pin.par}
+function labLog(){const L=S.lab,s=LR.r;L.log.push({par:labPar(),dmg:s.dmg,cmin:LR.cmin,dt:r2(LR.dt),vmax:f1(LR.vmax),Tv:r2(LR.Tv),miss:s.miss,nf:s.nf,bark:s.bark,unw:Math.round(s.unwTree),wk:wkS(s.wk)});if(L.log.length>24)L.log.shift();save();$('lb_l').innerHTML=labLogHTML()}
+function labLogHTML(){const g=S.lab.log;return g.length?`<div class="tw"><table class="t2 c"><tr><th>№</th><th style="text-align:left">Що задано</th><th>Δt, с</th><th>T_відв, с</th><th>v_max, км/год</th><th>торкань, %</th><th>мін. зазор, см</th><th>пропущено</th><th>хибних</th><th>кора</th><th>необроблено на дерево, см</th><th>оброблено, %</th></tr>${g.map((q,i)=>`<tr><td>${i+1}</td><td style="text-align:left">${q.par}</td><td>${F(q.dt,2)}</td><td>${F(q.Tv,2)}</td><td>${F(q.vmax,1)}</td><td>${F(q.dmg,1)}</td><td>${F(q.cmin,1)}</td><td>${q.miss}</td><td>${q.nf}</td><td>${q.bark?'пошкоджено':'—'}</td><td>${q.unw}</td><td>${F(q.wk,1)}</td></tr>`).join('')}</table></div><button class="g sm np" onclick="S.lab.log=[];save();$('lb_l').innerHTML=labLogHTML()">Очистити журнал</button>`:'<p class="note">Журнал порожній. Кнопка «Записати в журнал» додає сюди рядок із поточними числами — перенесіть таблицю в зошит.</p>'}
+function labReset(){const e=S.lab.exp,lg=S.lab.log;S.lab=labDef();S.lab.exp=e;S.lab.log=lg;R()}
+function s7(){labInit();const L=S.lab,sl=(k,nm,mn,mx,st,u)=>`<div><label>${nm}: <b id="lv_${k}">${F(L[k])}</b>${u||''}</label><input type="range" min="${mn}" max="${mx}" step="${st}" value="${L[k]}" oninput="labSet('${k}',+this.value)"></div>`,
+ck=(k,nm,obj)=>`<label style="display:flex;gap:8px;align-items:center;color:var(--ink);margin:5px 0"><input type="checkbox" ${(obj?L.f[k]:L[k])?'checked':''} onchange="S.lab${obj?'.f':''}.${k}=this.checked;labUpd()">${nm}</label>`;
+return`<h2>Досліди «що буде, якщо…»</h2><p class="hint">Агрегат і сад — вашого варіанта ${V.id}; дерева в ряду мають такі самі випадкові відхилення, як у пробному проході. Досліди не змінюють протокол і бали.</p>${info(LAB)}
+<div class="pc np">${EXP.map((e,i)=>`<button class="g sm ${L.exp==i?'on':''}" onclick="S.lab.exp=${i};save();R()">${e[0].split('.')[0]}</button>`).join('')}</div>
+<div class="concl"><b>${EXP[L.exp][0]}.</b> ${EXP[L.exp][1]}</div>
+<div class="lab-g">${sl('v','Швидкість',2,8,.5,' км/год')}${sl('d','Виніс сенсора d',30,200,1,' см')}${sl('g','Зазор g',1,10,.5,' см')}${sl('Ds','Хід відводу Δ_set',8,V.a.dm,.5,' см')}${sl('uo','Швидкість відводу u_відв',10,100,5,' % від u_max')}${sl('ui','Швидкість повернення u_пов',10,100,5,' % від u_max')}
+<div><label>Затримка повернення T_п: <b id="lv_Tp">${F(L.Tp,2)}</b> с</label>${L.auto?'<p class="note" style="margin:2px 0">підлаштовується: (d + D + g) / v + 0,03 с</p>':`<input type="range" min="0.1" max="3" step="0.05" value="${L.Tp}" oninput="labSet('Tp',+this.value)">`}<label style="display:flex;gap:8px;align-items:center;color:var(--ink);margin:5px 0"><input type="checkbox" ${L.auto?'checked':''} onchange="S.lab.auto=this.checked?1:0;if(!this.checked&&LR)S.lab.Tp=LR.q.Tp;save();R()">T_п автоматично</label></div>
+<div><label>Сенсор</label><div class="pc" style="margin:2px 0">${['Щуп','Ультразвук','Лідар'].map(m=>`<button class="g sm ${L.type==m?'on':''}" onclick="S.lab.type='${m}';S.lab.p2=${m=='Щуп'?2.2:m=='Ультразвук'?95:85};save();R()">${m}</button>`).join('')}</div></div>
+${L.type=='Щуп'?sl('p2','Натяг пружини щупа',.5,4,.1,' кгс'):sl('p2',L.type=='Ультразвук'?'Чутливість':'Фільтр трави',0,100,1,' %')}${L.type=='Ультразвук'?sl('hm','Висота монтажу сенсора',10,60,1,' см'):''}</div>
+<div class="lab-g" style="margin-top:6px"><div>${ck('press','низький тиск у гідросистемі',1)}${ck('temp','перегріта олива',1)}${ck('valve','слабкий струм електромагніта',1)}${ck('sens','шумний сенсор',1)}</div><div>${ck('gh','висока трава')}${ck('yg','молоді дерева (тонкі штамби, ніжна кора)')}</div></div>
+<div class="pc np"><button class="p sm" onclick="labPin()">Закріпити для порівняння</button><button class="g sm" onclick="labLog()">Записати в журнал</button><button class="g sm" onclick="labReset()">Скинути до рекомендованих</button><span class="note" id="lb_pn">${L.pin?'Закріплено: '+L.pin.par:''}</span></div>
+<p class="note">Зараз задано: <span id="lb_p"></span></p><div id="lb_t"></div><div id="lb_c"></div>${pvHTML({zoom:1})}<p id="ob" class="note"></p><h3>Як змінюється результат зі швидкістю</h3><div class="ch" id="lb_tr"></div>
+<h3>Журнал дослідів</h3><div id="lb_l">${labLogHTML()}</div><div class="nb np"><button class="g" onclick="go(5)">До кроку 5</button><button class="g" onclick="go(6)">До протоколу</button></div>`}
+
+/* ===== Калькулятор бюджету часу (Завдання 2) ===== */
+const calcDef=i=>Object.assign({sc:i,auto:1,Tp:1},SC[i]);
+function calcMine(){const rf=ref();return{sc:2,auto:0,v:vpl(),d:S.d,r:V.r,o:V.a.o,g:n(S.g)??3,Tz:r2(rf.Tz),u:Math.round(rf.u),D:V.a.D,ui:Math.round(rf.h.umax*S.ui/100),Tp:n(S.Tp)??1}}
+function calcTbl(p,b){const row=(a,f,v,cls)=>`<tr><th>${a}</th><td>${f}</td><td style="width:108px"><b class="${cls||''}">${v}</b></td></tr>`;
+return`<div class="tw"><table class="t2">${row('Потрібний відвід Δ','o + r + g = '+F(p.o)+' + '+F(p.r)+' + '+F(p.g),F(r2(b.De))+' см')}${row('Час відводу T_відв','T_зат + Δ / u_відв = '+F(p.Tz,2)+' + '+F(r2(b.De))+' / '+F(p.u),F(b.Tv,3)+' с')}${row('Запас τ','d / v = '+F(p.d)+' / '+F(b.vv,1)+' (v = '+F(p.v)+' км/год = '+F(b.vv,1)+' см/с)',F(b.tau,3)+' с')}${row('Запас часу Δt','τ − T_відв',(b.dt>=0?'+':'')+F(b.dt,3)+' с',b.dt>=0?'ok':'no')}${row('Гранична швидкість v_max','d / T_відв = '+F(p.d)+' / '+F(b.Tv,3)+' = '+F(p.d/b.Tv,1)+' см/с',F(b.vmax,2)+' км/год')}${row('Мінімальний виніс d_min','v · T_відв = '+F(b.vv,1)+' · '+F(b.Tv,3),F(b.dmin,1)+' см')}${row('Найменша затримка T_п','(d + D + g) / v = ('+F(p.d)+' + '+F(p.D)+' + '+F(p.g)+') / '+F(b.vv,1),F(b.Tpm,2)+' с')}${row('Час повернення T_пов','Δ / u_пов = '+F(r2(b.De))+' / '+F(p.ui),F(b.Tpov,2)+' с')}${row('Необроблена ділянка ℓ_п','d + D + 2r + g + v · T_пов',F(b.lp,0)+' см')}</table></div>`}
+function calcConcl(p,b,bp){const a=[];
+if(b.dt<0)a.push(`<span class="no">Не встигає.</span> Ротор доходить до штамба через τ = ${F(b.tau,2)} с, а фрезі на відвід потрібно T_відв = ${F(b.Tv,2)} с. Щоб устигнути, треба або винести сенсор щонайменше на d_min = ${F(b.dmin,0)} см, або їхати не швидше за v_max = ${F(b.vmax,1)} км/год, або прискорити відвід.`);
+else a.push(`<span class="ok">Встигає</span> із запасом ${F(b.dt,2)} с${b.dt<.06?' — цього замало: у ряду швидкість і положення дерев трохи змінюються, тому потрібен резерв близько 0,1 с':''}. Найбільша швидкість за такого виносу — ${F(b.vmax,1)} км/год.`);
+if(b.Tp<b.Tpm-.005)a.push(`<span class="no">T_п = ${F(b.Tp,2)} с замала</span>: фреза починає повертатися, поки ротор ще біля дерева (найменша допустима ${F(b.Tpm,2)} с).`);
+a.push(`На анімації найменший зазор до штамба ${F(bp.cmin,1)} см${bp.cmin<=0?' — це торкання':''}; фреза відведена на ділянці ≈ ${bp.unw} см (за формулою ℓ_п ≈ ${F(b.lp,0)} см).`);
+return`<div class="concl"><b>Висновок.</b><ul>${a.map(q=>`<li>${q}</li>`).join('')}</ul></div>`}
+function calcUpd(full){const p=S.calc,b=bud(p),bp=budPath(p),kind=bp.cmin<=0?2:bp.cmin<1?1:0,x=p.d+p.r+70,E={x,r:p.r,yo:0,tree:1,kind,c:bp.cmin,path:bp.path};
+$('cl_t').innerHTML=calcTbl(p,b);$('cl_c').innerHTML=calcConcl(p,b,bp);$('cl_tl').innerHTML=tlSVG({tau:b.tau,Tv:b.Tv,dt:b.dt,parts:[['T_зат',p.Tz,TLC[2],'T_зат — запізнення'],['рух',b.De/p.u,TLC[3],'рух Δ / u_відв =']]});const tp=$('cv_Tp');if(tp)tp.textContent=F(b.Tp,2);
+const end=bp.path[bp.path.length-1][0],T=mkTrack({a:{D:p.D,o:p.o,dm:60},d:p.d,type:'Щуп',L:x+end,ev:[E],fa:[],grass:'низька',seed:'calc',v:b.vv,Ds:b.De,lead:120,tail:60}),keep=PV.T&&$('tv')&&!full?PV.Xa+PV.p*(PV.Xb-PV.Xa):null;
+pvBind(T,{one:1,ev:[E],Xa:-30,Xb:x-p.r+end+20,cmin:bp.cmin,unw:bp.unw,start:keep!=null?keep:T.obs[0].xm});save()}
+function calcSet(k,v){S.calc[k]=v;S.calc.sc=-1;const e=$('cv_'+k);if(e)e.textContent=F(v);for(let i=0;i<3;i++){const b=$('cs'+i);if(b)b.classList.remove('on')}calcUpd()}
+function s8(){if(!S.calc)S.calc=calcDef(0);const p=S.calc,b=bud(p),sl=(k,nm,mn,mx,st,u)=>`<div><label>${nm}: <b id="cv_${k}">${F(p[k])}</b>${u}</label><input type="range" min="${mn}" max="${mx}" step="${st}" value="${p[k]}" oninput="calcSet('${k}',+this.value)"></div>`,mine=V&&S.type!='—'&&[S.bd.D,S.bd.Tv,S.bd.tau,S.bd.dt,S.bd.vmax].every(x=>x!==''&&x!=null);
+return`<h2>Калькулятор бюджету часу (до Завдання 2)</h2><p class="hint">Перевірте свій розрахунок сценаріїв із методички й подивіться, як фреза обходить одне дерево. Рухайте повзунки: числа, часова шкала й анімація перераховуються одразу.</p>${info(CALC)}
+<div class="pc np">${SC.map((q,i)=>`<button class="g sm ${p.sc==i?'on':''}" id="cs${i}" onclick="S.calc=calcDef(${i});save();R()">${q.nm}</button>`).join('')}${mine?`<button class="g sm ${p.sc==2?'on':''}" id="cs2" onclick="S.calc=calcMine();save();R()">Мій варіант (за кроками 1–4)</button>`:''}</div>
+${V&&!mine?'<p class="note">Кнопка «Мій варіант» з’явиться, коли ви самі порахуєте й введете п’ять величин бюджету на кроці 4.</p>':''}
+<div class="lab-g">${sl('v','Швидкість руху v',2,8,.1,' км/год')}${sl('d','Виніс сенсора d',20,200,1,' см')}${sl('r','Радіус штамба r',1,20,.5,' см')}${sl('o','Перекриття осі ряду o',5,20,1,' см')}${sl('g','Зазор g',1,10,.5,' см')}${sl('Tz','Запізнення T_зат',.05,.5,.01,' с')}${sl('u','Швидкість відводу u_відв',10,120,1,' см/с')}${sl('D','Діаметр ротора D',30,60,5,' см')}${sl('ui','Швидкість повернення u_пов',10,120,1,' см/с')}
+<div><label>Затримка повернення T_п: <b id="cv_Tp">${F(b.Tp,2)}</b> с</label>${p.auto?'<p class="note" style="margin:2px 0">найменша допустима: (d + D + g) / v</p>':`<input type="range" min="0.1" max="3" step="0.05" value="${p.Tp}" oninput="calcSet('Tp',+this.value)">`}<label style="display:flex;gap:8px;align-items:center;color:var(--ink);margin:5px 0"><input type="checkbox" ${p.auto?'checked':''} onchange="S.calc.auto=this.checked?1:0;if(!this.checked)S.calc.Tp=Math.round(bud(Object.assign({},S.calc,{auto:1})).Tpm*20)/20;save();R()">T_п найменша допустима</label></div></div>
+<div id="cl_t"></div><div class="fig"><div id="cl_tl"></div></div><div id="cl_c"></div><h3>Обхід одного дерева в масштабі</h3>${pvHTML({one:1,zoom:1})}
+<div class="nb np"><button class="g" onclick="go(0)">На початок</button>${V?'<button class="g" onclick="go(4)">До кроку 4</button>':''}</div>`}
+
+/* ===== Каркас: меню, термінал, тема, перемальовування ===== */
+function u(k,v){S[k]=v;save();ds();navR()}
+function go(i){S.step=i;save();R();scrollTo(0,0)}
+function ds(){if(!V){$('ds').innerHTML='<div class="t">ТЕРМІНАЛ САК ФРЕЗИ</div><div class="d"><span>Очікування</span><span>—</span></div>';return}
+const l=S.tr.last,rf=ref(),ok=S.type!='—',r=[['Варіант',V.id],['Сенсор',S.type],['Виніс d',ok?S.d+' см':'—'],['g / Δ_set',vs(S.g||'—')+' / '+vs(S.Dset||'—')],['u відв/пов',S.uo+' / '+S.ui+' %'],['T_п',S.Tp?vs(S.Tp)+' с':'—'],...(ok?[['T_відв',F(rf.Tv,2)+' с'],['τ = d/v',F(rf.tau,2)+' с'],['Δt',(rf.dt>=0?'+':'')+F(rf.dt,2)+' с'],['v_max',F(rf.vmax,1)+' км/год']]:[]),['v',S.tr.v?vs(S.tr.v)+' км/год':'—'],['Спроб',S.tr.n],...(l?[['Торкань',F(l.dmg,1)+' %'],['Оброблено',F(wkS(l.wk),1)+' %']]:[])];
+$('ds').innerHTML='<div class="t">ТЕРМІНАЛ САК ФРЕЗИ — ЖИВІ ПОКАЗАННЯ</div>'+r.map(x=>`<div class="d"><span>${x[0]}</span><span>${x[1]}</span></div>`).join('')}
+function theme(set){let t=null;try{t=localStorage.getItem(TKEY)}catch(e){}if(set!==0){t=t=='light'?'dark':t=='dark'?null:'light';try{t?localStorage.setItem(TKEY,t):localStorage.removeItem(TKEY)}catch(e){}}
+if(t)document.documentElement.setAttribute('data-theme',t);else document.documentElement.removeAttribute('data-theme');$('thb').textContent='Тема: '+(t=='light'?'світла':t=='dark'?'темна':'авто')}
+function navR(){$('nv').innerHTML=TT.map((t,i)=>{const d=i>=1&&i<=5?done(i):0;return`<button class="${i==S.step?'on':''}${i>=LAB?' lab':''}" ${!V&&i&&i!=CALC?'disabled':''} onclick="go(${i})" ${i==S.step?'aria-current="step"':''}>${i>=1&&i<=5?`<i class="${d==1?'ok':d?'pt':''}" title="${d==1?'заповнено':d?'заповнено частково':'не заповнено'}"></i>`:''}${t}</button>`}).join('')}
+function R(){cancelAnimationFrame(PV.raf);PV.play=false;PV.T=null;if(!S)S=blank();if(!V&&S.step!=CALC)S.step=0;navR();
+$('bn').innerHTML=S.demo&&V?`<div class="bn np"><span><b>Відкрито приклад із методички</b> (варіант ${V.id}). Усі кроки вже заповнено — розгляньте їх, а для звіту отримайте власний варіант.</span><button class="p sm" onclick="newReg()">Отримати свій варіант</button></div>`:'';
+$('chip').textContent=V?(S.demo?'приклад · ':'')+'варіант '+V.id:'варіант не видано';
+$('mn').innerHTML=[s0,s1,s2,s3,s4,s5,s6,s7,s8][S.step]();
+const st=S.step;if(st==1)post1();if(st==2&&S.type!='—')senScene();if(st==4){chk4();one4()}if(st==5)post5();if(st==6)post6();if(st==LAB)labUpd(1);if(st==CALC)calcUpd(1);ds()}
+/* ===== Запуск ===== */
+theme(0);
+if(!S){demoState();save()}            /* перше відкриття: приклад із методички */
+let RW=innerWidth;addEventListener('resize',()=>{if(Math.abs(innerWidth-RW)>8){RW=innerWidth;clearTimeout(R.t);R.t=setTimeout(R,180)}});
+R();
+</script></body></html>
