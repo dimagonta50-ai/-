@@ -1,0 +1,1428 @@
+<!DOCTYPE html>
+<html lang="uk"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Симулятор системи контролю висіву — ЛР №7</title>
+<style>
+:root{--bg:#ECEFE8;--pn:#FFFFFF;--pn2:#F5F7F2;--ink:#1C231D;--sub:#56635A;--ln:#D3DBD0;--ac:#2F6B3A;--aci:#FFFFFF;--wn:#B4412C;--am:#A66A00;--sky:#DDEAF0;--trk:#3F7D49;--trk2:#2C5B34;--stl:#59646B;--tyre:#22262A;--rim:#C9CFC6;--gls:#A9C9D6;--db:#14180F;--df:#FFB000;--dd:#8A6300;
+ --soil:#A98763;--soil2:#8A6A4C;--seed:#D9A227;--seed2:#8A6300;--vac:#2F6B8F;--vacl:#BFD9E8;--hose:#3B4147;--sown:#7FA86A;--miss2:#C94A2E;--dblc:#8E44AD;--done:#6F9C58;--over:#C07C2A;--idle:#CFD6CA;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#12150F;--pn:#1C2118;--pn2:#161A12;--ink:#ECEFE7;--sub:#A5AF9F;--ln:#343D2D;--ac:#77B76B;--aci:#0E130B;--wn:#E3705A;--am:#E2A93B;--sky:#18222A;--trk:#5E9E62;--trk2:#3F7446;--stl:#8C979D;--tyre:#0B0D0E;--rim:#7E877C;--gls:#3C5B68;--db:#0B0D08;--df:#FFC233;--dd:#6E4E00;
+ --soil:#5C4733;--soil2:#44341F;--seed:#F0C04B;--seed2:#C79519;--vac:#6FA8C9;--vacl:#223642;--hose:#7A848C;--sown:#5E8A4A;--miss2:#E3705A;--dblc:#B573D0;--done:#5E8A4A;--over:#D8A24C;--idle:#3A4237}}
+:root[data-theme="dark"]{--bg:#12150F;--pn:#1C2118;--pn2:#161A12;--ink:#ECEFE7;--sub:#A5AF9F;--ln:#343D2D;--ac:#77B76B;--aci:#0E130B;--wn:#E3705A;--am:#E2A93B;--sky:#18222A;--trk:#5E9E62;--trk2:#3F7446;--stl:#8C979D;--tyre:#0B0D0E;--rim:#7E877C;--gls:#3C5B68;--db:#0B0D08;--df:#FFC233;--dd:#6E4E00;--soil:#5C4733;--soil2:#44341F;--seed:#F0C04B;--seed2:#C79519;--vac:#6FA8C9;--vacl:#223642;--hose:#7A848C;--sown:#5E8A4A;--miss2:#E3705A;--dblc:#B573D0;--done:#5E8A4A;--over:#D8A24C;--idle:#3A4237}
+html{scroll-padding-top:env(safe-area-inset-top,0px);height:100%}*{box-sizing:border-box}
+body{margin:0;min-height:100%;background:var(--bg);color:var(--ink);font:15px/1.5 -apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;-webkit-text-size-adjust:100%}
+.w{max-width:1240px;margin:0 auto;padding:14px 14px 48px}
+.top{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:10px}
+.top h1{font-size:1.12rem;line-height:1.25;margin:0;font-weight:700;letter-spacing:-.01em}.top h1 small{display:block;font-weight:400;font-size:.8rem;color:var(--sub);letter-spacing:0}
+.tools{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.chip{font-size:.78rem;border:1px solid var(--ln);border-radius:99px;padding:3px 10px;color:var(--sub);background:var(--pn)}
+.bn{border:1px solid var(--am);background:color-mix(in srgb,var(--am) 12%,var(--pn));border-radius:10px;padding:10px 14px;margin-bottom:12px;font-size:.9rem;display:flex;gap:10px 16px;align-items:center;justify-content:space-between;flex-wrap:wrap}
+.lay{display:grid;grid-template-columns:218px minmax(0,1fr) 232px;gap:14px;align-items:start}
+@media(max-width:1020px){.lay{grid-template-columns:206px minmax(0,1fr)}aside{grid-column:1/-1;position:static!important}}
+@media(max-width:760px){.lay{grid-template-columns:minmax(0,1fr)}}
+nav{display:flex;flex-direction:column;gap:4px;position:sticky;top:10px}
+@media(max-width:760px){nav{flex-direction:row;overflow-x:auto;position:static;padding-bottom:4px}}
+nav button{border:1px solid var(--ln);background:var(--pn);color:var(--sub);padding:7px 9px;border-radius:8px;font:inherit;font-size:.8rem;text-align:left;cursor:pointer;white-space:nowrap;display:flex;gap:7px;align-items:center}
+nav button i{flex:none;width:9px;height:9px;border-radius:50%;border:1.5px solid var(--sub);display:block}
+nav button i.ok{background:var(--ac);border-color:var(--ac)}nav button i.pt{background:linear-gradient(90deg,var(--am) 50%,transparent 50%);border-color:var(--am)}
+nav button.on{border-color:var(--ac);color:var(--ink);font-weight:700;box-shadow:inset 3px 0 0 var(--ac)}nav button:disabled{opacity:.4;cursor:not-allowed}
+nav button.lab{margin-top:8px;border-style:dashed}
+main{background:var(--pn);border:1px solid var(--ln);border-radius:12px;padding:18px 20px;min-height:340px;min-width:0}
+@media(max-width:760px){main{padding:14px 12px}}
+main h2{margin:0 0 4px;font-size:1.1rem;line-height:1.3}main h3{font-size:.98rem;margin:20px 0 6px}
+.hint,.note{color:var(--sub);font-size:.86rem;margin:4px 0 12px}.note{margin:6px 0}
+label{display:block;font-size:.84rem;margin:11px 0 3px;color:var(--sub)}
+input[type=text],input[type=number],select{width:100%;padding:8px 10px;border:1px solid var(--ln);border-radius:8px;background:var(--pn2);color:var(--ink);font:inherit;font-size:.95rem}
+input[type=range]{width:100%;accent-color:var(--ac);margin:2px 0}
+input[type=checkbox]{accent-color:var(--ac);width:16px;height:16px}
+:focus-visible{outline:2px solid var(--ac);outline-offset:2px}
+.r2{display:grid;grid-template-columns:1fr 1fr;gap:12px}.r3{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+@media(max-width:560px){.r3{grid-template-columns:1fr 1fr}.r2{grid-template-columns:minmax(0,1fr)}}
+@media(max-width:420px){.r3{grid-template-columns:minmax(0,1fr)}}
+button.p,button.g{border:1px solid var(--ac);border-radius:8px;padding:8px 14px;font:inherit;font-size:.9rem;cursor:pointer;margin:4px 4px 4px 0}
+button.p{background:var(--ac);color:var(--aci);font-weight:600}button.g{background:none;color:var(--ac)}button:disabled{opacity:.4;cursor:not-allowed}
+button.sm{padding:4px 10px;font-size:.8rem;margin:0}button.g.on{background:color-mix(in srgb,var(--ac) 16%,transparent);font-weight:600}
+.nb{display:flex;justify-content:space-between;margin-top:20px}
+aside{background:var(--db);border-radius:12px;padding:13px 15px;font:.8rem/1.6 ui-monospace,SFMono-Regular,Consolas,monospace;color:var(--df);position:sticky;top:10px}
+aside .d{display:flex;justify-content:space-between;gap:8px;border-bottom:1px dashed var(--dd);padding:2px 0}aside .t{color:var(--dd);font-size:.7rem;margin-bottom:6px;letter-spacing:.04em}
+aside .d span:last-child{text-align:right}aside .al{color:#FF7A5C}
+.t2{width:100%;border-collapse:collapse;font-size:.86rem;margin:8px 0}.t2 th,.t2 td{border:1px solid var(--ln);padding:6px 8px;text-align:left;vertical-align:top}.t2 th{width:32%;background:var(--pn2);font-weight:600}
+.t2.c td,.t2.c th{text-align:center;width:auto}.tw{overflow-x:auto}
+.rb{border:1px dashed var(--ac);border-radius:8px;padding:9px 12px;margin-top:14px;font-size:.86rem}
+.bd{display:inline-block;padding:2px 9px;border-radius:99px;font-size:.78rem;font-weight:600;background:color-mix(in srgb,var(--ac) 18%,transparent);color:var(--ac)}.bd.w{background:color-mix(in srgb,var(--wn) 18%,transparent);color:var(--wn)}.bd.a{background:color-mix(in srgb,var(--am) 20%,transparent);color:var(--am)}
+.big{font-size:1.5rem;font-weight:700;color:var(--ac);font-variant-numeric:tabular-nums}
+.sx{overflow-x:auto}.fig .sx>svg,.sx>svg{min-width:540px}
+.fig{background:var(--pn2);border:1px solid var(--ln);border-radius:10px;margin:8px 0;overflow:hidden}.fig svg{display:block;width:100%;height:auto}
+.cap{font-size:.78rem;color:var(--sub);padding:5px 10px 7px;border-top:1px solid var(--ln)}
+.ch{position:relative;margin:8px 0;background:var(--pn2);border:1px solid var(--ln);border-radius:10px;touch-action:pan-y}.ch svg{display:block;width:100%;cursor:crosshair}
+.ch text,.fig text{font-family:inherit}
+.tip{position:absolute;top:6px;pointer-events:none;background:var(--pn);border:1px solid var(--ln);border-radius:6px;padding:4px 8px;font-size:.74rem;line-height:1.35;white-space:nowrap;box-shadow:0 2px 8px rgba(0,0,0,.15);display:none;z-index:2}
+.gs{display:grid;grid-template-columns:repeat(auto-fit,minmax(144px,1fr));gap:8px;margin:0 0 8px}@media(max-width:420px){.gs{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.gt{border:1px solid var(--ln);border-radius:8px;padding:6px 8px;background:var(--pn2);min-width:0}.gt b{display:block;font-size:1.05rem;font-variant-numeric:tabular-nums;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.gt span{display:block;font-size:.7rem;color:var(--sub);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mt{position:relative;height:7px;background:var(--ln);border-radius:4px;margin-top:4px;overflow:hidden}.mt i{position:absolute;top:0;bottom:0;left:0;background:var(--ac);border-radius:4px}.mt u{position:absolute;top:0;bottom:0;width:2px;background:var(--ink)}.mt s{position:absolute;top:0;bottom:0;background:color-mix(in srgb,var(--ac) 35%,transparent)}
+.pvw{display:grid;grid-template-columns:320px minmax(0,1fr);gap:10px;align-items:start}.pvw .fig{margin:0}@media(max-width:760px){.pvw{grid-template-columns:minmax(0,1fr)}.pvw .fig.lp{max-width:360px}}
+.pc{display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin:6px 0}.pc input[type=range]{flex:1;min-width:120px}.pc select{width:auto;padding:4px 8px;font-size:.82rem}
+.bar{display:flex;align-items:center;gap:8px;font-size:.84rem;margin:3px 0}.bar i{display:block;height:9px;background:var(--ac);border-radius:5px}.bar span{width:186px;flex:none}@media(max-width:560px){.bar span{width:120px}}
+details{margin-bottom:10px;font-size:.86rem}summary{cursor:pointer;color:var(--ac)}
+.inf{border-left:3px solid var(--ac);background:var(--pn2);border-radius:0 8px 8px 0;padding:6px 14px;margin:10px 0 14px;font-size:.87rem}.inf summary{font-weight:700;color:var(--ac);margin-bottom:4px}.inf p,.inf ul{margin:6px 0}.inf ul{padding-left:20px}
+.gg{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin:10px 0}@media(max-width:700px){.gg{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.gc{border:1px solid var(--ln);border-radius:10px;padding:8px;background:var(--pn2);text-align:center}.gc svg{width:100%;height:auto;display:block}.gc b{font-size:.84rem;display:block;margin:2px 0}.gc small{color:var(--sub);display:block;font-size:.74rem;margin-bottom:6px}.gc select{font-size:.84rem;padding:5px 6px}
+.lab-g{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:4px 18px}@media(max-width:620px){.lab-g{grid-template-columns:minmax(0,1fr)}}
+.lab-g label{margin:6px 0 0}.kv{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin:10px 0}@media(max-width:620px){.kv{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.kv div{border:1px solid var(--ln);border-radius:8px;padding:6px 8px;background:var(--pn2)}.kv b{display:block;font-size:1.05rem;font-variant-numeric:tabular-nums}.kv span{font-size:.72rem;color:var(--sub)}.kv em{font-style:normal;font-size:.74rem;display:block}.up{color:var(--wn)}.dn{color:var(--ac)}
+.concl{border-radius:8px;padding:9px 12px;background:color-mix(in srgb,var(--ac) 10%,var(--pn));border:1px solid color-mix(in srgb,var(--ac) 40%,var(--ln));font-size:.9rem;margin:8px 0}.concl ul{margin:4px 0;padding-left:18px}
+.ok{color:var(--ac);font-weight:700}.no{color:var(--wn);font-weight:700}
+.sta{display:inline-block;min-width:118px;text-align:center;padding:2px 8px;border-radius:6px;font-weight:700;font-size:.82rem;color:#fff}
+.hs{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(0,1fr);gap:10px;align-items:start}@media(max-width:700px){.hs{grid-template-columns:minmax(0,1fr)}}
+.sen{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:8px 0}@media(max-width:560px){.sen{grid-template-columns:minmax(0,1fr)}}
+.sen button{border:1.5px solid var(--ln);border-radius:10px;background:var(--pn2);color:var(--ink);font:inherit;font-size:.8rem;padding:6px;cursor:pointer;text-align:center}.sen button.on{border-color:var(--ac);box-shadow:inset 0 0 0 1.5px var(--ac)}.sen button svg{display:block;width:100%;height:auto;max-width:210px;margin:0 auto}.sen button b{display:block;font-size:.88rem}.sen button small{color:var(--sub);display:block}
+.tlg{display:flex;flex-wrap:wrap;gap:4px 14px;font-size:.78rem;color:var(--sub);padding:4px 10px 8px}.tlg i{display:inline-block;width:11px;height:11px;border-radius:2px;margin-right:4px;vertical-align:-1px}
+.rows{display:grid;grid-template-columns:repeat(auto-fit,minmax(104px,1fr));gap:6px;margin:8px 0}
+.rw{border:1px solid var(--ln);border-radius:8px;padding:5px 7px;background:var(--pn2);font-size:.78rem;cursor:pointer;text-align:left}
+.rw.al{border-color:var(--wn);background:color-mix(in srgb,var(--wn) 12%,var(--pn2))}.rw.se{outline:2px solid var(--ink);outline-offset:1px}
+.rw b{display:block;font-size:.84rem}.rw span{color:var(--sub);font-size:.72rem;display:block}
+.sg{display:flex;gap:4px;flex-wrap:wrap;margin:6px 0}.sg button{flex:1 1 56px;border:1px solid var(--ln);border-radius:6px;background:var(--pn2);color:var(--ink);font:inherit;font-size:.76rem;padding:4px 2px;cursor:pointer}
+.sg button.on{border-color:var(--ac);background:color-mix(in srgb,var(--ac) 18%,var(--pn2));font-weight:700}.sg button.off{border-color:var(--wn);background:color-mix(in srgb,var(--wn) 18%,var(--pn2))}
+.wm{display:none}
+@media print{nav,.nb,aside,.np,.top .tools,.bn{display:none!important}.tw,.sx{overflow:visible}.tw svg,.sx>svg,.fig .sx>svg{min-width:0!important}.lay{display:block}main{border:0;padding:0}body{background:#fff;color:#000}.wm{display:block;font-size:1.3rem;font-weight:700;color:#B4412C;border:2px solid #B4412C;padding:6px 12px;margin:0 0 10px;text-align:center}.ch,.fig,.tw,.bar,tr{break-inside:avoid}h2,h3{break-after:avoid}*{-webkit-print-color-adjust:exact;print-color-adjust:exact}details>summary{list-style:none}}
+@media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important}}
+</style></head><body><div class="w">
+<header class="top"><h1>Симулятор системи контролю та керування висівом<small>Просапна сівалка точного висіву: монітор висіву, норма, секційне вимикання. Лабораторна робота №7</small></h1>
+<div class="tools"><span class="chip" id="chip"></span><button class="g sm" id="thb" onclick="theme()" title="Перемкнути тему">Тема: авто</button></div></header>
+<div id="bn"></div>
+<div class="lay"><nav id="nv" aria-label="Кроки роботи"></nav><main id="mn"></main><aside id="ds" aria-label="Монітор висіву в кабіні"></aside></div></div>
+
+<script>
+/* Симулятор до лабораторної роботи №7.
+   Системи автоматичного контролю та керування висівом просапної сівалки точного висіву.
+   Один файл, без зовнішніх бібліотек і шрифтів; працює без мережі. */
+const KEY='lr7v1',TKEY='lr7theme';
+/* ===== Модель системи контролю та керування висівом (ЛР №7) ===== */
+const cl=(x,a,b)=>Math.max(a,Math.min(b,x)),f1=x=>Math.round(x*10)/10,f2=x=>Math.round(x*100)/100,
+      n=x=>{const v=parseFloat(String(x).replace(',','.'));return isNaN(v)?null:v};
+function hash(s){let h=2166136261;for(const c of s){h^=c.charCodeAt(0);h=Math.imul(h,16777619)}return h>>>0}
+function rng(a){return()=>{a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
+/* нормальний розподіл (сума трьох рівномірних, одинична дисперсія) */
+const gs=r=>(r()+r()+r()-1.5)*2;
+
+/* Сівалки: rows — рядків; drive — тип привода; vk — межа швидкості за паспортом; del — подача насіння */
+const PL=[
+ {p:'Monosem ValoTerra Ultimate',rows:8,drive:'електропривід',vk:16,del:'стрічка',h:48,Tk:0.30,price:150},
+ {p:'Väderstad Tempo V 8',rows:8,drive:'електропривід',vk:18,del:'надув',h:45,Tk:0.25,price:155},
+ {p:'Horsch Maestro 8 SX',rows:8,drive:'класичний',vk:10,del:'трубка',h:52,Tk:0.35,price:120},
+ {p:'Kuhn Maxima 3 TS 8',rows:8,drive:'класичний',vk:9,del:'трубка',h:55,Tk:0.40,price:110},
+ {p:'Väderstad Tempo L 12',rows:12,drive:'електропривід',vk:18,del:'надув',h:45,Tk:0.25,price:190},
+ {p:'Monosem NG Plus 4, 12 р.',rows:12,drive:'класичний',vk:9,del:'трубка',h:55,Tk:0.40,price:140}];
+const TRK=['John Deere 6155M','Fendt 724 Vario','New Holland T7.215','Case IH Puma 185','Deutz-Fahr 6185'];
+/* Культури: m — маса 1000 нас., г; ds — розмір насінини, мм; N — межі норми, тис/га; Y — урожайність, т/га */
+const CROP=[{c:'кукурудза',m:[290,370],ds:[4.6,5.4],N:[65,90],a:[70,75],Y:[8.5,11.5],C:[6800,8600],Cs:[3800,5200]},
+            {c:'соняшник',m:[55,80],ds:[3.4,4.4],N:[55,75],a:[70,70],Y:[2.6,3.6],C:[17000,23000],Cs:[2600,3600]}];
+/* Диски: hole — діаметр комірки, мм. Комірка МЕНША за насінину: насінина сідає на отвір,
+   а не провалюється в нього. Робоче співвідношення d_к/d_нас ≈ 0,46…0,62 */
+const DISC=[{z:24,hole:1.8},{z:26,hole:2.0},{z:26,hole:2.3},{z:30,hole:2.6},{z:30,hole:2.9},{z:30,hole:3.2}];
+
+/* Потрібний вакуум, мбар: сила утримання ∝ маса насінини / площа комірки.
+   Калібровано на даних DLG: кукурудза m1000≈330 г, комірка 2,6 мм → ≈65 мбар */
+const vacOpt=(m1000,hole)=>Math.round(cl(65*Math.pow(m1000/330,.45)*Math.pow(2.8/hole,.8),25,95));
+
+function mkV(r_){const R=rng(hash([r_.group,r_.name,r_.num].join('|').toLowerCase().replace(/\s+/g,' '))),
+ pk=a=>a[Math.floor(R()*a.length)],ri=(a,b)=>Math.round(a+R()*(b-a)),rf=(a,b)=>a+R()*(b-a);
+const pl=pk(PL),cr=pk(CROP),trk=pk(TRK),a=pk(cr.a),m1000=ri(cr.m[0],cr.m[1]),ds=f1(rf(cr.ds[0],cr.ds[1])),
+ N=ri(cr.N[0],cr.N[1])*1000,
+ /* планова швидкість агронома: для електроприводу вища, для класичного — як у технології */
+ vp=f1(pl.drive=='електропривід'?rf(9,14):rf(7,10)),
+ /* диск підбираємо під насінину: комірка 0,46…0,62 діаметра насінини */
+ dsc=pk(DISC.filter(d=>d.hole/ds>=.46&&d.hole/ds<=.62)),hole=dsc.hole;
+const V={a:pl,trk,crop:cr.c,m1000,ds,hole,zOpt:dsc.z,aMm:a,N,vp,rows:pl.rows,B:f1(pl.rows*a/100),
+ Pneed:vacOpt(m1000,hole),                                 /* потрібний вакуум, мбар */
+ Tg:f2(rf(.18,.32)),                                       /* запізнення GNSS-приймача, с */
+ Tk:pl.Tk,                                                 /* спрацювання клапана/муфти, с */
+ hTube:pl.h,                                               /* висота апарата над ґрунтом, см */
+ S:ri(180,420),                                            /* площа поля, га */
+ wedge:f1(rf(3.5,9)),                                      /* перекриття без секційного вимикання, % */
+ pres:f1(rf(.8,1.8)),                                      /* залишкове перекриття з секційним вимиканням, % */
+ Y:f1(rf(cr.Y[0],cr.Y[1])),Cp:ri(cr.C[0]/100,cr.C[1]/100)*100,Cn:ri(cr.Cs[0]/100,cr.Cs[1]/100)*100,
+ Csys:pl.price*1000,
+ id:'В-'+(hash(r_.group+r_.name+r_.num+'#id')%9000+1000),odd:r_.num%2==1};
+/* приховані несправності */
+const f={dirty:R()<.55?ri(1,V.rows):0,leak:R()<.5?ri(1,V.rows):0,cal:R()<.65?f1(rf(3,9))*(R()<.5?-1:1):0,tube:R()<.25?ri(1,V.rows):0};
+if(f.leak==f.dirty&&f.leak)f.leak=f.leak%V.rows+1;
+if(f.tube==f.dirty||f.tube==f.leak)f.tube=0;
+V.fl=f;
+/* час падіння насінини: трубка — вільне падіння, стрічка/надув — активна подача */
+V.Tp=pl.del=='трубка'?f2(Math.sqrt(2*pl.h/100/9.81)):f2(pl.h/100/(pl.del=='стрічка'?2.2:3.0));
+V.Tz=f2(V.Tg+V.Tk+V.Tp);
+V.Sopt=f1(1e6/(V.N*V.aMm/100));                            /* потрібна відстань, см */
+/* геометрія поля: довжина гону та кількість перетинів межі за поле */
+V.L=Math.round(Math.sqrt(V.S*1e4)*rf(.7,1.4)/50)*50;       /* довжина гону, м */
+V.ncr=Math.round(2*V.S*1e4/(V.B*V.L)*(1+V.wedge/20));      /* перетинів межі за поле */
+V.vmax=V.a.vk;
+V.ideal=idealQ(V);
+return V}
+
+/* Рекомендовані (еталонні) налаштування варіанта */
+function idealQ(V){
+ return{vac:V.Pneed,hole:V.hole,z:V.zOpt,v:f1(Math.min(V.vp,V.a.vk-2)),Tl:V.Tz,Tlon:V.Tz,sens:50}}
+
+/* --- Висівний апарат: пропуски й двійники залежно від вакууму, комірки та швидкості --- */
+/* паспортна межа обертів висівного диска, об/хв */
+const nMax=V=>V.a.drive=='електропривід'?70:50;
+/* оберти диска: n = 1667·v/(S·z) */
+const discRPM=(v,S,z)=>1667*v/(S*z);
+
+function meter(V,Q){const P=Q.vac,Pn=vacOpt(V.m1000,Q.hole),dv=(P-Pn)/Pn,
+ /* замала комірка — насінина не утримується; завелика — провалюється або бере дві */
+ hs=Q.hole/V.ds,                                           /* відносний розмір комірки */
+ small=Math.max(0,.46-hs)/.46,big=Math.max(0,hs-.62)/.38,
+ /* 1) межа подачі насіння: трубка проти стрічки/надуву — падає за 2 км/год до паспортної */
+ ov=Math.max(0,Q.v-V.a.vk+2),
+ /* 2) межа обертів диска: за 0,85 паспортної комірка не встигає набрати насінину */
+ nd=discRPM(Q.v,Q.S||V.Sopt,Q.z||30),nm=nMax(V),
+ ovk=Math.max(0,nd-.85*nm)/(.15*nm),
+ lowv=Math.max(0,-dv),hiv=Math.max(0,dv);
+let miss=.5+26*Math.pow(lowv,1.5)+60*small*small+1.5*Math.pow(ov,1.6)+8*Math.pow(ovk,1.8);
+let dbl=.4+20*Math.pow(hiv,1.6)+45*big*big+.35*Math.pow(ov,1.2)+2*Math.pow(ovk,1.5);
+if(Q.leak)miss+=Q.leak;                                     /* витік вакууму в ряді */
+if(Q.block)miss+=Q.block;                                   /* часткове забивання насіннєпроводу */
+miss=cl(miss,0,70);dbl=cl(dbl,0,45);
+const sing=cl(100-miss-dbl,0,100);
+/* нерівномірність: база + внесок помилок апарата, швидкості та обертів */
+const cv=cl(11+1.15*(miss+dbl)+1.5*ov+7*ovk+(V.a.drive=='класичний'?2:0),8,95);
+return{miss:f1(miss),dbl:f1(dbl),sing:f1(sing),cv:f1(cv),Pn:Pn,nd:f1(nd),nm:nm}}
+
+/* --- Генерація інтервалів у рядку (для замірів і гістограми) --- */
+function intervals(V,Q,row,seed,cnt){const r=rng(seed),mt=meter(V,{...Q,leak:Q.leaks&&Q.leaks[row]||0,block:Q.blocks&&Q.blocks[row]||0}),
+ S=Q.S,out=[];let i=0;
+while(out.length<cnt&&i<cnt*4){i++;const u=r()*100;
+ if(u<mt.miss){                                           /* пропуск: інтервал близько 2S */
+  out.push(f1(S*(2+.12*gs(r))))}
+ else if(u<mt.miss+mt.dbl){                               /* двійник: дві насінини поряд */
+  out.push(f1(S*(0.22+.12*r())));out.push(f1(S*(0.85+.06*gs(r))))}
+ else out.push(f1(S*(1+mt.cv/100*gs(r))))}
+return{iv:out.slice(0,cnt),mt}}
+
+/* Показники за інтервалами (методика ISO 7256-1):
+   пропуск — інтервал > 1,5S; двійник — інтервал ≤ 0,5S;
+   cv — за всіма інтервалами, cvp — лише за одиничними (точність роботи апарата) */
+function stats(iv,S){const nn=iv.length;if(!nn)return null;
+ const miss=iv.filter(x=>x>1.5*S).length,dbl=iv.filter(x=>x<=.5*S).length,
+ pr=iv.filter(x=>x>.5*S&&x<=1.5*S),
+ mu=iv.reduce((a,b)=>a+b,0)/nn,
+ sd=Math.sqrt(iv.reduce((a,b)=>a+(b-mu)*(b-mu),0)/Math.max(1,nn-1)),
+ mp=pr.length?pr.reduce((a,b)=>a+b,0)/pr.length:0,
+ sp=pr.length>1?Math.sqrt(pr.reduce((a,b)=>a+(b-mp)*(b-mp),0)/(pr.length-1)):0;
+return{n:nn,miss:f1(100*miss/nn),dbl:f1(100*dbl/nn),sing:f1(100*(nn-miss-dbl)/nn),
+ mu:f1(mu),sd:f1(sd),cv:f1(100*sd/S),cvp:f1(100*sp/S)}}
+
+/* --- Пробний прохід: усі ряди --- */
+function pass(V,Q){const rows=[],seedBase=Q.seed;
+for(let r=1;r<=V.rows;r++){
+ const leak=(V.fl.leak==r&&!Q.fixLeak)?22:0,block=(V.fl.tube==r&&!Q.fixTube)?14:0,
+ mt=meter(V,{...Q,leak,block}),
+ dirty=(V.fl.dirty==r&&!Q.fixDirty);
+ /* монітор бачить не те саме, що є насправді */
+ const sensK=cl((Q.sens-50)/50,-1,1);                      /* чутливість датчика: −1 замала, +1 завелика */
+ const mMiss=cl(mt.miss+(dirty?9:0)+Math.max(0,-sensK)*12,0,100),
+       mDbl=cl(mt.dbl+Math.max(0,sensK)*9,0,100);
+ rows.push({r,miss:mt.miss,dbl:mt.dbl,sing:mt.sing,cv:mt.cv,
+  mMiss:f1(mMiss),mDbl:f1(mDbl),mSing:f1(cl(100-mMiss-mDbl,0,100)),dirty:dirty?1:0,leak:leak?1:0,block:block?1:0})}
+const avg=k=>f1(rows.reduce((a,b)=>a+b[k],0)/rows.length);
+/* похибка калібрування швидкості прямо переходить у норму висіву */
+const calErr=Q.calFixed?0:V.fl.cal,Nfact=Math.round(V.N*(1+calErr/100)),
+ Sfact=f1(1e6/(Nfact*V.aMm/100));
+/* секційне вимикання */
+/* ΔL>0 — секція вимикається запізно (пересів); ΔL<0 — завчасно (пропуск смуги) */
+const dL=f2(Q.v/3.6*(V.Tz-Q.Tl)),dLon=f2(Q.v/3.6*(V.Tz-Q.Tlon)),
+ ha=x=>x*V.B*V.ncr/2e4,                                    /* га: половина перетинів — вимикання, половина — включення */
+ errA=f2(ha(Math.abs(dL))),                                /* га пересіву/пропуску на вимиканні */
+ errAon=f2(ha(Math.abs(dLon))),                            /* те саме на включенні */
+ over=f2(100*(ha(Math.max(0,dL))+ha(Math.max(0,-dLon)))/V.S),
+ under=f2(100*(ha(Math.max(0,-dL))+ha(Math.max(0,dLon)))/V.S),
+ seedLoss=Math.round((ha(Math.max(0,dL))+ha(Math.max(0,-dLon)))*V.Cn);
+return{rows,miss:avg('miss'),dbl:avg('dbl'),sing:avg('sing'),cv:avg('cv'),
+ mMiss:avg('mMiss'),mDbl:avg('mDbl'),mSing:avg('mSing'),
+ Nfact,Sfact,calErr,dL,dLon,errA,errAon,over,under,seedLoss,
+ bad:rows.filter(r=>r.miss>5||r.dbl>5).map(r=>r.r)}}
+
+/* --- Калібрування датчика швидкості: контрольний пробіг --- */
+const calRun=(V,L)=>f1(L*(1+V.fl.cal/100));
+
+/* --- Економічна оцінка (завдання 4) ---
+   kc — частка пропуску, що переходить у недобір урожаю (решту компенсують сусідні рослини);
+   kd — те саме для двійників. Значення з довідкових даних, додаток А.
+   p1 — показники ДО налагодження, p2 — ПІСЛЯ. */
+const ECK={'кукурудза':[.70,.30],'соняшник':[.50,.25]};
+/* Частка площі, яку встигають засіяти з несправністю до її виявлення:
+   без системи контролю виявляють аж при огляді сходів, із системою — за хвилини. */
+const KDET=[.35,.03],KD=f2(KDET[0]-KDET[1]);
+function econ(V,p1,p2){const[kc,kd]=ECK[V.crop],
+ L1=(p1.miss*kc+p1.dbl*kd)/100,L2=(p2.miss*kc+p2.dbl*kd)/100,
+ dY=f2(V.Y*(L1-L2)*KD),                                    /* приріст урожайності, т/га */
+ Ey=Math.round(dY*V.Cp*V.S),                               /* вигода від урожаю, грн/рік */
+ dA=f1(V.S*(V.wedge-V.pres)/100),                          /* економія площі пересіву, га */
+ Es=Math.round(dA*V.Cn),                                   /* вигода на насінні, грн/рік */
+ Cex=Math.round(.10*V.Csys),                               /* обслуговування: 10 % вартості */
+ E=Ey+Es,Enet=E-Cex;
+return{kc,kd,kd1:KDET[0],kd2:KDET[1],KD,L1:f1(100*L1),L2:f1(100*L2),dY,Ey,dA,Es,Cex,E,Enet,
+ T:Enet>0?f2(V.Csys/Enet):null}}
+
+/* --- Бали: 15 + 18 + 22 + 15 + 20 + 10 = 100 --- */
+const pen=(e,t,s)=>e<=t?0:Math.min(1,(e-t)/s);
+const okn=(x,y,t)=>x!==''&&x!=null&&n(x)!=null&&Math.abs(n(x)-y)<=t;
+function score(S_,V){const r=[0,0,0,0,0,0],q=Qs(S_,V);
+/* 1. Датчики й калібрування — 15 */
+{const f=V.fl,ck=S_.ck||{};let k=0;
+ const said=(pre,val)=>Object.keys(ck).some(x=>x[0]==pre&&ck[x]==val);
+ k+=(f.dirty?ck['s'+f.dirty]=='Забруднений датчик':!said('s','Забруднений датчик'))?4:0;
+ k+=(f.leak?ck['s'+f.leak]=='Витік вакууму':!said('s','Витік вакууму'))?4:0;
+ k+=(f.tube?ck['s'+f.tube]=='Забитий насіннєпровід':!said('s','Забитий насіннєпровід'))?2:0;
+ k+=S_.calDone?(S_.calFixed?3:1):0;
+ k+=S_.vacRead!=null?2:0;
+ r[0]=k}
+/* 2. Норма висіву й привід: збіг розрахунку S і n — 18 */
+{const b=S_.bd||{},S0=1e6/(V.N*V.aMm/100),z=S_.z||30,n0=1667*(n(S_.tv)||V.vp)/(S0*z);
+ r[1]=(okn(b.S,S0,Math.max(.3,S0*.02))?8:0)+(okn(b.n,n0,Math.max(.4,n0*.02))?7:0)+(S_.z?3:0)}
+/* 3. Вакуум і диск — 22 */
+{const mt=meter(V,q);
+ r[2]=10*(1-pen(mt.miss,2,8))+7*(1-pen(mt.dbl,2,8))+5*(1-pen(mt.cv,25,20))}
+/* 4. Секційне вимикання — 15 */
+{const b=S_.bd||{},dL=Math.abs((n(S_.tv)||V.vp)/3.6*(V.Tz-(n(S_.Tl)??0)));
+ r[3]=(okn(b.Tz,V.Tz,.03)?5:0)+6*(1-pen(dL,.2,.8))+(n(S_.Tlon)!=null?4:0)}
+/* 5. Пробний прохід і заміри — 20 */
+{const l=S_.tr&&S_.tr.last;if(l){const o=own(S_);
+  const okm=o&&o.n>=30?[okn(S_.tr.oMiss,o.miss,3),okn(S_.tr.oDbl,o.dbl,3),okn(S_.tr.oCv,o.cvp,5)].filter(Boolean).length:0;
+  r[4]=8*(1-pen(l.miss,3,10))+4*(1-pen(l.dbl,3,10))+2*(1-pen(Math.abs(l.dL),.2,.8))+6*okm/3}}
+/* 6. Економічна оцінка — 10 */
+{const e=ecRef(S_,V),b=S_.ec||{};
+ if(e)r[5]=(okn(b.dY,e.dY,Math.max(.02,Math.abs(e.dY)*.05))?4:0)
+          +(okn(b.E,e.E,Math.max(500,e.E*.03))?3:0)
+          +(e.T!=null&&okn(b.T,e.T,Math.max(.05,e.T*.08))?3:0)}
+return r.map(x=>Math.max(0,Math.round(x*10)/10))}
+
+/* Еталонна економіка: «до» — перший прохід студента, «після» — останній */
+function ecRef(S_,V){const h=S_.hist||[];if(h.length<1)return null;
+ const a=h[0],b=h[h.length-1];
+ return econ(V,{miss:a.miss,dbl:a.dbl},{miss:b.miss,dbl:b.dbl})}
+
+/* Параметри поточного налаштування */
+function Qs(S_,V,o){return Object.assign({vac:n(S_.vac)||V.Pneed,hole:n(S_.hole)||V.hole,z:S_.z||V.zOpt,
+ v:n(S_.tv)||V.ideal.v,S:V.Sopt,sens:S_.sens??50,
+ Tl:n(S_.Tl)??0,Tlon:n(S_.Tlon)??0,calFixed:!!S_.calFixed,
+ fixDirty:!!S_.fixDirty,fixLeak:!!S_.fixLeak,fixTube:!!S_.fixTube,
+ seed:hash(V.id)+(S_.tr?S_.tr.n:0)},o||{})}
+
+/* Власні заміри студента */
+function own(S_){const m=S_.tr&&S_.tr.m;if(!m||!m.length)return null;return stats(m,S_.tr.Sm)}
+/* ===== Стан, збереження, прохід, протокол ===== */
+/* Приклад із методички: цей «студент» дає демо-варіант, з яким симулятор відкривається вперше */
+const DEMO={group:'Приклад',name:'Демонстраційний приклад',num:11};
+/* Число для показу: десяткова кома, мінус як «−» */
+const F=(x,d)=>{if(x===''||x==null||(typeof x=='number'&&isNaN(x)))return'—';const s=d==null?String(x):Number(x).toFixed(d);return s.replace('.',',').replace('-','−')};
+const r1=x=>Math.round(x*10)/10,r2=x=>Math.round(x*100)/100,r3=x=>Math.round(x*1000)/1000;
+const TH=x=>String(Math.round(x)).replace(/\B(?=(\d{3})+(?!\d))/g,' ');
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const vs=x=>esc(String(x??'').replace('.',','));
+const NAR=()=>innerWidth<620;
+let S=null;try{S=JSON.parse(localStorage.getItem(KEY))}catch(e){}if(!S||!S.tr)S=null;
+const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}};
+let V=S&&S.reg?mkV(S.reg):null,AN=0;
+const TT=['Реєстрація й варіант','1. Монітор і діагностика рядів','2. Норма висіву й висівний апарат',
+          '3. Секційне вимикання','4. Пробний прохід і заміри','5. Економічна оцінка',
+          'Підсумковий протокол','Досліди «що буде, якщо…»','Калькулятор'];
+const LAB=7,CALC=8,NST=6;
+/* Можливі діагнози для ряду (завдання 1) */
+const DIAG=['—','Норма','Забруднений датчик','Витік вакууму','Забитий насіннєпровід'];
+/* Контрольна довжина пробігу для калібрування датчика швидкості, м */
+const CALL=100;
+
+/* ---------- Тема ---------- */
+function theme(t){const o=['auto','light','dark'];let i=o.indexOf(localStorage.getItem(TKEY)||'auto');
+ if(t!==0){i=(i+1)%3;try{localStorage.setItem(TKEY,o[i])}catch(e){}}
+ const v=o[i];if(v=='auto')document.documentElement.removeAttribute('data-theme');else document.documentElement.setAttribute('data-theme',v);
+ const b=document.getElementById('thb');if(b)b.textContent='Тема: '+({auto:'авто',light:'світла',dark:'темна'})[v];
+ if(t!==0&&typeof R=='function')R()}
+
+/* ---------- Порожній стан ---------- */
+function blank(){return{reg:null,step:0,ck:{},chk:{vac:0,dig:0,tube:0},
+ calDone:0,calShown:null,calFixed:0,vacRead:null,
+ z:0,hole:0,vac:'',sens:50,tv:'',bd:{S:'',n:'',Tz:''},Tl:'',Tlon:'',
+ fixDirty:0,fixLeak:0,fixTube:0,
+ tr:{n:0,last:null,m:[],Sm:0,sel:1,oMiss:'',oDbl:'',oCv:''},hist:[],ec:{dY:'',E:'',T:''},
+ lab:{vac:0,hole:0,z:0,v:0,Tl:0,sens:50,fl:{dirty:0,leak:0,tube:0},pin:null,log:[]},
+ calc:{N:'',a:'',v:'',z:'',B:'',Tg:'',Tk:'',Tp:'',Tl:'',S:'',Y:'',Cp:'',p1:'',p2:'',k:'',Csys:''}}}
+
+/* ---------- Поточні налаштування апарата ---------- */
+const QS=o=>Qs(S,V,o);
+/* Вакуум, який реально стоїть у системі (якщо студент нічого не вводив — рекомендований) */
+const vacNow=()=>n(S.vac)??V.Pneed;
+const holeNow=()=>S.hole||V.hole;
+const zNow=()=>S.z||V.zOpt;
+const vNow=()=>n(S.tv)||V.ideal.v;
+const Snow=()=>n(S.bd.S)||V.Sopt;
+
+/* ---------- Прилади для діагностики (завдання 1) ---------- */
+/* Вакуум у секції: у ряді з витоком падає до ~0,62 від заданого */
+const vacRow=r=>Math.round(vacNow()*(V.fl.leak==r?.62:1)*(1+((hash(V.id+'v'+r)%7)-3)/200));
+/* Контрольне підкопування 10 м: фактичні пропуски, %, без участі датчика */
+function digRow(r){const q=QS({fixDirty:0,fixLeak:0,fixTube:0}),
+ leak=V.fl.leak==r?22:0,block=V.fl.tube==r?14:0;
+ return meter(V,{...q,leak,block}).miss}
+/* Огляд насіннєпроводу */
+const tubeRow=r=>V.fl.tube==r?'частково забитий':'вільний';
+/* Що показує монітор у кабіні під час діагностичного проходу */
+function monRow(r){const q=QS({fixDirty:0,fixLeak:0,fixTube:0,sens:50}),
+ leak=V.fl.leak==r?22:0,block=V.fl.tube==r?14:0,mt=meter(V,{...q,leak,block}),
+ dirty=V.fl.dirty==r;
+ const mm=cl(mt.miss+(dirty?9:0),0,100),md=cl(mt.dbl,0,100);
+ return{miss:r1(mm),dbl:r1(md),sing:r1(cl(100-mm-md,0,100)),alarm:mm>5||md>5}}
+/* Правильний діагноз ряду */
+const trueDiag=r=>V.fl.dirty==r?'Забруднений датчик':V.fl.leak==r?'Витік вакууму':V.fl.tube==r?'Забитий насіннєпровід':'Норма';
+
+/* ---------- Калібрування датчика швидкості ---------- */
+function calGo(){S.calDone=1;S.calShown=calRun(V,CALL);save();R()}
+const calErrPct=()=>S.calShown==null?null:r1(100*(S.calShown-CALL)/CALL);
+
+/* ---------- Пробний прохід ---------- */
+function runCore(){const q=QS({}),p=pass(V,q),t=S.tr;
+ t.last={...p,v:q.v,S:q.S,vac:q.vac,hole:q.hole,z:q.z,sens:q.sens,Tl:q.Tl,Tlon:q.Tlon,
+  fx:{d:q.fixDirty?1:0,l:q.fixLeak?1:0,t:q.fixTube?1:0,c:q.calFixed?1:0},seed:q.seed};
+ t.n++;t.m=[];t.Sm=q.S;t.sel=p.bad.length?p.bad[0]:1;
+ (S.hist=S.hist||[]).push({n:t.n,v:q.v,vac:q.vac,hole:q.hole,z:q.z,Tl:q.Tl,sens:q.sens,
+  miss:p.miss,dbl:p.dbl,sing:p.sing,cv:p.cv,dL:p.dL,over:p.over,Nfact:p.Nfact,bad:p.bad.length});
+ if(S.hist.length>12)S.hist.shift()}
+function run(){if(!n(S.vac))return alert('Задайте вакуум у системі (крок 2).');
+ if(!S.z||!S.hole)return alert('Оберіть висівний диск (крок 2).');
+ if(!n(S.tv))return alert('Вкажіть швидкість проходу (крок 2).');
+ if(n(S.Tl)==null||n(S.Tlon)==null)return alert('Задайте час випередження T_лід на вимикання і на включення (крок 3).');
+ runCore();AN=1;save();R()}
+
+/* ---------- Заміри інтервалів у вибраному ряді ---------- */
+function mauto(cnt){const t=S.tr;if(!t.last)return;
+ const q=QS({}),iv=intervals(V,{...q,leaks:lmap(),blocks:bmap()},t.sel,hash(V.id+'m'+t.n+'r'+t.sel),cnt||60);
+ t.m=iv.iv;t.Sm=q.S;save();R()}
+function mclr(){S.tr.m=[];save();R()}
+const lmap=()=>{const o={};if(V.fl.leak&&!S.fixLeak)o[V.fl.leak]=22;return o};
+const bmap=()=>{const o={};if(V.fl.tube&&!S.fixTube)o[V.fl.tube]=14;return o};
+const ownS=()=>own(S);
+
+/* ---------- Еталонні розрахунки для самоперевірки ---------- */
+const ref=()=>{const S0=1e6/(V.N*V.aMm/100),z=zNow(),v=vNow();
+ return{S:S0,n:discRPM(v,S0,z),Tz:V.Tz,Tl:V.Tz,dL:v/3.6*(V.Tz-(n(S.Tl)??0))}};
+
+/* ---------- Стан «приклад із методички» ---------- */
+function demoState(){S=blank();S.demo=1;S.reg={...DEMO};V=mkV(S.reg);const I=V.ideal;
+ S.chk={vac:1,dig:1,tube:1};
+ for(let r=1;r<=V.rows;r++)S.ck['s'+r]=trueDiag(r);
+ S.calDone=1;S.calShown=calRun(V,CALL);S.calFixed=1;S.vacRead=V.Pneed;
+ S.z=I.z;S.hole=I.hole;S.vac=String(I.vac);S.sens=50;S.tv=String(I.v);
+ S.fixDirty=1;S.fixLeak=1;S.fixTube=1;
+ const rf=ref();S.bd={S:F(r1(rf.S)),n:F(r1(rf.n)),Tz:F(V.Tz,2)};
+ S.Tl=F(V.Tz,2);S.Tlon=F(V.Tz,2);
+ /* перший прохід — із налаштуваннями «як привезли»: занижений вакуум, несправності не усунено */
+ const keep={vac:S.vac,fd:S.fixDirty,fl:S.fixLeak,ft:S.fixTube,cf:S.calFixed,tl:S.Tl,tn:S.Tlon};
+ S.vac=String(Math.round(I.vac*.80));S.fixDirty=0;S.fixLeak=0;S.fixTube=0;S.calFixed=0;S.Tl='0';S.Tlon='0';
+ runCore();
+ S.vac=keep.vac;S.fixDirty=keep.fd;S.fixLeak=keep.fl;S.fixTube=keep.ft;S.calFixed=keep.cf;S.Tl=keep.tl;S.Tlon=keep.tn;
+ runCore();
+ mauto(60);const o=ownS();S.tr.oMiss=F(o.miss,1);S.tr.oDbl=F(o.dbl,1);S.tr.oCv=F(o.cvp,1);
+ const e=ecRef(S,V);S.ec={dY:F(e.dY,2),E:String(e.E),T:F(e.T,2)};
+ S.lab={vac:I.vac,hole:I.hole,z:I.z,v:I.v,Tl:V.Tz,sens:50,fl:{dirty:0,leak:0,tube:0},pin:null,log:[]};
+ S.step=0;return S}
+
+/* ---------- Рядки «Запишіть у таблицю методички» ---------- */
+function rec(i){const t=S.tr,l=t.last,m=(x,u)=>x===''||x==null?'—':String(x).replace('.',',')+u,o=ownS();
+ const dg=[];for(let r=1;r<=V.rows;r++)if(S.ck['s'+r]&&S.ck['s'+r]!='—'&&S.ck['s'+r]!='Норма')dg.push('ряд '+r+' — '+S.ck['s'+r].toLowerCase());
+return[0,
+ `вакуум ${m(S.vacRead,' мбар')}; перевірки: ${['вакуум по секціях','підкопування','огляд насіннєпроводів'].filter((_,k)=>[S.chk.vac,S.chk.dig,S.chk.tube][k]).join(', ')||'не виконано'}; `+
+ `калібрування: показано ${m(S.calShown,' м')} на ${CALL} м, похибка ${calErrPct()==null?'—':F(calErrPct(),1)+' %'}${S.calFixed?', поправку внесено':''}; `+
+ `діагноз: ${dg.length?dg.join('; '):'усі ряди в нормі'}`,
+ `N = ${TH(V.N)} шт/га; a = ${F(V.aMm)} см; S = ${m(S.bd.S,' см')}; диск z = ${S.z||'—'}, комірка ${m(S.hole,' мм')}; `+
+ `вакуум ${m(S.vac,' мбар')} (рекомендований ${V.Pneed}); v = ${m(S.tv,' км/год')}; n = ${m(S.bd.n,' об/хв')}`,
+ `T_GNSS = ${F(V.Tg,2)} с; T_кл = ${F(V.Tk,2)} с; T_пад = ${F(V.Tp,2)} с; T_заг = ${m(S.bd.Tz,' с')}; `+
+ `T_лід на вимикання ${m(S.Tl,' с')}, на включення ${m(S.Tlon,' с')}`+(l?`; ΔL = ${F(l.dL,2)} м, площа помилки ${F(l.errA,2)} га`:''),
+ l?`прохід №${t.n}: v = ${F(l.v)} км/год; пропуски ${F(l.miss,1)} %, двійники ${F(l.dbl,1)} %, одиничність ${F(l.sing,1)} %, CV = ${F(l.cv,1)} %; `+
+   `проблемні ряди ${l.bad.length?l.bad.join(', '):'немає'}; N_факт = ${TH(l.Nfact)} шт/га; `+
+   `заміри (${o?o.n:0} інтервалів): пропуски ${m(t.oMiss,' %')}, двійники ${m(t.oDbl,' %')}, CV ${m(t.oCv,' %')}`:'прохід не виконано',
+ (()=>{const e=ecRef(S,V);if(!e)return'немає проходів для порівняння';
+  return `втрати до налагодження ${F(e.L1,1)} %, після ${F(e.L2,1)} %; ΔY = ${m(S.ec.dY,' т/га')}; `+
+   `економія площі ${F(e.dA,1)} га; E = ${m(S.ec.E,' грн/рік')}; T = ${m(S.ec.T,' року')}`})()][i]}
+
+/* ---------- Позначки виконання кроків ---------- */
+function done(i){const t=S.tr;
+ if(i==0)return S.reg?1:0;
+ if(i==1){const k=Object.keys(S.ck).filter(x=>S.ck[x]&&S.ck[x]!='—').length,c=S.chk.vac+S.chk.dig+S.chk.tube;
+  return k>=V.rows&&S.calDone&&S.vacRead!=null?1:(k||c||S.calDone?.5:0)}
+ if(i==2){const b=S.bd,f=[S.z&&S.hole,n(S.vac),n(S.tv),n(b.S),n(b.n)].filter(Boolean).length;return f>=5?1:f?.5:0}
+ if(i==3){const f=[n(S.bd.Tz),n(S.Tl),n(S.Tlon)].filter(x=>x!=null).length;return f>=3?1:f?.5:0}
+ if(i==4){if(!t.last)return 0;const o=ownS();return o&&o.n>=30&&t.oMiss!==''&&t.oDbl!==''&&t.oCv!==''?1:.5}
+ if(i==5){const f=[S.ec.dY,S.ec.E,S.ec.T].filter(x=>x!==''&&x!=null).length;return f>=3?1:f?.5:0}
+ if(i==6)return [1,2,3,4,5].every(k=>done(k)==1)?1:0;
+ return 0}
+const tot=()=>score(S,V).reduce((a,b)=>a+b,0);
+
+/* ---------- Код протоколу (для викладача) ---------- */
+function pcode(){const s=score(S,V),h=hash(JSON.stringify([S.reg,s,S.tr.n])).toString(36).toUpperCase();
+ return V.id+'-'+Math.round(tot())+'-'+h.slice(0,4)}
+/* ===== Рисунки: усе малюється кодом, у масштабі, без зовнішніх бібліотек ===== */
+const C=k=>'var(--'+k+')';
+const A=o=>Object.keys(o).map(k=>k.replace(/_/g,'-')+'="'+o[k]+'"').join(' ');
+const sv=(w,h,b)=>['<svg viewBox="0 0 '+w+' '+h+'" width="'+w+'" height="'+h+'" role="img">'+(b||''),'</svg>'];
+const ln=(x1,y1,x2,y2,c,w,o)=>'<line '+A({x1:r2(x1),y1:r2(y1),x2:r2(x2),y2:r2(y2),stroke:c||C('ln'),stroke_width:w||1,...(o||{})})+'/>';
+const rc=(x,y,w,h,f,o)=>'<rect '+A({x:r2(x),y:r2(y),width:r2(Math.max(0,w)),height:r2(Math.max(0,h)),fill:f||'none',...(o||{})})+'/>';
+const ci=(x,y,r,f,o)=>'<circle '+A({cx:r2(x),cy:r2(y),r:r2(Math.max(0,r)),fill:f||'none',...(o||{})})+'/>';
+const el=(x,y,rx,ry,f,o)=>'<ellipse '+A({cx:r2(x),cy:r2(y),rx:r2(rx),ry:r2(ry),fill:f||'none',...(o||{})})+'/>';
+const pa=(d,f,o)=>'<path '+A({d,fill:f||'none',...(o||{})})+'/>';
+const pg=(p,f,o)=>'<polygon '+A({points:p.map(q=>r2(q[0])+','+r2(q[1])).join(' '),fill:f||'none',...(o||{})})+'/>';
+const pl=(p,c,w,o)=>'<polyline '+A({points:p.map(q=>r2(q[0])+','+r2(q[1])).join(' '),fill:'none',stroke:c,stroke_width:w||1,...(o||{})})+'/>';
+function T(x,y,s,o){o=o||{};return'<text '+A({x:r2(x),y:r2(y),fill:o.c||C('ink'),font_size:o.s||11,
+ text_anchor:o.a||'start',font_weight:o.b?700:400,...(o.rot?{transform:'rotate('+o.rot+' '+r2(x)+' '+r2(y)+')'}:{}),
+ ...(o.o?{opacity:o.o}:{})})+'>'+esc(s)+'</text>'}
+/* рамка з підписом */
+function blk(x,y,w,h,t,o){o=o||{};return rc(x,y,w,h,o.f||C('pn2'),{stroke:o.c||C('ln'),stroke_width:o.sw||1.2,rx:o.rx??5})+
+ (t?T(x+w/2,y+h/2+(o.ts||4),t,{a:'middle',s:o.s||11,b:o.b,c:o.tc}):'')}
+/* розмірна лінія */
+function dimH(x1,x2,y,t,c){c=c||C('sub');const d=x2>x1?1:-1;
+ return ln(x1,y,x2,y,c,1)+ln(x1,y-4,x1,y+4,c,1)+ln(x2,y-4,x2,y+4,c,1)+
+ pg([[x1,y],[x1+6*d,y-2.6],[x1+6*d,y+2.6]],c)+pg([[x2,y],[x2-6*d,y-2.6],[x2-6*d,y+2.6]],c)+
+ (t?T((x1+x2)/2,y-6,t,{a:'middle',s:10,c}):'')}
+function dimV(y1,y2,x,t,c){c=c||C('sub');
+ return ln(x,y1,x,y2,c,1)+ln(x-4,y1,x+4,y1,c,1)+ln(x-4,y2,x+4,y2,c,1)+
+ (t?T(x+4,(y1+y2)/2+3,t,{s:10,c}):'')}
+/* легенда */
+function lg(items,x,y,s){return items.map((it,i)=>rc(x,y+i*(s||15)-7,9,9,it[1],{rx:2})+T(x+13,y+i*(s||15),it[0],{s:10,c:C('sub')})).join('')}
+const dash=(a,b)=>({stroke_dasharray:a+' '+(b||a)});
+/* колір за якістю */
+const qc=v=>v<=2?C('ac'):v<=5?C('am'):C('wn');
+const cvc=v=>v<=20?C('ac'):v<=30?C('am'):C('wn');
+
+/* ---------- Кругова шкала ---------- */
+function gauge(val,lo,hi,lab,unit,bands,fx){const w=112,h=84,cx=56,cy=62,R=42,
+ a0=-175,a1=-5,f=cl((val-lo)/(hi-lo),0,1),ar=d=>(d*Math.PI)/180,
+ P=(d,r)=>[cx+r*Math.cos(ar(d)),cy+r*Math.sin(ar(d))],
+ arc=(d1,d2,r,c,w_)=>{const p1=P(d1,r),p2=P(d2,r);return pa('M'+r2(p1[0])+' '+r2(p1[1])+'A'+r+' '+r+' 0 0 1 '+r2(p2[0])+' '+r2(p2[1]),'none',{stroke:c,stroke_width:w_,stroke_linecap:'round'})};
+let s=arc(a0,a1,R,C('ln'),8);
+for(const b of bands||[]){const d1=a0+(a1-a0)*cl((b[0]-lo)/(hi-lo),0,1),d2=a0+(a1-a0)*cl((b[1]-lo)/(hi-lo),0,1);if(d2>d1+.4)s+=arc(d1,d2,R,b[2],8)}
+const d=a0+(a1-a0)*f,p=P(d,R-13),o=P(d,8);
+s+=ln(o[0],o[1],p[0],p[1],C('ink'),2.4,{stroke_linecap:'round'})+ci(cx,cy,3.4,C('ink'));
+s+=T(cx,cy-16,F(r1(val),null)+(unit?' '+unit:''),{a:'middle',s:15,b:1});
+s+=T(cx,cy+17,lab,{a:'middle',s:9.5,c:C('sub')});
+return sv(w,h)[0]+s+sv(w,h)[1]}
+
+/* ---------- Графік із наведенням ---------- */
+/* ser: [{name,color,pts:[[x,y],…],dash}] */
+function chart(id,ser,o){o=o||{};const w=o.w||640,h=o.h||200,L=o.L||46,Rr=14,Tp=o.T||14,B=30,
+ xs=[].concat(...ser.map(s=>s.pts.map(p=>p[0]))),ys=[].concat(...ser.map(s=>s.pts.map(p=>p[1])));
+ if(!xs.length)return'';
+ const x0=o.x0??Math.min(...xs),x1=o.x1??Math.max(...xs),
+ y0=o.y0??0,y1=o.y1??Math.max(1,Math.max(...ys)*1.12),
+ X=v=>L+(w-L-Rr)*(v-x0)/((x1-x0)||1),Y=v=>Tp+(h-Tp-B)*(1-(v-y0)/((y1-y0)||1));
+let s=rc(L,Tp,w-L-Rr,h-Tp-B,C('pn'),{stroke:C('ln')});
+const nyt=o.ny||4;for(let i=0;i<=nyt;i++){const v=y0+(y1-y0)*i/nyt,y=Y(v);
+ s+=ln(L,y,w-Rr,y,C('ln'),i?.6:1,i?dash(3,4):{})+T(L-5,y+3.5,o.yf?o.yf(v):F(r1(v)),{a:'end',s:9.5,c:C('sub')})}
+const nxt=o.nx||5;for(let i=0;i<=nxt;i++){const v=x0+(x1-x0)*i/nxt,x=X(v);
+ s+=ln(x,Tp,x,h-B,C('ln'),.6,dash(3,4))+T(x,h-B+13,o.xf?o.xf(v):F(r1(v)),{a:'middle',s:9.5,c:C('sub')})}
+for(const b of o.bands||[])s+=rc(L,Y(b[1]),w-L-Rr,Y(b[0])-Y(b[1]),b[2],{opacity:.16});
+(o.vl||[]).forEach((g,i)=>{s+=ln(X(g[0]),Tp,X(g[0]),h-B,g[1]||C('am'),1.4,dash(5,4))+T(X(g[0])+3,Tp+11+i*13,g[2]||'',{s:9.5,c:g[1]||C('am')})});
+for(const se of ser){if(se.pts.length<2)continue;
+ s+=pl(se.pts.map(p=>[X(p[0]),Y(p[1])]),se.color,se.w||2,se.dash?dash(5,4):{})}
+for(const se of ser)if(se.dots)for(const p of se.pts)s+=ci(X(p[0]),Y(p[1]),2.6,se.color);
+if(o.xl)s+=T(w-Rr,h-4,o.xl,{a:'end',s:10,c:C('sub')});
+if(o.yl)s+=T(4,Tp-4,o.yl,{s:10,c:C('sub')});
+if(ser.length>1&&!o.nolg){const ls=ser.filter(x=>x.name),
+ y0l=o.lgb?h-B-8-(ls.length-1)*13:Tp+12+(o.vl||[]).length*13;
+ s+=ls.map((se,i)=>{const x=L+8,y=y0l+i*13;return ln(x,y-3.5,x+16,y-3.5,se.color,2.4,se.dash?dash(5,4):{})+T(x+21,y,se.name,{s:10,c:C('sub')})}).join('')}
+const inner=s,hit={L,Rr,Tp,B,w,h,x0,x1,y0,y1};
+return'<div class="ch" id="'+id+'" data-g="'+esc(JSON.stringify(hit))+'">'+sv(w,h)[0]+inner+
+ '<g id="'+id+'_c" style="display:none"><line y1="'+Tp+'" y2="'+(h-B)+'" stroke="'+C('ink')+'" stroke-width="1"/></g>'+
+ sv(w,h)[1]+'<div class="tip" id="'+id+'_t"></div></div>'}
+/* наведення на графік */
+function chBind(id,fn){const d=document.getElementById(id);if(!d)return;const g=JSON.parse(d.dataset.g),
+ tip=document.getElementById(id+'_t'),cur=document.getElementById(id+'_c'),svg=d.querySelector('svg');
+ const mv=e=>{const b=svg.getBoundingClientRect(),px=(e.touches?e.touches[0].clientX:e.clientX)-b.left,
+  ux=px/b.width*g.w;if(ux<g.L-2||ux>g.w-g.Rr+2){out();return}
+  const v=g.x0+(g.x1-g.x0)*(ux-g.L)/(g.w-g.L-g.Rr),t=fn(v);if(!t){out();return}
+  cur.style.display='';cur.firstChild.setAttribute('x1',r2(ux));cur.firstChild.setAttribute('x2',r2(ux));
+  tip.style.display='block';tip.innerHTML=t;
+  const tw=tip.offsetWidth||120;tip.style.left=Math.max(2,Math.min(b.width-tw-2,px-tw/2))+'px'};
+ const out=()=>{cur.style.display='none';tip.style.display='none'};
+ d.onmousemove=mv;d.onmouseleave=out;d.ontouchstart=mv;d.ontouchmove=e=>{mv(e);e.preventDefault()};d.ontouchend=out}
+
+/* ================= Висівний апарат у розрізі =================
+   Диск, вакуумна камера, скидач, насіннєпровід, датчик і борозна.
+   ph — фаза обертання диска 0…1; fall — насінини у польоті; furrow — борозна.
+   Масштаб борозни задається px (пікселів на сантиметр). */
+function metSVG(V,Q,st){st=st||{};const w=680,h=400,
+ cx=152,cy=124,R=72,                                   /* диск */
+ zc=Q.z||24,ph=st.ph||0,
+ aPick=100,aDrop=-48,                                  /* кут набору (внизу, у камері) й кут скидання */
+ tx=420,ty0=108,ty1=306,                               /* насіннєпровід */
+ P=(d,r)=>[cx+r*Math.cos(d*Math.PI/180),cy+r*Math.sin(d*Math.PI/180)];
+let s='';
+/* корпус */
+s+=rc(14,24,292,254,C('pn'),{stroke:C('stl'),stroke_width:1.6,rx:10});
+
+/* насіннєва камера — під диском; диск занурюється в шар насіння */
+{s+=rc(40,190,196,66,C('pn2'),{stroke:C('stl'),stroke_width:1.3,rx:3});
+ const r0=rng(hash((st.base||'x')+'hop'));
+ for(let i=0;i<40;i++)s+=ci(45+r0()*186,196+r0()*54,2.8,C('seed'),{stroke:C('seed2'),stroke_width:.6});
+ s+=T(138,270,'камера насіння',{s:10,a:'middle',c:C('sub')})}
+/* вакуумна камера — зовнішній сектор від набору до скидання, за годинниковою стрілкою */
+{const aEnd=aDrop+360,p1=P(aPick,R+15),p2=P(aEnd,R+15),q1=P(aPick,R+1),q2=P(aEnd,R+1);
+ s+=pa('M'+r2(p1[0])+' '+r2(p1[1])+'A'+(R+15)+' '+(R+15)+' 0 1 1 '+r2(p2[0])+' '+r2(p2[1])+
+      'L'+r2(q2[0])+' '+r2(q2[1])+'A'+(R+1)+' '+(R+1)+' 0 1 0 '+r2(q1[0])+' '+r2(q1[1])+'Z',
+      C('vacl'),{stroke:C('vac'),stroke_width:1.3});
+ }
+/* патрубок вакууму — зверху */
+s+=rc(cx-13,6,26,16,C('vacl'),{stroke:C('vac'),stroke_width:1.2,rx:3})+
+   ln(cx,22,cx,cy-R-15,C('vac'),2.4)+T(cx+22,19,F(Q.vac)+' мбар від вентилятора',{s:10,c:C('vac'),b:1});
+/* диск */
+s+=ci(cx,cy,R,C('pn'),{stroke:C('stl'),stroke_width:2})+ci(cx,cy,R-16,C('pn2'),{stroke:C('ln'),stroke_width:1})+ci(cx,cy,8,C('stl'));
+/* комірки. f = 0 — комірка точно на скиданні; f росте за годинниковою стрілкою */
+{const fPick=((((aPick-aDrop)%360)+360)%360)/360,
+ cr=Math.min(3.6,2*Math.PI*(R-8)/zc/2-.8);
+ for(let i=0;i<zc;i++){const f=(((i/zc+ph)%1)+1)%1,d=aDrop+360*f,p=P(d,R-8);
+  s+=ci(p[0],p[1],cr,C('db'),{opacity:.5});
+  if(f<fPick)continue;
+  const o=cellOut(V,Q,st.base,Math.round(st.c0||0)-i,st.rev||0);
+  if(o.k=='miss')continue;
+  s+=ci(p[0],p[1],cr+.8,C('seed'),{stroke:C('seed2'),stroke_width:.8});
+  if(o.k=='dbl')s+=ci(p[0]+(cr+.6)*1.5,p[1]+1.6,cr,C('seed'),{stroke:C('seed2'),stroke_width:.7})}}
+/* напрямок обертання — усередині диска */
+{const p=P(200,R-34),q=P(250,R-34);
+ s+=pa('M'+r2(p[0])+' '+r2(p[1])+'A'+(R-34)+' '+(R-34)+' 0 0 1 '+r2(q[0])+' '+r2(q[1]),'none',{stroke:C('sub'),stroke_width:1.6})+
+    pg([[q[0],q[1]],[q[0]-6,q[1]-1],[q[0]-2,q[1]-6]],C('sub'))}
+s+=T(cx,cy+26,'n = '+F(r1(metN(V,Q)),1)+' об/хв',{a:'middle',s:10.5,b:1,c:C('sub')});
+s+=T(cx,cy+40,'z = '+zc+' комірок',{a:'middle',s:9.5,c:C('sub')});
+/* скидач і перехід у насіннєпровід */
+{const dp=P(aDrop,R);
+ s+=ln(dp[0],dp[1],dp[0]+16,dp[1]-10,C('wn'),2.2)+T(dp[0]+20,dp[1]-14,'скидач: вакуум перекрито',{s:9.5,c:C('wn'),b:1});
+ s+=pl([[dp[0]+4,dp[1]+6],[tx-14,ty0-26],[tx-14,ty0]],C('hose'),2.2)}
+/* насіннєпровід */
+s+=rc(tx-14,ty0,28,ty1-ty0,C('pn2'),{stroke:C('hose'),stroke_width:1.8,rx:4});
+s+=T(tx+34,ty0+14,'насіннєпровід',{s:9.5,c:C('sub')});
+/* датчик висіву */
+const sy=ty0+104;
+s+=rc(tx-28,sy-11,14,22,C('stl'),{rx:3})+rc(tx+14,sy-11,14,22,C('stl'),{rx:3})+
+   ln(tx-14,sy,tx+14,sy,C('am'),1.6,dash(4,3))+
+   T(tx+34,sy+4,'датчик висіву',{s:9.5,c:C('am'),b:1});
+const flash=(st.fall||[]).some(f=>Math.abs(ty0+(ty1-ty0)*f.t-sy)<9);
+if(flash)s+=ci(tx,sy,14,C('am'),{opacity:.28})+ci(tx,sy,6,C('am'))+T(tx+34,sy+19,'імпульс',{s:9,c:C('am')});
+/* насінини у польоті */
+for(const f of st.fall||[]){const y=ty0+(ty1-ty0)*f.t;
+ s+=ci(tx,y,3.4,C('seed'),{stroke:C('seed2'),stroke_width:.8});
+ if(f.dbl)s+=ci(tx+1.6,y+8,3.2,C('seed'),{stroke:C('seed2'),stroke_width:.8})}
+/* ґрунт і борозна */
+s+=rc(0,310,w,h-310,C('soil'));
+s+=pa('M0 310 L'+(tx-26)+' 310 Q'+tx+' 310 '+tx+' 330 Q'+tx+' 310 '+(tx+26)+' 310 L'+w+' 310 L'+w+' '+h+' L0 '+h+' Z',C('soil2'),{opacity:.45});
+s+=ln(0,310,w,310,C('soil2'),1.4);
+/* насінини у борозні за фактичними інтервалами */
+{const PX=st.px||2,yS=328;
+ for(const d of st.furrow||[]){const x=tx-d.x*PX;if(x<8||x>tx+2)continue;
+  s+=ci(x,yS,3.4,C('seed'),{stroke:C('seed2'),stroke_width:.8});
+  if(d.k=='dbl')s+=ci(x-5,yS,3.2,C('seed'),{stroke:C('seed2'),stroke_width:.8});
+  if(d.k=='miss'&&d.gap){const xp=Math.max(8,x-d.gap*PX);
+   if(x-xp>16)s+=ln(xp,yS+13,x,yS+13,C('miss2'),2)+ln(xp,yS+9,xp,yS+17,C('miss2'),1.4)+
+     ln(x,yS+9,x,yS+17,C('miss2'),1.4)+T((xp+x)/2,yS+28,'пропуск',{s:9,a:'middle',c:C('miss2')})}}
+ /* масштаб: один крок висіву, прив’язаний до насіннєпроводу */
+ s+=dimH(tx-(Q.S||20)*PX,tx,h-12,'S = '+F(r1(Q.S||20),1)+' см',C('ink'))}
+s+=T(w-8,h-12,'напрямок руху →',{a:'end',s:10,c:C('sub')});
+return'<div class="fig"><div class="sx">'+sv(w,h)[0]+s+sv(w,h)[1]+'</div>'+
+ '<div class="tlg">'+[['вакуумна камера',C('vacl')],['насінина',C('seed')],['комірка диска',C('db')],['пропуск у борозні',C('miss2')]]
+  .map(x=>'<i style="background:'+x[1]+'"></i>'+esc(x[0])).join('')+'</div>'+
+ '<div class="cap">Висівний апарат: диск занурюється в камеру насіння, вакуум присмоктує по одній насінині до кожної комірки; на скидачі вакуум перекривається і насінина падає насіннєпроводом повз датчик у борозну. Борозна показана у масштабі.</div></div>'}
+/* оберти диска при поточних налаштуваннях */
+const metN=(V,Q)=>discRPM(Q.v||V.ideal.v,Q.S||V.Sopt,Q.z||V.zOpt);
+/* результат комірки: одиничне / пропуск / двійник — за частотами моделі */
+function cellOut(V,Q,base,i,rev){const mt=meter(V,Q),r=rng(hash((base||'x')+'c'+(i+rev*997))),u=r()*100;
+ return u<mt.miss?{k:'miss'}:u<mt.miss+mt.dbl?{k:'dbl'}:{k:'one'}}
+
+/* ================= Екран монітора висіву в кабіні ================= */
+function monSVG(V,rows,o){o=o||{};const nR=rows.length,bw=Math.min(46,Math.max(26,520/nR)),
+ gap=8,w=40+nR*(bw+gap),h=190,base=150;
+let s=rc(0,0,w,h,C('db'),{rx:8});
+s+=T(12,18,o.title||'МОНІТОР ВИСІВУ',{s:10.5,c:C('dd'),b:1});
+s+=T(w-12,18,(o.sub||''),{s:10,c:C('dd'),a:'end'});
+s+=ln(30,base,w-10,base,C('dd'),1);
+const yv=v=>base-(base-34)*cl(v/(o.max||100),0,1);
+{const M=o.max||100;for(let i=1;i<=4;i++){const g=M*i/4;s+=ln(30,yv(g),w-10,yv(g),C('dd'),.6,dash(3,4))+T(26,yv(g)+3.5,String(Math.round(g*10)/10).replace('.',','),{s:9,a:'end',c:C('dd')})}}
+rows.forEach((r,k)=>{const x=34+k*(bw+gap),v=o.val(r),c=o.col(r);
+ s+=rc(x,yv(v),bw,base-yv(v),c,{rx:2});
+ s+=T(x+bw/2,base+14,String(r.r),{a:'middle',s:10,c:C('df')});
+ s+=T(x+bw/2,yv(v)-4,F(r1(v),1),{a:'middle',s:9.5,c:C('df')});
+ if(o.alarm&&o.alarm(r))s+=T(x+bw/2,base+26,'▲',{a:'middle',s:11,c:'#FF7A5C'});
+ });
+if(o.sel!=null){const k=rows.findIndex(r=>r.r==o.sel);if(k>=0){const x=34+k*(bw+gap);
+ s+=rc(x-3,28,bw+6,base-26,C('df'),{opacity:.14,rx:3})+T(x+bw/2,base+26,'обраний',{a:'middle',s:8.5,c:C('df')})}}
+s+=T(12,base+14,'ряд',{s:9.5,c:C('dd')});
+if(o.thr!=null)s+=ln(30,yv(o.thr),w-10,yv(o.thr),'#FF7A5C',1.4,dash(6,4))+T(34,yv(o.thr)-5,'поріг тривоги '+F(o.thr)+' %',{s:9.5,c:'#FF7A5C'});
+return'<div class="fig"><div class="sx">'+sv(w,h)[0]+s+sv(w,h)[1]+'</div>'+
+ (o.cap?'<div class="cap">'+o.cap+'</div>':'')+'</div>'}
+
+/* ================= Інтервали між насінинами ================= */
+function intSVG(iv,S,o){o=o||{};const w=680,h=150,L=40,Rr=118,Tp=16,B=28,
+ mx=Math.max(2.2*S,Math.max(...iv,0)*1.05),
+ X=i=>L+(w-L-Rr)*i/Math.max(1,iv.length-1),Y=v=>Tp+(h-Tp-B)*(1-v/mx);
+let s=rc(L,Tp,w-L-Rr,h-Tp-B,C('pn'),{stroke:C('ln')});
+/* смуги класифікації за ISO 7256-1 */
+s+=rc(L,Tp,w-L-Rr,Y(1.5*S)-Tp,C('miss2'),{opacity:.12});
+s+=rc(L,Y(.5*S),w-L-Rr,h-B-Y(.5*S),C('dblc'),{opacity:.12});
+for(const g of [[S,'S — крок висіву',C('ac')],[1.5*S,'1,5S — пропуск',C('miss2')],[.5*S,'0,5S — двійник',C('dblc')]])
+ s+=ln(L,Y(g[0]),w-Rr,Y(g[0]),g[2],1.3,g[0]==S?{}:dash(5,4))+T(w-Rr+5,Y(g[0])+3.5,g[1],{s:9.5,c:g[2]});
+iv.forEach((v,i)=>{const x=X(i),c=v>1.5*S?C('miss2'):v<=.5*S?C('dblc'):C('ac');
+ s+=ln(x,Y(0),x,Y(v),c,Math.max(1.4,(w-L-Rr)/iv.length*.5))+ci(x,Y(v),2,c)});
+s+=T(L-5,Y(0)+3.5,'0',{a:'end',s:9.5,c:C('sub')})+T(4,Tp-4,'інтервал, см',{s:10,c:C('sub')})+
+   T(w-Rr,h-4,'номер інтервалу',{a:'end',s:10,c:C('sub')});
+return'<div class="fig"><div class="sx">'+sv(w,h)[0]+s+sv(w,h)[1]+'</div>'+
+ (o.cap?'<div class="cap">'+o.cap+'</div>':'')+'</div>'}
+
+/* гістограма інтервалів */
+function histSVG(iv,S,o){o=o||{};const w=640,h=186,L=42,Rr=12,Tp=16,B=46,nb=25,
+ mx=2.5*S,bw=(w-L-Rr)/nb,cnt=new Array(nb).fill(0);
+for(const v of iv)cnt[cl(Math.floor(v/mx*nb),0,nb-1)]++;
+const my=Math.max(4,Math.ceil(Math.max(...cnt)/4)*4);
+let s=rc(L,Tp,w-L-Rr,h-Tp-B,C('pn'),{stroke:C('ln')});
+const Y=c=>Tp+(h-Tp-B)*(1-c/my);
+for(let i=0;i<=4;i++){const y=Tp+(h-Tp-B)*i/4,v=my*(1-i/4);s+=ln(L,y,w-Rr,y,C('ln'),.6,dash(3,4))+T(L-5,y+3.5,String(Math.round(v)),{a:'end',s:9.5,c:C('sub')})}
+cnt.forEach((c,i)=>{const v=(i+.5)*mx/nb,col=v>1.5*S?C('miss2'):v<=.5*S?C('dblc'):C('ac');
+ if(c)s+=rc(L+i*bw+.6,Y(c),bw-1.2,h-B-Y(c),col,{rx:1.5})});
+for(const g of [[.5*S,'0,5S',C('dblc')],[S,'S',C('ac')],[1.5*S,'1,5S',C('miss2')]]){const x=L+(w-L-Rr)*g[0]/mx;
+ s+=ln(x,Tp,x,h-B,g[2],1.3,dash(5,4))+T(x,Tp-4,g[1],{a:'middle',s:9.5,c:g[2]})}
+for(let i=0;i<=5;i++){const v=S*i/2,x=L+(w-L-Rr)*v/mx;
+ s+=T(x,h-B+14,i==0?'0':i==2?'S':F(i/2,1)+'·S',{a:'middle',s:9.5,c:C('sub')})+
+   T(x,h-B+27,F(r1(v),1),{a:'middle',s:8.5,c:C('sub')})}
+s+=T(w-Rr,h-4,'інтервал: угорі в частках S, унизу в сантиметрах',{a:'end',s:10,c:C('sub')})+T(4,Tp-4,'кількість',{s:10,c:C('sub')});
+return'<div class="fig"><div class="sx">'+sv(w,h)[0]+s+sv(w,h)[1]+'</div>'+
+ (o.cap?'<div class="cap">'+o.cap+'</div>':'')+'</div>'}
+
+/* ================= Часовий бюджет секційного вимикання ================= */
+function tlSVG(V,Q,o){o=o||{};const w=660,h=176,L=152,Rr=20,
+ Tl=Q.Tl??0,mx=Math.max(V.Tz,Tl,.6)*1.18,X=t=>L+(w-L-Rr)*t/mx,
+ segs=[['T_GNSS — приймач',V.Tg,C('vac')],['T_кл — клапан, муфта',V.Tk,C('am')],['T_пад — падіння насінини',V.Tp,C('seed')]];
+let s='',y=26;
+s+=T(6,16,'Від команди до насінини у ґрунті',{s:11,b:1,c:C('sub')});
+let acc=0;
+for(const g of segs){s+=T(L-8,y+11,g[0],{a:'end',s:10,c:C('sub')});
+ s+=rc(X(acc),y,X(acc+g[1])-X(acc),16,g[2],{rx:3,stroke:C('ln'),stroke_width:.8})+
+    T((X(acc)+X(acc+g[1]))/2,y+12,F(g[1],2),{a:'middle',s:9.5,b:1,c:C('ink')});
+ acc+=g[1];y+=22}
+/* сума */
+s+=T(L-8,y+12,'T_заг',{a:'end',s:10.5,b:1});
+s+=rc(X(0),y,X(V.Tz)-X(0),18,C('ac'),{rx:3,opacity:.3,stroke:C('ac'),stroke_width:1.2})+
+   T(X(V.Tz/2),y+13,'T_заг = '+F(V.Tz,2)+' с',{a:'middle',s:10.5,b:1});
+y+=26;
+/* випередження */
+s+=T(L-8,y+12,'T_лід (задано)',{a:'end',s:10,c:C('sub')});
+s+=rc(X(0),y,X(Tl)-X(0),16,C('trk'),{rx:3,opacity:.45,stroke:C('trk'),stroke_width:1})+
+   T(X(Math.max(Tl,.04))-6,y+12,F(Tl,2)+' с',{s:9.5,a:'end',b:1});
+y+=24;
+/* різниця */
+const d=V.Tz-Tl,dl=(Q.v||V.ideal.v)/3.6*d;
+s+=ln(X(Math.min(Tl,V.Tz)),y-8,X(Math.min(Tl,V.Tz)),26,C('ink'),1,dash(3,3));
+s+=ln(X(V.Tz),y-8,X(V.Tz),26,C('ink'),1,dash(3,3));
+if(Math.abs(d)>.005){const c=d>0?C('wn'):C('over');
+ s+=dimH(X(Math.min(Tl,V.Tz)),X(Math.max(Tl,V.Tz)),y+4,'Δt = '+F(Math.abs(d),2)+' с → ΔL = '+F(Math.abs(dl),2)+' м '+(d>0?'пересіву':'пропуску'),c)}
+else s+=T((L+w)/2,y+6,'T_лід = T_заг: ΔL = 0 — помилки немає',{a:'middle',s:10.5,b:1,c:C('ac')});
+/* шкала */
+for(let i=0;i<=4;i++){const t=mx*i/4;s+=T(X(t),h-4,F(r1(t),1)+' с',{a:'middle',s:9.5,c:C('sub')})}
+return'<div class="fig"><div class="sx">'+sv(w,h)[0]+s+sv(w,h)[1]+'</div>'+
+ (o.cap?'<div class="cap">'+o.cap+'</div>':'')+'</div>'}
+
+/* ================= Межа поля: пересів і пропуск ================= */
+/* Вид зверху, у масштабі: по ходу й поперек однаковий px/м */
+function secSVG(V,Q,o){o=o||{};const w=680,h=256,
+ v=Q.v||V.ideal.v,Tl=Q.Tl??0,dL=v/3.6*(V.Tz-Tl),
+ /* масштаб підбираємо так, щоб ΔL було видно; по ходу й поперек він однаковий */
+ PX=o.px??cl(500/Math.max(7,5*Math.abs(dL)+2*Tl*v/3.6+4),10,60),
+ bEdge=430,y0=58,
+ nR=cl(Math.floor(100/(V.aMm/100*PX)),2,V.rows),By=nR*(V.aMm/100)*PX;
+let s=rc(0,0,w,h,C('pn2'));
+s+=rc(0,0,bEdge,h,C('sown'),{opacity:.26})+rc(bEdge,0,w-bEdge,h,C('idle'),{opacity:.55});
+s+=ln(bEdge,0,bEdge,h,C('ink'),1.8,dash(7,5))+T(bEdge+8,h-32,'межа поля',{s:10,c:C('sub')})+
+   T(bEdge+8,h-20,'поворотна смуга',{s:10,c:C('sub')});
+const xEnd=cl(bEdge+dL*PX,10,w-8);
+/* рядки */
+for(let i=0;i<nR;i++)s+=ln(0,y0+(i+.5)*By/nR,Math.max(0,Math.min(w,xEnd)),y0+(i+.5)*By/nR,C('soil2'),1.1,dash(2,3));
+s+=rc(0,y0,Math.max(0,Math.min(xEnd,w)),By,C('seed'),{opacity:.2});
+if(dL>.01){s+=rc(bEdge,y0,xEnd-bEdge,By,C('wn'),{opacity:.45,stroke:C('wn'),stroke_width:1.2});
+ s+=T((bEdge+xEnd)/2,y0-10,'пересів',{a:'middle',s:11,b:1,c:C('wn')})}
+else if(dL<-.01){s+=rc(xEnd,y0,bEdge-xEnd,By,C('over'),{opacity:.42,stroke:C('over'),stroke_width:1.2,...dash(4,3)});
+ s+=T((bEdge+xEnd)/2,y0-10,'незасіяна смуга',{a:'middle',s:11,b:1,c:C('over')})}
+else s+=T(bEdge+16,y0-10,'остання насінина точно на межі',{s:11,b:1,c:C('ac')});
+/* точка команди й точка останньої насінини */
+const xCmd=cl(bEdge-Tl*v/3.6*PX,12,w-8);
+s+=ln(xCmd,y0-28,xCmd,y0+By+18,C('trk2'),1.6)+T(xCmd-6,y0-32,'команда «вимкнути»',{a:'end',s:10,c:C('trk2')});
+s+=ln(xEnd,y0-20,xEnd,y0+By+38,C('ink'),1.4,dash(4,3));
+s+=T(xEnd+(dL<0?-6:6),y0+By+50,'остання насінина',{a:dL<0?'end':'start',s:10,c:C('ink')});
+/* розміри */
+s+=dimV(y0,y0+By,24,'');
+if(Math.abs(dL)>.01)s+=dimH(bEdge,xEnd,y0+By+24,'ΔL = '+F(dL,2)+' м',dL>0?C('wn'):C('over'));
+if(Tl>.001)s+=dimH(xCmd,bEdge,y0+By+58,'шлях за T_лід = '+F(r2(Tl*v/3.6),2)+' м',C('trk2'));
+/* трактор */
+const tX=cl(xCmd-56,34,w-44);
+s+=rc(tX-16,y0+By/2-13,30,26,C('trk'),{rx:4,stroke:C('trk2'),stroke_width:1.2})+
+   ci(tX-10,y0+By/2+13,7,C('tyre'))+ci(tX+8,y0+By/2+13,7,C('tyre'))+
+   pg([[tX+16,y0+By/2],[tX+26,y0+By/2-5],[tX+26,y0+By/2+5]],C('trk2'));
+s+=T(8,h-8,'масштаб '+F(r1(PX),1)+' px на 1 м, однаковий по ходу й поперек; показано '+nR+' ряди з '+V.rows+
+ ' (міжряддя '+F(V.aMm)+' см); v = '+F(v,1)+' км/год',{s:9.5,c:C('sub')});
+return'<div class="fig"><div class="sx">'+sv(w,h)[0]+s+sv(w,h)[1]+'</div>'+
+ (o.cap?'<div class="cap">'+o.cap+'</div>':'')+'</div>'}
+
+/* ================= Картограма висіву (як у системі моніторингу) ================= */
+function mapSVG(V,p,o){o=o||{};const w=620,h=260,M=18,
+ fw=w-2*M,fh=h-2*M-18,passes=Math.min(14,Math.max(6,Math.round(Math.sqrt(V.S)/2))),
+ pw=fw/passes,r=rng(hash(V.id+'map'+(o.seed||0)));
+let s=rc(M,M,fw,fh,C('sown'),{opacity:.3,stroke:C('ink'),stroke_width:1.4});
+/* проблемні зони: де пропуски перевищують поріг */
+const bad=p.bad.length,frac=cl(p.miss/12,0,1);
+for(let i=0;i<passes;i++){const x=M+i*pw;
+ s+=ln(x,M,x,M+fh,C('ln'),.5);
+ /* смуга проходу: ділимо на 8 ділянок */
+ for(let k=0;k<8;k++){const y=M+k*fh/8,q=r();
+  let c=null;
+  if(q<frac*.55)c=C('miss2');else if(q<frac*.55+p.dbl/60)c=C('dblc');
+  if(c)s+=rc(x+1,y+1,pw-2,fh/8-2,c,{opacity:.55,rx:2})}}
+/* поворотні смуги */
+s+=rc(M,M,fw,fh/8,C('over'),{opacity:p.over>.05?.3:.08})+rc(M,M+fh*7/8,fw,fh/8,C('over'),{opacity:p.over>.05?.3:.08});
+s+=T(M+4,M+14,'поворотна смуга',{s:9.5,c:C('sub')});
+s+=T(M,M-6,'Картограма висіву: '+esc(V.crop)+', '+F(V.S)+' га, '+passes+' проходів (умовно)',{s:10.5,b:1,c:C('sub')});
+s+=T(M,h-4,'',{s:9.5});
+let lgi=[['одиничний висів — норма',C('sown')],['зона пропусків',C('miss2')],['зона двійників',C('dblc')],['перекриття на поворотній',C('over')]];
+return'<div class="fig"><div class="sx">'+sv(w,h)[0]+s+sv(w,h)[1]+'</div>'+
+ '<div class="tlg">'+lgi.map(x=>'<i style="background:'+x[1]+'"></i>'+esc(x[0])).join('')+'</div>'+
+ (o.cap?'<div class="cap">'+o.cap+'</div>':'')+'</div>'}
+
+/* ================= Диск і комірка у масштабі ================= */
+function discSVG(V,hole,o){o=o||{};const w=580,h=252,SC=18,                /* px на мм у збільшенні */
+ cx=92,cy=112,R=74,z=(DISC.find(d=>Math.abs(d.hole-hole)<.01)||{z:30}).z,
+ cr=Math.min(5,2*Math.PI*(R-13)/z/2-.9),rs=V.ds*SC/2,rh=hole*SC/2;
+let s=ci(cx,cy,R,C('pn'),{stroke:C('stl'),stroke_width:2})+ci(cx,cy,R-26,C('pn2'),{stroke:C('ln'),stroke_width:1})+ci(cx,cy,8,C('stl'));
+for(let i=0;i<z;i++){const a=2*Math.PI*i/z;s+=ci(cx+(R-13)*Math.cos(a),cy+(R-13)*Math.sin(a),cr,C('db'),{opacity:.65})}
+s+=T(cx,cy+R+18,'висівний диск, z = '+z,{a:'middle',s:10,c:C('sub')});
+/* 1) вигляд зверху: насінина і комірка поруч, у масштабі */
+const bx=236,hx=bx+rs+34+rh;
+s+=T(bx-rs,30,'У масштабі, вигляд зверху:',{s:10.5,b:1,c:C('sub')});
+s+=ci(bx,cy,rs,C('seed'),{stroke:C('seed2'),stroke_width:1.4})+T(bx,cy-rs-8,'насінина',{a:'middle',s:9.5,c:C('seed2')});
+s+=ci(hx,cy,rh,C('db'),{opacity:.8,stroke:C('ink'),stroke_width:1.2})+T(hx,cy-rs-8,'комірка',{a:'middle',s:9.5,c:C('sub')});
+s+=dimH(bx-rs,bx+rs,cy+rs+22,'d_нас = '+F(V.ds,1)+' мм',C('seed2'));
+s+=dimH(hx-rh,hx+rh,cy+rs+22,'d_к = '+F(hole,1)+' мм',C('ink'));
+/* 2) розріз: насінина сидить на комірці, вакуум тримає її знизу */
+const sx=470,sy=132;
+s+=T(sx,30,'Розріз диска:',{a:'middle',s:10.5,b:1,c:C('sub')});
+s+=rc(sx-74,sy,148,18,C('stl'),{opacity:.35});
+s+=rc(sx-rh,sy-1,2*rh,20,C('pn2'),{stroke:C('ink'),stroke_width:1.1});
+s+=ci(sx,sy-rs*.78,rs,C('seed'),{stroke:C('seed2'),stroke_width:1.4});
+s+=T(sx,sy-rs*.78-rs-9,'насінина',{a:'middle',s:9.5,c:C('seed2')});
+s+=T(sx-78,sy+13,'диск',{a:'end',s:9.5,c:C('sub')});
+for(const dx of [-7,7])s+=ln(sx+dx,sy+46,sx+dx,sy+24,C('vac'),1.6)+pg([[sx+dx,sy+22],[sx+dx-3.4,sy+28],[sx+dx+3.4,sy+28]],C('vac'));
+s+=T(sx,sy+60,'вакуум',{a:'middle',s:9.5,c:C('vac'),b:1});
+/* висновок */
+const rt=hole/V.ds,ok=rt>=.46&&rt<=.62;
+s+=T(bx-rs,h-26,'d_к / d_нас = '+F(r2(rt),2),{s:11.5,b:1,c:ok?C('ac'):C('wn')});
+s+=T(bx-rs,h-8,rt<.46?'замало: насінина не утримується на комірці':rt>.62?'забагато: насінина провалюється, беруться дві':'у робочому діапазоні 0,46…0,62',
+ {s:10,c:ok?C('ac'):C('wn')});
+return'<div class="fig"><div class="sx">'+sv(w,h)[0]+s+sv(w,h)[1]+'</div>'+
+ (o.cap?'<div class="cap">'+o.cap+'</div>':'')+'</div>'}
+/* ===== Екрани: кроки 0…3 ===== */
+/* Загальні дрібниці інтерфейсу */
+const H=(t,k)=>'<h2>'+esc(t)+'</h2>'+(k?'<p class="hint">'+k+'</p>':'');
+const inp=(k,lab,ph,o)=>{o=o||{};const id='i_'+k.replace(/\./g,'_');
+ return(lab?'<label for="'+id+'">'+lab+'</label>':'')+
+ '<input id="'+id+'" type="text" inputmode="'+(o.im||'decimal')+'" value="'+vs(get(k))+'" placeholder="'+esc(ph||'')+'" '+
+ 'oninput="set(\''+k+'\',this.value)"'+(o.oc?' onchange="'+o.oc+'"':'')+'>'};
+const get=k=>k.split('.').reduce((o,x)=>o==null?null:o[x],S);
+function set(k,v){const p=k.split('.');let o=S;for(let i=0;i<p.length-1;i++)o=o[p[i]];o[p[p.length-1]]=v;save();
+ clearTimeout(set.t);set.t=setTimeout(R,420)}
+function setN(k,v){const p=k.split('.');let o=S;for(let i=0;i<p.length-1;i++)o=o[p[i]];o[p[p.length-1]]=v;save();R()}
+/* самоперевірка: ✓ якщо введене число збігається з розрахунком моделі (відповіді не показуємо) */
+function chk(val,ref,tolPct,tolAbs){const x=n(val);if(x==null||val==='')return'';
+ const t=Math.max(tolAbs??0,Math.abs(ref)*(tolPct??.02));
+ return Math.abs(x-ref)<=t?' <span class="ok" title="збігається з розрахунком">✓</span>':' <span class="no" title="перевірте розрахунок">✗</span>'}
+const sel=(k,opts,lab,cur)=>(lab?'<label>'+lab+'</label>':'')+'<select onchange="setN(\''+k+'\',this.value)">'+
+ opts.map(o=>{const v=Array.isArray(o)?o[0]:o,t=Array.isArray(o)?o[1]:o;
+ return'<option value="'+esc(v)+'"'+(String(cur)==String(v)?' selected':'')+'>'+esc(t)+'</option>'}).join('')+'</select>';
+const kvc=a=>'<div class="kv">'+a.map(x=>'<div><b'+(x[3]?' class="'+x[3]+'"':'')+'>'+x[1]+'</b><span>'+esc(x[0])+'</span>'+(x[2]?'<em>'+x[2]+'</em>':'')+'</div>').join('')+'</div>';
+const gsc=a=>'<div class="gs">'+a.map(x=>'<div class="gt"><b'+(x[2]?' style="color:'+x[2]+'"':'')+'>'+x[1]+'</b><span>'+esc(x[0])+'</span></div>').join('')+'</div>';
+const recBox=i=>'<div class="rb"><b>Запишіть у протокол (пункт '+i+'):</b><br>'+esc(rec(i))+'</div>';
+const nb=(a,b)=>'<div class="nb">'+(a?'<button class="g" onclick="go('+a[0]+')">← '+esc(a[1])+'</button>':'<span></span>')+
+ (b?'<button class="p" onclick="go('+b[0]+')">'+esc(b[1])+' →</button>':'<span></span>')+'</div>';
+
+/* ---------- 0. Реєстрація ---------- */
+function scr0(){const d=S.reg||{};
+let s=H('Реєстрація та індивідуальний варіант',
+ 'Варіант визначається групою, прізвищем та номером у журналі. Той самий підпис завжди дає той самий варіант — його можна відтворити.');
+s+='<div class="r3">'+
+ '<div><label for="rg">Група</label><input id="rg" type="text" value="'+vs(d.group)+'" oninput="rset(\'group\',this.value)" placeholder="АІ-31"></div>'+
+ '<div><label for="rn">Прізвище та ім’я</label><input id="rn" type="text" value="'+vs(d.name)+'" oninput="rset(\'name\',this.value)" placeholder="Іваненко Іван"></div>'+
+ '<div><label for="rk">№ у журналі</label><input id="rk" type="text" inputmode="numeric" value="'+vs(d.num)+'" oninput="rset(\'num\',this.value)" placeholder="7"></div></div>';
+s+='<button class="p" onclick="mkvar()">Отримати варіант</button>'+
+   (S.reg?' <button class="g" onclick="wipe()">Очистити все й почати заново</button>':'');
+if(V){s+='<h3>Варіант '+esc(V.id)+'</h3>';
+ s+='<div class="tw"><table class="t2">'+
+  tr('Сівалка',esc(V.a.p)+' — '+V.rows+' рядів, міжряддя '+F(V.aMm)+' см, ширина захвату B = '+F(V.B,1)+' м')+
+  tr('Привід висівних дисків',esc(V.a.drive)+' (паспортна межа швидкості '+F(V.a.vk)+' км/год)')+
+  tr('Подача насіння',esc(V.a.del)+'; висота апарата над ґрунтом '+F(V.hTube)+' см')+
+  tr('Трактор',esc(V.trk))+
+  tr('Культура',esc(V.crop)+'; маса 1000 насінин '+F(V.m1000)+' г; розмір насінини '+F(V.ds,1)+' мм')+
+  tr('Норма висіву',TH(V.N)+' шт/га')+
+  tr('Планова швидкість',F(V.vp,1)+' км/год')+
+  tr('Поле',F(V.S)+' га, довжина гону '+TH(V.L)+' м; перекриття без секційного вимикання '+F(V.wedge,1)+' %')+
+  tr('Економіка',(V.crop=='кукурудза'?'урожайність ':'урожайність ')+F(V.Y,1)+' т/га; ціна продукції '+TH(V.Cp)+' грн/т; насіння '+TH(V.Cn)+' грн/га; система контролю '+TH(V.Csys)+' грн')+
+  '</table></div>';
+ s+='<p class="note">Запізнення ланок системи у вашому варіанті: приймач T<sub>GNSS</sub> = '+F(V.Tg,2)+
+  ' с, клапан/муфта T<sub>кл</sub> = '+F(V.Tk,2)+' с. Час падіння насінини T<sub>пад</sub> симулятор рахує сам за висотою апарата та способом подачі.</p>';
+ s+='<details class="inf"><summary>Що робить ця система і чому її перевіряють</summary>'+
+  '<p>Сівалка точного висіву має подати по одній насінині через однакову відстань. Система контролю не керує цим безпосередньо — вона <b>бачить</b> кожну насінину оптичним датчиком у насіннєпроводі й порівнює побачене з розрахунковою нормою. Якщо датчик бачить менше насінин, ніж треба, монітор піднімає тривогу по ряду.</p>'+
+  '<p>Друга частина системи — <b>керування</b>: електропривід дисків тримає норму незалежно від швидкості, а секційне вимикання за GNSS відключає ряди на межі поля. Обидві частини працюють із запізненням, і саме це запізнення студент мусить порахувати.</p>'+
+  '<p>Тому в роботі чотири завдання: відрізнити справжню несправність від обману датчика, розрахувати норму й налагодити апарат, порахувати часовий бюджет вимикання, оцінити, чи варта система своїх грошей.</p></details>'}
+s+=nb(null,V?[1,'Монітор і діагностика']:null);
+return s}
+const tr=(a,b)=>'<tr><th>'+a+'</th><td>'+b+'</td></tr>';
+function rset(k,v){S.reg=S.reg||{};S.reg[k]=v;save()}
+function mkvar(){const d=S.reg||{};
+ if(!d.group||!d.name||!String(d.num||'').trim())return alert('Заповніть групу, прізвище та номер у журналі.');
+ const keep={...d};S=blank();S.reg=keep;V=mkV(keep);S.z=0;S.hole=0;save();R()}
+function wipe(){if(!confirm('Видалити всі введені дані й результати?'))return;try{localStorage.removeItem(KEY)}catch(e){}S=blank();V=null;save();R()}
+
+/* ---------- 1. Монітор і діагностика рядів ---------- */
+function scr1(){const rows=[];for(let r=1;r<=V.rows;r++)rows.push({r,...monRow(r)});
+const al=rows.filter(x=>x.alarm).map(x=>x.r);
+let s=H('Крок 1. Що показує монітор і що насправді у ґрунті',
+ 'Сівалку щойно виїхали в поле. Монітор уже дав тривогу по частині рядів. Ваше завдання — для кожного ряду встановити причину, а не просто повірити монітору.');
+s+=monSVG(V,rows,{val:x=>x.miss,col:x=>x.alarm?'#FF7A5C':C('df'),alarm:x=>x.alarm,thr:5,
+ sub:esc(V.a.p),cap:'Монітор висіву під час діагностичного проходу: пропуски по рядах, %. Поріг тривоги — 5 %. Цифри під стовпцями — номери рядів.'});
+s+=al.length?'<p class="note"><span class="bd w">тривога</span> ряди: <b>'+al.join(', ')+'</b></p>'
+           :'<p class="note"><span class="bd">норма</span> монітор не дає тривоги ні по одному ряду. Це теж результат — але перевірки все одно виконайте.</p>';
+
+s+='<h3>Три перевірки в полі</h3><p class="hint">Монітор бачить лише імпульси датчика. Щоб знайти причину, потрібні незалежні від датчика вимірювання.</p>';
+s+='<div class="sen">'+
+ chkBtn('vac','Вакуум по секціях','манометр на кожній секції')+
+ chkBtn('dig','Контрольне підкопування','10 м рядка, рахуємо насіння')+
+ chkBtn('tube','Огляд насіннєпроводів','візуально та на просвіт')+'</div>';
+s+='<div class="tw"><table class="t2 c"><tr><th>Ряд</th><th>Монітор:<br>пропуски, %</th>'+
+ (S.chk.vac?'<th>Вакуум<br>у секції, мбар</th>':'')+
+ (S.chk.dig?'<th>Підкопування:<br>фактичні пропуски, %</th>':'')+
+ (S.chk.tube?'<th>Насіннєпровід</th>':'')+
+ '<th>Ваш діагноз</th></tr>';
+for(const x of rows){const dg=S.ck['s'+x.r]||'—';
+ s+='<tr><td><b>'+x.r+'</b></td><td'+(x.alarm?' style="color:'+C('wn')+';font-weight:700"':'')+'>'+F(x.miss,1)+'</td>';
+ if(S.chk.vac){const p=vacRow(x.r),low=p<vacNow()*.8;s+='<td'+(low?' style="color:'+C('wn')+';font-weight:700"':'')+'>'+F(p)+'</td>'}
+ if(S.chk.dig){const d=digRow(x.r);s+='<td'+(d>5?' style="color:'+C('wn')+';font-weight:700"':'')+'>'+F(d,1)+'</td>'}
+ if(S.chk.tube){const t=tubeRow(x.r);s+='<td'+(t!='вільний'?' style="color:'+C('wn')+';font-weight:700"':'')+'>'+esc(t)+'</td>'}
+ s+='<td>'+sel('ck.s'+x.r,DIAG,'',dg)+'</td></tr>'}
+s+='</table></div>';
+const filled=rows.filter(x=>(S.ck['s'+x.r]||'—')!='—').length;
+s+='<p class="note">Заповнено '+filled+' з '+V.rows+' рядів.</p>';
+
+s+='<details class="inf"><summary>Як розрізнити три причини (підказка)</summary>'+
+ '<ul><li><b>Витік вакууму</b> — манометр секції показує помітно менше заданого, підкопування підтверджує пропуски. Насіння справді немає.</li>'+
+ '<li><b>Забруднений датчик</b> — вакуум у нормі, підкопування пропусків <b>не</b> підтверджує. Насіння є, його не бачить датчик: монітор обманює.</li>'+
+ '<li><b>Забитий насіннєпровід</b> — вакуум у нормі, підкопування підтверджує пропуски, а огляд показує звуження каналу.</li>'+
+ '<li><b>Норма</b> — усі три перевірки без зауважень.</li></ul>'+
+ '<p>Логіка одна: датчик — не істина, а прилад. Його свідчення потрібно підтвердити вимірюванням, яке від нього не залежить.</p></details>';
+
+s+='<h3>Калібрування датчика швидкості</h3>'+
+ '<p class="hint">Норма висіву прямо залежить від швидкості, яку система вважає своєю. Проїдьте мірну ділянку '+CALL+' м і порівняйте з показом системи.</p>';
+s+='<button class="'+(S.calDone?'g':'p')+'" onclick="calGo()">'+(S.calDone?'Повторити пробіг':'Виконати контрольний пробіг '+CALL+' м')+'</button>';
+if(S.calDone){const e=calErrPct();
+ s+=kvc([['мірна ділянка (рулетка)',F(CALL)+' м',''],
+  ['система показала',F(S.calShown,1)+' м',''],
+  ['похибка',F(e,1)+' %',Math.abs(e)>2?'поза допуском ±2 %':'у допуску',Math.abs(e)>2?'up':'dn'],
+  ['норма з такою похибкою',TH(V.N*(1+e/100))+' шт/га','замість '+TH(V.N)+'',Math.abs(e)>2?'up':'']]);
+ s+='<label><input type="checkbox" '+(S.calFixed?'checked':'')+' onchange="setN(\'calFixed\',this.checked?1:0)"> Внести поправку в контролер (обнулити похибку)</label>'}
+
+s+='<h3>Вакуум у системі</h3><p class="hint">Зніміть показ центрального манометра — це вихідна точка для кроку 2.</p>';
+s+='<button class="'+(S.vacRead!=null?'g':'p')+'" onclick="vread()">'+(S.vacRead!=null?'Зняти показ ще раз':'Зняти показ манометра')+'</button>';
+if(S.vacRead!=null)s+='<p class="note">Манометр: <b>'+F(S.vacRead)+' мбар</b>.</p>';
+
+s+='<h3>Усунути знайдене</h3><p class="hint">Познач те, що усунув. Неусунені несправності залишаться у пробному проході на кроці 4.</p>';
+s+='<div class="lab-g">'+
+ fixBox('fixDirty','Протерти оптику датчика')+
+ fixBox('fixLeak','Замінити шланг / усунути витік вакууму')+
+ fixBox('fixTube','Прочистити насіннєпровід')+'</div>';
+s+=recBox(1);
+s+=nb([0,'Реєстрація'],[2,'Норма висіву']);
+return s}
+const chkBtn=(k,t,sub)=>'<button class="'+(S.chk[k]?'on':'')+'" onclick="setN(\'chk.'+k+'\',1)">'+
+ '<b>'+esc(t)+'</b><small>'+esc(sub)+'</small>'+(S.chk[k]?'<small style="color:'+C('ac')+'">виконано</small>':'<small>натисніть, щоб виконати</small>')+'</button>';
+const fixBox=(k,t)=>'<label><input type="checkbox" '+(S[k]?'checked':'')+' onchange="setN(\''+k+'\',this.checked?1:0)"> '+esc(t)+'</label>';
+function vread(){S.vacRead=vacNow();save();R()}
+
+/* ---------- 2. Норма висіву й висівний апарат ---------- */
+function scr2(){const rf=ref(),Q=QS({}),mt=meter(V,Q);
+let s=H('Крок 2. Норма висіву, диск і вакуум',
+ 'Спочатку рахуємо, через яку відстань має лягати насінина і з якими обертами для цього має йти диск. Потім підбираємо диск і вакуум так, щоб апарат справді давав по одній насінині.');
+
+s+='<h3>2.1. Розрахунок</h3>';
+s+='<div class="r2"><div>'+inp('bd.S','Крок висіву S, см — відстань між насінинами в рядку','наприклад, 20,4')+
+ '<p class="hint">S = 10<sup>6</sup> / (N · a), де N — норма, шт/га; a — міжряддя, м.'+chk(S.bd.S,rf.S,.02,.3)+'</p></div>';
+s+='<div>'+inp('bd.n','Оберти висівного диска n, об/хв','наприклад, 23,5')+
+ '<p class="hint">n = 1667 · v / (S · z), де v — км/год; S — см; z — комірок на диску.'+chk(S.bd.n,rf.n,.02,.4)+'</p></div></div>';
+s+=gsc([['N — норма висіву',TH(V.N)+' шт/га'],['a — міжряддя',F(V.aMm)+' см'],
+ ['v — швидкість, яку ви задали нижче',F(vNow(),1)+' км/год'],['z — комірок на обраному диску',String(zNow())]]);
+s+='<details class="inf"><summary>Звідки беруться ці дві формули</summary>'+
+ '<p>На одному гектарі 10<sup>6</sup> см². Один рядок із міжряддям <i>a</i> м обслуговує смугу шириною <i>a</i>·100 см, тому довжина рядків на гектарі — 10<sup>6</sup>/(a·100) см. Поділивши її на кількість насінин N, дістаємо крок висіву S = 10<sup>6</sup>/(N·a) см, де a — у метрах.</p>'+
+ '<p>Диск має викинути одну насінину на кожні S см шляху. За хвилину сівалка проходить v·1000/60 м = v·100000/60 см. Поділивши на S, дістаємо насінин за хвилину, а поділивши ще на z комірок — оберти диска: n = 1667·v/(S·z).</p>'+
+ '<p>Коефіцієнт 1667 ≈ 100000/60 — це перевідник «км/год → см/хв», поділений на 1000.</p></details>';
+
+s+='<h3>2.2. Диск і вакуум</h3>';
+s+='<div class="r2"><div><label>Висівний диск</label>'+
+ '<select onchange="pickDisc(this.value)">'+'<option value="">— оберіть —</option>'+
+ DISC.map((d,i)=>'<option value="'+i+'"'+(S.hole==d.hole&&S.z==d.z?' selected':'')+'>z = '+d.z+', комірка '+F(d.hole,1)+' мм</option>').join('')+'</select>'+
+ '<p class="hint">Комірка мусить бути <b>меншою</b> за насінину: насінина сідає на отвір і утримується вакуумом. Робоче співвідношення — 0,46…0,62 діаметра насінини.</p></div>'+
+ '<div>'+inp('vac','Вакуум у системі, мбар','наприклад, '+V.Pneed)+
+ '<p class="hint">Рекомендований для вашого насіння й комірки — <b>'+F(vacOpt(V.m1000,holeNow()))+' мбар</b>. Замало — насінина не тримається (пропуски); забагато — тримається дві (двійники).</p></div></div>';
+s+='<div class="r2"><div>'+inp('tv','Робоча швидкість v, км/год','наприклад, '+F(V.ideal.v,1))+
+ '<p class="hint">Планова за технологією — '+F(V.vp,1)+' км/год. Паспортна межа для приводу «'+esc(V.a.drive)+'» — '+F(V.a.vk)+' км/год.</p></div>'+
+ '<div><label>Чутливість датчика висіву: '+S.sens+' %</label>'+
+ '<input type="range" min="10" max="90" step="5" value="'+S.sens+'" oninput="setN(\'sens\',+this.value)">'+
+ '<p class="hint">50 % — заводське значення. Занизька чутливість → монітор «не бачить» частину насінин; зависока → рахує двічі.</p></div></div>';
+if(S.hole)s+=discSVG(V,holeNow(),{cap:'Диск у плані та співвідношення «комірка — насінина» у масштабі. Насінина '+F(V.ds,1)+' мм, комірка '+F(holeNow(),1)+' мм.'});
+
+s+='<h3>2.3. Що виходить на апараті</h3>';
+s+='<div class="gg">'+
+ gc(mt.miss,0,15,'пропуски','%',[[0,2,C('ac')],[2,5,C('am')],[5,15,C('wn')]])+
+ gc(mt.dbl,0,15,'двійники','%',[[0,2,C('ac')],[2,5,C('am')],[5,15,C('wn')]])+
+ gc(mt.sing,70,100,'одиничність','%',[[70,90,C('wn')],[90,95,C('am')],[95,100,C('ac')]])+
+ gc(mt.cv,0,60,'CV інтервалів','%',[[0,20,C('ac')],[20,30,C('am')],[30,60,C('wn')]])+'</div>';
+s+=gsc([['оберти диска n',F(r1(mt.nd),1)+' об/хв',mt.nd>.85*mt.nm?C('wn'):C('ac')],
+ ['паспортна межа обертів',F(mt.nm)+' об/хв'],
+ ['рекомендований вакуум',F(mt.Pn)+' мбар'],
+ ['відхилення вакууму',F(r1(100*(vacNow()-mt.Pn)/mt.Pn),0)+' %',Math.abs(vacNow()-mt.Pn)/mt.Pn>.1?C('wn'):C('ac')]]);
+s+=aniBox(Q);
+s+='<div class="concl">'+verdict2(mt)+'</div>';
+s+=recBox(2);
+s+=nb([1,'Монітор і діагностика'],[3,'Секційне вимикання']);
+return s}
+const gc=(v,lo,hi,lab,u,b)=>'<div class="gc">'+gauge(v,lo,hi,lab,u,b)+'</div>';
+function pickDisc(i){if(i===''){S.z=0;S.hole=0}else{const d=DISC[+i];S.z=d.z;S.hole=d.hole}save();R()}
+function verdict2(mt){const bad=[];
+ if(mt.miss>2)bad.push('пропуски '+F(mt.miss,1)+' % — '+(vacNow()<mt.Pn*.95?'вакуум занизький':holeNow()/V.ds<.46?'комірка замала':mt.nd>.85*mt.nm?'оберти диска за межею':'швидкість завелика для цієї сівалки'));
+ if(mt.dbl>2)bad.push('двійники '+F(mt.dbl,1)+' % — '+(vacNow()>mt.Pn*1.05?'вакуум зависокий':'комірка завелика для цього насіння'));
+ if(mt.cv>30)bad.push('CV '+F(mt.cv,1)+' % — рівномірність гірша за агротехнічну вимогу');
+ if(!bad.length)return'<b>Налагоджено.</b> Одиничність '+F(mt.sing,1)+' %, CV '+F(mt.cv,1)+' %. Апарат дає по одній насінині через '+F(r1(Snow()),1)+' см; оберти диска '+F(r1(mt.nd),1)+' об/хв у межах паспортних '+F(mt.nm)+'.';
+ return'<b>Ще не налагоджено.</b><ul><li>'+bad.join('</li><li>')+'</li></ul>'}
+
+/* ---------- 3. Секційне вимикання ---------- */
+function scr3(){const Q=QS({}),v=vNow(),Tl=n(S.Tl)??0,Tlon=n(S.Tlon)??0;
+let s=H('Крок 3. Часовий бюджет секційного вимикання',
+ 'Команда «вимкнути» не виконується миттєво. Поки сигнал іде від приймача до висівної секції і поки насінина летить трубкою, сівалка встигає проїхати. Цей шлях і треба компенсувати випередженням.');
+s+=tlSVG(V,{...Q,Tl},{cap:'Часовий бюджет: три складові запізнення, їх сума T_заг і задане вами випередження T_лід. Різниця перетворюється у шлях ΔL.'});
+s+='<div class="r3"><div>'+inp('bd.Tz','Сумарне запізнення T_заг, с','наприклад, 0,85')+
+ '<p class="hint">T_заг = T_GNSS + T_кл + T_пад.'+chk(S.bd.Tz,V.Tz,0,.03)+'</p></div>'+
+ '<div>'+inp('Tl','T_лід на <b>вимикання</b>, с','наприклад, '+F(V.Tz,2))+'</div>'+
+ '<div>'+inp('Tlon','T_лід на <b>включення</b>, с','наприклад, '+F(V.Tz,2))+'</div></div>';
+s+=gsc([['T_GNSS, приймач',F(V.Tg,2)+' с'],['T_кл, клапан',F(V.Tk,2)+' с'],
+ ['T_пад, падіння',F(V.Tp,2)+' с'],['апарат і подача',F(V.hTube)+' см, '+esc(V.a.del)]]);
+s+='<details class="inf"><summary>Звідки взявся час падіння насінини</summary>'+
+ '<p>У вашій сівалці насіння подається способом «'+esc(V.a.del)+'». '+
+ (V.a.del=='трубка'
+  ?'Насінина падає трубкою вільно, тому T<sub>пад</sub> = √(2h/g) = √(2·'+F(V.hTube/100,2)+'/9,81) = '+F(V.Tp,2)+' с.'
+  :'Насінину несе '+(V.a.del=='стрічка'?'стрічка зі швидкістю близько 2,2 м/с':'потік повітря зі швидкістю близько 3,0 м/с')+
+   ', тому T<sub>пад</sub> = h/u = '+F(V.hTube/100,2)+'/'+(V.a.del=='стрічка'?'2,2':'3,0')+' = '+F(V.Tp,2)+' с.')+'</p>'+
+ '<p>Саме тому активна подача (стрічка, надув) дає не лише кращу рівномірність на високій швидкості, а й менший часовий бюджет: секція вимикається точніше.</p></details>';
+s+=secSVG(V,{...Q,Tl},{cap:'Вид зверху на межу поля. Команда подається за T_лід до межі; остання насінина лягає там, де сівалка опиниться через T_заг.'});
+/* графік: ΔL від T_лід */
+{const pts=[];for(let t=0;t<=Math.max(1.4,V.Tz*1.6);t+=.02)pts.push([t,v/3.6*(V.Tz-t)]);
+ s+=chart('c3',[{name:'ΔL, м',color:C('ac'),pts}],{h:170,x1:Math.max(1.4,V.Tz*1.6),
+  y0:Math.min(...pts.map(p=>p[1]))*1.1,y1:Math.max(...pts.map(p=>p[1]))*1.1,
+  vl:[[V.Tz,C('ink'),'T_заг'],[Tl,C('trk'),'ваше T_лід']],xl:'T_лід, с',yl:'ΔL, м',nolg:1});
+ s+='<p class="hint">Пересів (ΔL &gt; 0) і пропуск (ΔL &lt; 0) однаково небажані. Нуль досягається при T_лід = T_заг = '+F(V.Tz,2)+' с.</p>'}
+const p=pass(V,{...Q,Tl,Tlon});
+s+=kvc([['ΔL на вимиканні',F(p.dL,2)+' м',p.dL>0?'пересів':p.dL<0?'пропуск':'точно'],
+ ['ΔL на включенні',F(p.dLon,2)+' м',p.dLon>0?'пересів':p.dLon<0?'пропуск':'точно'],
+ ['площа помилки за поле',F(r2(p.errA+p.errAon),2)+' га','з '+F(V.S)+' га при '+TH(V.ncr)+' перетинах межі'],
+ ['вартість пересіяного насіння',TH(p.seedLoss)+' грн','за ціною '+TH(V.Cn)+' грн/га']]);
+s+='<div class="concl">'+(Math.abs(p.dL)<=.2&&Math.abs(p.dLon)<=.2
+ ?'<b>Налагоджено.</b> Випередження відповідає запізненню: межа поля відсікається з точністю '+F(Math.max(Math.abs(p.dL),Math.abs(p.dLon)),2)+' м.'
+ :'<b>Ще не налагоджено.</b> Поставте T_лід рівним сумарному запізненню системи — тоді ΔL звернеться в нуль. Зараз на кожному з '+TH(V.ncr)+' перетинів межі сівалка помиляється на '+F(Math.max(Math.abs(p.dL),Math.abs(p.dLon)),2)+' м.')+'</div>';
+s+='<details class="inf"><summary>Чому перекриття на поворотній смузі більше, ніж ΔL</summary>'+
+ '<p>Випередження виправляє лише <b>часову</b> помилку — ту, що виникає через запізнення ланок. Основне перекриття на полі має іншу природу: клини між проходами та непрямолінійна межа. У вашому варіанті воно складає '+F(V.wedge,1)+' % площі без секційного вимикання і '+F(V.pres,1)+' % із ним.</p>'+
+ '<p>Тому секційне вимикання економить насамперед ці '+F(r1(V.wedge-V.pres),1)+' % площі, а правильне T<sub>лід</sub> лише не дає з’їсти частину цієї економії назад.</p></details>';
+s+=recBox(3);
+s+=nb([2,'Норма висіву'],[4,'Пробний прохід']);
+return s}
+/* ===== Анімація висівного апарата ===== */
+const ANI={run:0,sp:1,ph:0,cell:0,emit:0,fall:[],fur:[],pend:0,last:0,rev:0,Q:null,px:2};
+function aniBox(Q){ANI.Q=Q;ANI.px=cl(300/(6*(Q.S||20)),1,4);
+ return'<div id="ani">'+metSVG(V,Q,aniSt())+'</div>'+
+ '<div class="pc"><button class="g sm" onclick="aniTog()" id="anib">'+(ANI.run?'⏸ Пауза':'▶ Пуск')+'</button>'+
+ '<span style="font-size:.82rem;color:'+C('sub')+'">темп показу</span>'+
+ '<select onchange="ANI.sp=+this.value">'+[.15,.3,.6,1].map(v=>'<option value="'+v+'"'+(ANI.sp==v?' selected':'')+'>'+
+   (v<1?'×'+String(v).replace('.',','):'реальний час')+'</option>').join('')+'</select>'+
+ '<button class="g sm" onclick="aniRst()">Спочатку</button>'+
+ '<span style="font-size:.82rem;color:'+C('sub')+'">насінин за хвилину: '+F(r1(60/tSeed(Q)))+'</span></div>'+
+ '<p class="hint">Анімація бере пропуски й двійники з тієї самої моделі, що й розрахунок: змініть вакуум або диск — зміниться і картина в борозні.</p>'}
+const tSeed=Q=>(Q.S/100)/((Q.v||1)/3.6);
+const aniSt=()=>({ph:ANI.ph,fall:ANI.fall,furrow:ANI.fur.length?ANI.fur:statFur(ANI.Q),
+ px:ANI.px,base:V.id,rev:ANI.rev,c0:ANI.emit});
+/* нерухома картина борозни, поки анімацію не запущено: ті самі частоти моделі */
+function statFur(Q){if(!Q)return[];const out=[];let x=0,pend=0,i=0;
+ while(x<412/Math.max(.5,ANI.px)&&i<200){i++;
+  const o=cellOut(V,Q,V.id+'s',i,0);
+  if(o.k=='miss'){pend++;x+=Q.S;continue}
+  out.push({x:r1(x),k:pend?'miss':o.k,gap:pend?(pend+1)*Q.S:0});pend=0;x+=Q.S}
+ return out}
+function aniTog(){ANI.run=!ANI.run;ANI.last=performance.now();
+ const b=document.getElementById('anib');if(b)b.textContent=ANI.run?'⏸ Пауза':'▶ Пуск';
+ if(ANI.run)requestAnimationFrame(aniTick)}
+function aniRst(){ANI.cell=0;ANI.emit=0;ANI.fall=[];ANI.fur=[];ANI.pend=0;ANI.ph=0;ANI.rev++;aniPaint()}
+function aniPaint(){const e=document.getElementById('ani');if(e&&ANI.Q)e.innerHTML=metSVG(V,ANI.Q,aniSt())}
+function aniTick(){if(!ANI.run)return;const e=document.getElementById('ani');if(!e||!ANI.Q){ANI.run=0;return}
+ const now=performance.now(),dt=Math.min(.1,(now-ANI.last)/1000)*ANI.sp;ANI.last=now;
+ const Q=ANI.Q,tS=tSeed(Q),vcm=Q.v/3.6*100;
+ ANI.cell+=dt/tS;
+ while(Math.floor(ANI.cell)>ANI.emit){ANI.emit++;
+  const o=cellOut(V,Q,V.id,ANI.emit,ANI.rev);
+  if(o.k=='miss')ANI.pend++;
+  else{ANI.fall.push({t:0,dbl:o.k=='dbl',k:ANI.pend?'miss':o.k,gap:ANI.pend?(ANI.pend+1)*Q.S:0});ANI.pend=0}}
+ for(const f of ANI.fall)f.t+=dt/Math.max(.05,V.Tp);
+ for(const f of ANI.fall.filter(f=>f.t>=1))ANI.fur.unshift({x:0,k:f.k,gap:f.gap});
+ ANI.fall=ANI.fall.filter(f=>f.t<1);
+ for(const d of ANI.fur)d.x+=vcm*dt;
+ ANI.fur=ANI.fur.filter(d=>d.x<220);
+ ANI.ph=((ANI.cell/(Q.z||24))%1+1)%1;
+ aniPaint();requestAnimationFrame(aniTick)}
+
+/* ---------- 4. Пробний прохід і заміри ---------- */
+function scr4(){const t=S.tr,l=t.last;
+let s=H('Крок 4. Пробний прохід і заміри в борозні',
+ 'Тепер перевіряємо налагоджене в роботі. Монітор дає свою оцінку по кожному ряду, а ви дістаєте свою — замірами інтервалів у борозні за методикою ISO 7256-1.');
+s+=gsc([['вакуум',F(vacNow())+' мбар'],['диск','z '+zNow()+' · '+F(holeNow(),1)+' мм'],
+ ['швидкість',F(vNow(),1)+' км/год'],['чутливість',S.sens+' %'],
+ ['усунено',String([S.fixDirty,S.fixLeak,S.fixTube,S.calFixed].filter(Boolean).length)+' з 4']]);
+s+='<button class="p" onclick="run()">'+(l?'Виконати ще один прохід':'Виконати пробний прохід')+'</button>'+
+   (l?' <span class="chip">проходів: '+t.n+'</span>':'');
+if(!l){s+='<p class="note">Проходів ще не було. Перед проходом переконайтеся, що кроки 2 і 3 заповнені.</p>';s+=nb([3,'Секційне вимикання'],null);return s}
+
+s+='<h3>4.1. Монітор проти борозни</h3>';
+s+=monSVG(V,l.rows,{val:x=>x.mMiss,col:x=>(x.mMiss>5?'#FF7A5C':C('df')),alarm:x=>x.mMiss>5||x.mDbl>5,thr:5,sel:t.sel,
+ sub:'прохід №'+t.n+', '+F(l.v,1)+' км/год',
+ cap:'Що показує монітор: пропуски по рядах, %. Підсвічений ряд — обраний для замірів.'});
+s+=monSVG(V,l.rows,{val:x=>x.miss,col:x=>(x.miss>5?C('miss2'):C('ac')),alarm:x=>x.miss>5,thr:5,sel:t.sel,
+ title:'ФАКТИЧНО У БОРОЗНІ',sub:'незалежний контроль',
+ cap:'Що насправді у борозні: ті самі ряди, фактичні пропуски, %. Розбіжність із монітором — це помилка датчика, а не апарата.'});
+{const dif=l.rows.filter(x=>Math.abs(x.mMiss-x.miss)>3).map(x=>x.r);
+ s+='<div class="concl">'+(dif.length
+  ?'<b>Монітор і борозна розходяться</b> у рядах '+dif.join(', ')+'. Причина не в апараті: '+
+   (!S.fixDirty&&V.fl.dirty?'оптику датчика в ряді '+V.fl.dirty+' не протерто':
+    S.sens<40?'чутливість датчика занижена ('+S.sens+' %)':S.sens>60?'чутливість датчика завищена ('+S.sens+' %)':'перевірте чутливість і чистоту оптики')+'.'
+  :'<b>Монітор відповідає борозні</b> у всіх рядах — датчикам можна вірити.')+'</div>'}
+s+='<div class="rows">'+l.rows.map(x=>'<button class="rw'+(x.miss>5||x.dbl>5?' al':'')+(t.sel==x.r?' se':'')+'" onclick="pickRow('+x.r+')">'+
+ '<b>Ряд '+x.r+'</b><span>пропуски '+F(x.miss,1)+' %</span><span>двійники '+F(x.dbl,1)+' %</span>'+
+ '<span>CV '+F(x.cv,1)+' %</span>'+(x.leak?'<span style="color:'+C('wn')+'">витік вакууму</span>':'')+
+ (x.block?'<span style="color:'+C('wn')+'">забитий провід</span>':'')+(x.dirty?'<span style="color:'+C('am')+'">брудна оптика</span>':'')+'</button>').join('')+'</div>';
+
+s+='<h3>4.2. Заміри інтервалів у ряді '+t.sel+'</h3>'+
+ '<p class="hint">Вимірюємо відстані між сусідніми насінинами. За ISO 7256-1 інтервал понад 1,5·S — пропуск, 0,5·S і менше — двійник, решта — одиничний висів.</p>';
+s+='<button class="'+(t.m.length?'g':'p')+'" onclick="mauto(60)">Заміряти 60 інтервалів</button> '+
+ '<button class="g" onclick="mauto(120)">120 інтервалів</button>'+(t.m.length?' <button class="g" onclick="mclr()">Очистити</button>':'');
+if(t.m.length){const o=ownS();
+ s+=intSVG(t.m.slice(0,60),t.Sm,{cap:'Перші 60 замірів ряду '+t.sel+'. Крок висіву S = '+F(r1(t.Sm),1)+' см.'});
+ s+=histSVG(t.m,t.Sm,{cap:'Розподіл '+t.m.length+' інтервалів. Основна маса має лежати біля S; хвіст праворуч — пропуски, ліворуч — двійники.'});
+ s+='<div class="r3"><div>'+inp('tr.oMiss','Пропуски за замірами, %','')+'<p class="hint">частка інтервалів понад 1,5·S'+chk(t.oMiss,o.miss,0,3)+'</p></div>'+
+  '<div>'+inp('tr.oDbl','Двійники за замірами, %','')+'<p class="hint">частка інтервалів до 0,5·S'+chk(t.oDbl,o.dbl,0,3)+'</p></div>'+
+  '<div>'+inp('tr.oCv','CV одиничних інтервалів, %','')+'<p class="hint">σ/S·100 % за одиничними інтервалами'+chk(t.oCv,o.cvp,0,5)+'</p></div></div>';
+ s+=gsc([['замірів',String(o.n)],['середній інтервал',F(o.mu,1)+' см'],['σ',F(o.sd,1)+' см'],
+  ['одиничність',F(o.sing,1)+' %',o.sing>=95?C('ac'):C('wn')]]);
+ s+='<p class="hint">Симулятор не показує правильних значень — лише позначає ✓ або ✗ після того, як ви введете своє. Різниця до 3 % (для CV — до 5 %) приймається: це нормальний розкид вибірки.</p>'}
+
+s+='<h3>4.3. Прохід у цілому</h3>';
+s+='<div class="gg">'+
+ gc(l.miss,0,15,'пропуски','%',[[0,2,C('ac')],[2,5,C('am')],[5,15,C('wn')]])+
+ gc(l.dbl,0,15,'двійники','%',[[0,2,C('ac')],[2,5,C('am')],[5,15,C('wn')]])+
+ gc(l.sing,70,100,'одиничність','%',[[70,90,C('wn')],[90,95,C('am')],[95,100,C('ac')]])+
+ gc(l.cv,0,60,'CV','%',[[0,20,C('ac')],[20,30,C('am')],[30,60,C('wn')]])+'</div>';
+s+=kvc([['N_факт',TH(l.Nfact)+' шт/га',(l.calErr?'похибка калібрування '+F(l.calErr,1)+' %':'калібрування без похибки'),Math.abs(l.Nfact-V.N)/V.N>.02?'up':'dn'],
+ ['S_факт',F(l.Sfact,1)+' см','задано '+F(r1(V.Sopt),1)+' см'],
+ ['ΔL на межі',F(l.dL,2)+' м','площа помилки '+F(r2(l.errA+l.errAon),2)+' га'],
+ ['проблемні ряди',l.bad.length?l.bad.join(', '):'немає','поріг 5 % пропусків або двійників',l.bad.length?'up':'dn']]);
+s+=mapSVG(V,l,{seed:t.n,cap:'Картограма висіву, яку побудувала б система моніторингу за даними цього проходу: проблемні зони позначено кольором.'});
+if(S.hist.length>1)s+=histTab();
+s+=recBox(4);
+s+=nb([3,'Секційне вимикання'],[5,'Економічна оцінка']);
+return s}
+function pickRow(r){S.tr.sel=r;S.tr.m=[];save();R()}
+function histTab(){const h=S.hist;
+let s='<h3>Журнал проходів</h3><div class="tw"><table class="t2 c"><tr><th>№</th><th>v, км/год</th><th>вакуум, мбар</th><th>диск z</th><th>T_лід, с</th><th>пропуски, %</th><th>двійники, %</th><th>одиничність, %</th><th>CV, %</th><th>ΔL, м</th></tr>';
+for(const r of h)s+='<tr><td>'+r.n+'</td><td>'+F(r.v,1)+'</td><td>'+F(r.vac)+'</td><td>'+r.z+'</td><td>'+F(r.Tl,2)+'</td><td>'+F(r.miss,1)+'</td><td>'+F(r.dbl,1)+'</td><td>'+F(r.sing,1)+'</td><td>'+F(r.cv,1)+'</td><td>'+F(r.dL,2)+'</td></tr>';
+s+='</table></div>';
+const pts=h.map(r=>[r.n,r.sing]);
+s+=chart('ch',[{name:'одиничність, %',color:C('ac'),pts,dots:1}],{h:160,y0:Math.min(80,Math.min(...pts.map(p=>p[1]))-2),y1:100,nx:Math.max(1,h.length-1),xl:'№ проходу',nolg:1,
+ bands:[[95,100,C('ac')]]});
+return s}
+
+/* ---------- 5. Економічна оцінка ---------- */
+function scr5(){const e=ecRef(S,V);
+let s=H('Крок 5. Чи варта система своїх грошей',
+ 'Порівнюємо перший прохід (як сівалку привезли) з останнім (після налагодження). Різниця у якості висіву — це і є те, що дає система контролю.');
+if(!e){s+='<p class="note">Потрібен хоча б один пробний прохід на кроці 4.</p>'+nb([4,'Пробний прохід'],null);return s}
+const a=S.hist[0],b=S.hist[S.hist.length-1];
+s+='<div class="tw"><table class="t2 c"><tr><th>Показник</th><th>Прохід №'+a.n+' (до)</th><th>Прохід №'+b.n+' (після)</th><th>Різниця</th></tr>'+
+ trc('пропуски, %',a.miss,b.miss)+trc('двійники, %',a.dbl,b.dbl)+trc('одиничність, %',a.sing,b.sing,1)+trc('CV, %',a.cv,b.cv)+
+ '</table></div>';
+s+='<h3>5.1. Вигода від якості висіву</h3>';
+s+='<p class="hint">Не кожен пропуск — мінус рослина у врожаї: сусідні рослини частково використовують вільне місце. Для '+esc(V.crop)+'у довідкові коефіцієнти компенсації — '+
+ F(e.kc,2)+' для пропусків і '+F(e.kd,2)+' для двійників (додаток А).</p>';
+s+='<p class="hint">Система нічого не ремонтує сама — вона лише вчасно показує несправність. Тому вигоду дає не сам факт усунення, а те, <b>яку частину поля встигають засіяти з несправністю</b> до її виявлення: без системи її помічають аж на сходах (частка '+F(e.kd1,2)+'), із системою — за хвилини (частка '+F(e.kd2,2)+').</p>';
+s+='<div class="tw"><table class="t2">'+
+ tr('Втрати врожаю до налагодження, %','p₁ = '+F(a.miss,1)+' · '+F(e.kc,2)+' + '+F(a.dbl,1)+' · '+F(e.kd,2)+' = <b>'+F(e.L1,1)+' %</b>')+
+ tr('Втрати врожаю після, %','p₂ = '+F(b.miss,1)+' · '+F(e.kc,2)+' + '+F(b.dbl,1)+' · '+F(e.kd,2)+' = <b>'+F(e.L2,1)+' %</b>')+
+ tr('Виграна частка площі','k = '+F(e.kd1,2)+' − '+F(e.kd2,2)+' = <b>'+F(e.KD,2)+'</b>')+
+ tr('Приріст урожайності ΔY','ΔY = Y · (p₁ − p₂)/100 · k = '+F(V.Y,1)+' · '+F(r1(e.L1-e.L2),1)+'/100 · '+F(e.KD,2))+
+ tr('Вигода за врожай','E_у = ΔY · C_прод · S_пл = ΔY · '+TH(V.Cp)+' · '+F(V.S))+
+ '</table></div>';
+s+='<div class="r2"><div>'+inp('ec.dY','ΔY — приріст урожайності, т/га','')+'<p class="hint">'+chk(S.ec.dY,e.dY,.05,.02)+'</p></div><div></div></div>';
+s+='<h3>5.2. Вигода від секційного вимикання</h3>';
+s+='<div class="tw"><table class="t2">'+
+ tr('Перекриття без системи','p_пер1 = '+F(V.wedge,1)+' % площі')+
+ tr('Перекриття з системою','p_пер2 = '+F(V.pres,1)+' % площі')+
+ tr('Економія площі','ΔA = S_пл · (p_пер1 − p_пер2)/100 = '+F(V.S)+' · '+F(r1(V.wedge-V.pres),1)+'/100 = <b>'+F(e.dA,1)+' га</b>')+
+ tr('Вигода за насінням','E_н = ΔA · C_нас = '+F(e.dA,1)+' · '+TH(V.Cn)+' = <b>'+TH(e.Es)+' грн/рік</b>')+
+ '</table></div>';
+s+='<h3>5.3. Разом і термін окупності</h3>';
+s+='<div class="r3"><div>'+inp('ec.E','E — повна вигода, грн/рік','')+'<p class="hint">E = E_у + E_н'+chk(S.ec.E,e.E,.03,500)+'</p></div>'+
+ '<div>'+inp('ec.T','T — термін окупності, років','')+'<p class="hint">T = C_сист / E_чист'+(e.T!=null?chk(S.ec.T,e.T,.08,.05):'')+'</p></div>'+
+ '<div>'+gsc([['вартість системи',TH(V.Csys)+' грн'],['обслуговування (10 %)',TH(e.Cex)+' грн/рік']])+'</div></div>';
+s+='<div class="tw"><table class="t2">'+
+ tr('Вигода за врожай E_у',TH(e.Ey)+' грн/рік')+
+ tr('Вигода за насінням E_н',TH(e.Es)+' грн/рік')+
+ tr('Разом E',TH(e.E)+' грн/рік')+
+ tr('Витрати на обслуговування C_екс','0,10 · '+TH(V.Csys)+' = '+TH(e.Cex)+' грн/рік')+
+ tr('Чиста вигода E_чист',TH(e.Enet)+' грн/рік')+
+ tr('Термін окупності T',e.T!=null?F(e.T,2)+' року':'не окупається — чиста вигода не додатна')+
+ '</table></div>';
+/* графік окупності */
+if(e.T!=null){const pts=[],pts2=[];for(let y=0;y<=Math.max(3,Math.ceil(e.T*2));y+=.05){pts.push([y,e.Enet*y]);pts2.push([y,V.Csys])}
+ s+=chart('c5',[{name:'накопичена вигода, грн',color:C('ac'),pts},{name:'вартість системи',color:C('wn'),pts:pts2,dash:1}],
+  {h:190,L:76,xl:'роки',yf:v=>TH(v),vl:[[e.T,C('am'),'окупність T = '+F(e.T,2)+' р.']]})}
+s+='<div class="concl">'+(e.T==null?'<b>За цими даними система не окупається.</b> Перевірте, чи справді покращилась якість висіву між першим і останнім проходом — економіку рахують із реальної різниці, а не з очікуваної.'
+ :'<b>Висновок.</b> Налагодження підняло одиничність із '+F(a.sing,1)+' % до '+F(b.sing,1)+' %. Це дає '+TH(e.Ey)+
+  ' грн/рік за врожай і '+TH(e.Es)+' грн/рік на насінні. За вирахуванням обслуговування система окупається за '+F(e.T,2)+
+  ' року — '+(e.T<1?'менше ніж за один сезон':e.T<3?'за '+Math.ceil(e.T)+' сезони':'повільно, рішення потребує окремого обґрунтування')+'.')+'</div>';
+s+='<details class="inf"><summary>Чому в розрахунку два різні джерела вигоди</summary>'+
+ '<p>Система контролю висіву робить дві різні речі, і економіка в них різна.</p>'+
+ '<p><b>Моніторинг</b> не економить нічого напряму — він лише вчасно показує несправність. Вигода тут непряма: несправний ряд виявляють за хвилини, а не після сходів, і врожай не втрачають. Саме це дає E_у.</p>'+
+ '<p><b>Секційне вимикання</b> економить прямо й вимірювано: менше пересіяної площі — менше витраченого насіння. Це E_н, і його легко перевірити за накладними.</p>'+
+ '<p>Тому в господарствах із дорогим насінням (кукурудза, соняшник) окупність виходить швидкою, а на дешевих культурах таку систему ставлять переважно заради моніторингу.</p></details>';
+s+=recBox(5);
+s+=nb([4,'Пробний прохід'],[6,'Протокол']);
+return s}
+const trc=(nm,a,b,up)=>{const d=b-a,good=up?d>0:d<0;
+ return'<tr><th>'+esc(nm)+'</th><td>'+F(a,1)+'</td><td>'+F(b,1)+'</td><td class="'+(Math.abs(d)<.05?'':good?'dn':'up')+'">'+(d>0?'+':'')+F(r1(d),1)+'</td></tr>'};
+
+/* ---------- 6. Протокол ---------- */
+function scr6(){const sc=score(S,V),T_=tot(),nm=['Датчики й калібрування','Норма висіву й привід','Вакуум і диск','Секційне вимикання','Пробний прохід і заміри','Економічна оцінка'],
+ mxv=[15,18,22,15,20,10];
+let s=H('Підсумковий протокол','Перенесіть ці рядки у звіт. Код протоколу підтверджує, що результат отримано саме у вашому варіанті.');
+if(S.demo)s+='<div class="wm">ПРИКЛАД ІЗ МЕТОДИЧКИ — не є звітом студента</div>';
+s+='<div class="tw"><table class="t2">'+
+ tr('Студент',esc((S.reg.name||'')+', група '+(S.reg.group||'')+', № '+(S.reg.num||'')))+
+ tr('Варіант',esc(V.id)+' — '+esc(V.a.p)+', '+esc(V.crop))+
+ tr('Код протоколу','<b style="font-family:ui-monospace,monospace;letter-spacing:.06em">'+esc(pcode())+'</b>')+
+ '</table></div>';
+s+='<h3>Результати по пунктах</h3><div class="tw"><table class="t2">';
+for(let i=1;i<=5;i++)s+=tr('Пункт '+i+'. '+nm[i-1],esc(rec(i)));
+s+='</table></div>';
+s+='<h3>Самоконтроль виконання</h3><div class="tw"><table class="t2 c"><tr><th>Розділ</th><th>Виконано</th><th>Бали</th></tr>';
+for(let i=0;i<6;i++)s+='<tr><td style="text-align:left">'+esc(nm[i])+'</td><td>'+
+ (done(i+1)==1?'<span class="ok">повністю</span>':done(i+1)?'<span style="color:'+C('am')+'">частково</span>':'<span class="no">ні</span>')+
+ '</td><td>'+F(sc[i],1)+' / '+mxv[i]+'</td></tr>';
+s+='<tr><th style="text-align:left">Разом</th><th></th><th>'+F(r1(T_),1)+' / 100</th></tr></table></div>';
+s+='<div class="bar"><span>виконано</span><i style="width:'+Math.round(cl(T_,0,100)*2.6)+'px;background:'+(T_>=75?C('ac'):T_>=50?C('am'):C('wn'))+'"></i><b>'+F(r1(T_),1)+' %</b></div>';
+s+='<p class="hint">Бали — це самоконтроль повноти роботи, а не оцінка викладача.</p>';
+s+='<h3>Висновок</h3><div class="concl">'+concl()+'</div>';
+s+='<button class="p" onclick="print()">Друк / зберегти у PDF</button> <button class="g" onclick="go(0)">До реєстрації</button>';
+s+=nb([5,'Економічна оцінка'],null);
+return s}
+function concl(){const l=S.tr.last,e=ecRef(S,V),u=[];
+ if(!l)return'Пробний прохід не виконано — висновок зробити неможливо.';
+ u.push('Монітор висіву показує не стан апарата, а свідчення датчика: '+
+  (V.fl.dirty?'у ряді '+V.fl.dirty+' тривога була хибною — насіння лягало, його не бачила забруднена оптика':'у цьому варіанті хибних тривог не було, але перевірку підкопуванням усе одно виконують'));
+ u.push('Норму висіву тримає не вакуум, а крок S = '+F(r1(V.Sopt),1)+' см і точність датчика швидкості: похибка калібрування '+
+  F(V.fl.cal,1)+' % дає відхилення норми на '+TH(Math.abs(V.N*V.fl.cal/100))+' шт/га');
+ u.push('Вакуум і комірку підбирають під конкретне насіння: для маси 1000 насінин '+F(V.m1000)+' г і комірки '+F(V.hole,1)+
+  ' мм потрібно '+F(V.Pneed)+' мбар; відхилення на 20 % вже дає '+(vacNow()<V.Pneed?'пропуски':'двійники'));
+ u.push('Секційне вимикання помиляється на ΔL = v·(T_заг − T_лід): при T_заг = '+F(V.Tz,2)+' с і без випередження це '+
+  F(r2(vNow()/3.6*V.Tz),2)+' м на кожному з '+TH(V.ncr)+' перетинів межі');
+ if(e&&e.T!=null)u.push('Економічно система виправдана: чиста вигода '+TH(e.Enet)+' грн/рік, окупність '+F(e.T,2)+' року');
+ return'<ul><li>'+u.join('</li><li>')+'</li></ul>'}
+
+/* ---------- 7. Досліди «що буде, якщо…» ---------- */
+function scr7(){const L=S.lab;if(!L.vac){L.vac=V.Pneed;L.hole=V.hole;L.z=V.zOpt;L.v=V.ideal.v;L.Tl=V.Tz;save()}
+const Q={vac:L.vac,hole:L.hole,z:L.z,v:L.v,S:V.Sopt,sens:L.sens,Tl:L.Tl,Tlon:L.Tl,
+ leak:L.fl.leak?22:0,block:L.fl.tube?14:0,calFixed:1,fixDirty:!L.fl.dirty,fixLeak:!L.fl.leak,fixTube:!L.fl.tube,seed:7};
+const mt=meter(V,Q),p=pass(V,{...Q,fixDirty:!L.fl.dirty,fixLeak:!L.fl.leak,fixTube:!L.fl.tube}),P=L.pin;
+let s=H('Досліди «що буде, якщо…»',
+ 'Ця сторінка не оцінюється. Рухайте один повзунок за раз і дивіться, що змінюється: саме ці залежності потрібні у блоках «Дослід» методички.');
+s+='<div class="lab-g">'+
+ sld('lab.vac','Вакуум','мбар',20,95,1,L.vac,'рекомендований '+V.Pneed)+
+ sld('lab.v','Швидкість','км/год',4,20,.5,L.v,'паспортна межа '+F(V.a.vk)+' км/год')+
+ '<div><label>Висівний диск: z = '+L.z+', комірка '+F(L.hole,1)+' мм</label>'+
+  '<div class="sg">'+DISC.map((d,i)=>'<button class="'+(L.hole==d.hole&&L.z==d.z?'on':'')+'" onclick="labDisc('+i+')">'+F(d.hole,1)+' мм<br>z='+d.z+'</button>').join('')+'</div></div>'+
+ sld('lab.sens','Чутливість датчика','%',10,90,5,L.sens,'заводська 50 %')+
+ sld('lab.Tl','T_лід (випередження)','с',0,1.6,.05,L.Tl,'T_заг = '+F(V.Tz,2)+' с')+
+ '<div><label>Внести несправність</label>'+
+  '<div class="sg">'+[['dirty','брудна оптика'],['leak','витік вакууму'],['tube','забитий провід']].map(x=>
+   '<button class="'+(L.fl[x[0]]?'off':'')+'" onclick="labFl(\''+x[0]+'\')">'+esc(x[1])+'</button>').join('')+'</div></div>'+
+ '</div>';
+s+='<div class="pc"><button class="g sm" onclick="labPin()">'+(P?'Закріплено — замінити':'Закріпити для порівняння')+'</button>'+
+ (P?'<button class="g sm" onclick="labUnpin()">Зняти</button>':'')+
+ '<button class="g sm" onclick="labLog()">Додати в журнал</button>'+
+ '<button class="g sm" onclick="labRst()">Еталонні налаштування</button></div>';
+s+='<div class="gg">'+
+ gc(mt.miss,0,25,'пропуски','%',[[0,2,C('ac')],[2,5,C('am')],[5,25,C('wn')]])+
+ gc(mt.dbl,0,25,'двійники','%',[[0,2,C('ac')],[2,5,C('am')],[5,25,C('wn')]])+
+ gc(mt.sing,60,100,'одиничність','%',[[60,90,C('wn')],[90,95,C('am')],[95,100,C('ac')]])+
+ gc(mt.cv,0,70,'CV','%',[[0,20,C('ac')],[20,30,C('am')],[30,70,C('wn')]])+'</div>';
+if(P)s+='<div class="tw"><table class="t2 c"><tr><th>Показник</th><th>закріплено</th><th>зараз</th><th>різниця</th></tr>'+
+ trc('пропуски, %',P.miss,mt.miss)+trc('двійники, %',P.dbl,mt.dbl)+trc('одиничність, %',P.sing,mt.sing,1)+trc('CV, %',P.cv,mt.cv)+
+ '<tr><th style="text-align:left">налаштування</th><td colspan="3" style="text-align:left">'+esc(labDesc(P.set))+' → '+esc(labDesc({vac:L.vac,hole:L.hole,z:L.z,v:L.v,sens:L.sens,Tl:L.Tl,fl:L.fl}))+'</td></tr></table></div>';
+s+=gsc([['оберти диска',F(r1(mt.nd),1)+' об/хв',mt.nd>.85*mt.nm?C('wn'):C('ac')],
+ ['рекомендований вакуум',F(mt.Pn)+' мбар'],['d_к / d_нас',F(r2(L.hole/V.ds),2),L.hole/V.ds<.46||L.hole/V.ds>.62?C('wn'):C('ac')],
+ ['ΔL на межі',F(r2(L.v/3.6*(V.Tz-L.Tl)),2)+' м',Math.abs(L.v/3.6*(V.Tz-L.Tl))>.2?C('wn'):C('ac')]]);
+s+=aniBox(Q);
+/* криві */
+{const pv=[],pd=[];for(let x=20;x<=95;x+=1){const m=meter(V,{...Q,vac:x});pv.push([x,m.miss]);pd.push([x,m.dbl])}
+ s+='<h3>Пропуски й двійники залежно від вакууму</h3>';
+ s+=chart('l1',[{name:'пропуски, %',color:C('miss2'),pts:pv},{name:'двійники, %',color:C('dblc'),pts:pd}],
+  {h:190,y1:26,xl:'вакуум, мбар',vl:[[mt.Pn,C('ac'),'рекомендований'],[L.vac,C('ink'),'зараз']],bands:[[0,2,C('ac')]]})}
+{const sv_=[],cv_=[];for(let x=4;x<=20;x+=.25){const m=meter(V,{...Q,v:x});sv_.push([x,m.sing]);cv_.push([x,m.cv])}
+ s+='<h3>Одиничність і CV залежно від швидкості</h3>';
+ s+=chart('l2',[{name:'одиничність, %',color:C('ac'),pts:sv_},{name:'CV, %',color:C('am'),pts:cv_}],
+  {h:190,y1:105,xl:'швидкість, км/год',vl:[[V.a.vk,C('wn'),'паспортна межа'],[L.v,C('ink'),'зараз']],bands:[[95,105,C('ac')]]})}
+s+='<div class="concl">'+labConcl(mt,p,L)+'</div>';
+if(L.log.length){s+='<h3>Журнал дослідів</h3><div class="tw"><table class="t2 c"><tr><th>№</th><th>вакуум</th><th>комірка</th><th>z</th><th>v</th><th>T_лід</th><th>несправності</th><th>пропуски</th><th>двійники</th><th>одиничність</th><th>CV</th></tr>';
+ L.log.forEach((r,i)=>{s+='<tr><td>'+(i+1)+'</td><td>'+F(r.set.vac)+'</td><td>'+F(r.set.hole,1)+'</td><td>'+r.set.z+'</td><td>'+F(r.set.v,1)+'</td><td>'+F(r.set.Tl,2)+'</td><td>'+esc(flDesc(r.set.fl)||'—')+'</td><td>'+F(r.miss,1)+'</td><td>'+F(r.dbl,1)+'</td><td>'+F(r.sing,1)+'</td><td>'+F(r.cv,1)+'</td></tr>'});
+ s+='</table></div><button class="g sm" onclick="labClr()">Очистити журнал</button>'}
+s+=nb([6,'Протокол'],[8,'Калькулятор']);
+return s}
+const sld=(k,lab,u,a,b,st,v,nt)=>'<div><label>'+esc(lab)+': <b>'+F(v,st<1?2:(st<1?1:0))+'</b> '+esc(u)+'</label>'+
+ '<input type="range" min="'+a+'" max="'+b+'" step="'+st+'" value="'+v+'" oninput="setN(\''+k+'\',+this.value)">'+
+ (nt?'<p class="hint" style="margin:0 0 6px">'+esc(nt)+'</p>':'')+'</div>';
+function labDisc(i){const d=DISC[i];S.lab.z=d.z;S.lab.hole=d.hole;save();R()}
+function labFl(k){S.lab.fl[k]=S.lab.fl[k]?0:1;save();R()}
+function labSt(){const L=S.lab;return{vac:L.vac,hole:L.hole,z:L.z,v:L.v,sens:L.sens,Tl:L.Tl,fl:{...L.fl}}}
+function labMt(){const L=S.lab;return meter(V,{vac:L.vac,hole:L.hole,z:L.z,v:L.v,S:V.Sopt,sens:L.sens,
+ leak:L.fl.leak?22:0,block:L.fl.tube?14:0})}
+function labPin(){const m=labMt();S.lab.pin={...m,set:labSt()};save();R()}
+function labUnpin(){S.lab.pin=null;save();R()}
+function labLog(){const m=labMt();S.lab.log.push({...m,set:labSt()});if(S.lab.log.length>14)S.lab.log.shift();save();R()}
+function labClr(){S.lab.log=[];save();R()}
+function labRst(){const I=V.ideal;S.lab={...S.lab,vac:I.vac,hole:I.hole,z:I.z,v:I.v,Tl:V.Tz,sens:50,fl:{dirty:0,leak:0,tube:0}};save();R()}
+const flDesc=f=>[f.dirty&&'брудна оптика',f.leak&&'витік',f.tube&&'забитий провід'].filter(Boolean).join(', ');
+const labDesc=s=>F(s.vac)+' мбар, '+F(s.hole,1)+' мм, z='+s.z+', '+F(s.v,1)+' км/год, T_лід '+F(s.Tl,2)+' с'+(flDesc(s.fl)?', '+flDesc(s.fl):'');
+function labConcl(mt,p,L){const u=[],rt=L.hole/V.ds,dl=L.v/3.6*(V.Tz-L.Tl);
+ u.push(vacNear(L.vac,mt.Pn)?'вакуум '+F(L.vac)+' мбар відповідає насінню й комірці':
+  L.vac<mt.Pn?'вакуум занизький на '+F(Math.round(100*(mt.Pn-L.vac)/mt.Pn))+' % — звідси пропуски '+F(mt.miss,1)+' %':
+  'вакуум зависокий на '+F(Math.round(100*(L.vac-mt.Pn)/mt.Pn))+' % — звідси двійники '+F(mt.dbl,1)+' %');
+ u.push(rt<.46?'комірка '+F(L.hole,1)+' мм замала для насінини '+F(V.ds,1)+' мм (d_к/d_нас = '+F(r2(rt),2)+'): насінина не утримується':
+  rt>.62?'комірка завелика (d_к/d_нас = '+F(r2(rt),2)+'): насінина провалюється, беруться дві':
+  'співвідношення комірки й насінини у робочому діапазоні');
+ u.push(L.v>V.a.vk-2?'швидкість '+F(L.v,1)+' км/год за межею для приводу «'+esc(V.a.drive)+'» (паспортна '+F(V.a.vk)+' км/год): якість падає':
+  mt.nd>.85*mt.nm?'оберти диска '+F(r1(mt.nd),1)+' об/хв близькі до межі '+F(mt.nm)+' — комірка не встигає набрати насінину':
+  'швидкість і оберти диска у допустимих межах');
+ u.push(Math.abs(dl)<=.2?'випередження T_лід узгоджене з запізненням: ΔL = '+F(r2(dl),2)+' м':
+  'ΔL = '+F(r2(dl),2)+' м '+(dl>0?'пересіву':'пропуску')+' — T_лід відрізняється від T_заг на '+F(r2(Math.abs(V.Tz-L.Tl)),2)+' с');
+ if(L.sens<40)u.push('занижена чутливість датчика ('+L.sens+' %) дає хибні тривоги навіть при справному апараті');
+ if(L.sens>60)u.push('завищена чутливість ('+L.sens+' %) рахує одну насінину за дві — монітор занижує пропуски');
+ if(flDesc(L.fl))u.push('внесені несправності: '+flDesc(L.fl));
+ return'<b>Що показує цей набір налаштувань:</b><ul><li>'+u.join('</li><li>')+'</li></ul>'}
+const vacNear=(a,b)=>Math.abs(a-b)/b<=.05;
+
+/* ---------- 8. Калькулятор ---------- */
+function scr8(){const c=S.calc,g=k=>n(c[k]);
+let s=H('Калькулятор','Незалежний від варіанта. Сюди підставляють числа із ситуацій методички й перевіряють свої розрахунки.');
+s+='<h3>Норма висіву й оберти диска</h3>';
+s+='<div class="r3"><div>'+inp('calc.N','N — норма висіву, шт/га','70000')+'</div>'+
+ '<div>'+inp('calc.a','a — міжряддя, см','70')+'</div>'+
+ '<div>'+inp('calc.v','v — швидкість, км/год','9')+'</div></div>';
+s+='<div class="r3"><div>'+inp('calc.z','z — комірок на диску','30')+'</div><div></div><div></div></div>';
+if(g('N')&&g('a')){const S0=1e6/(g('N')*g('a')/100);
+ s+='<div class="tw"><table class="t2">'+
+  tr('Крок висіву','S = 10⁶ / (N · a) = 10⁶ / ('+TH(g('N'))+' · '+F(g('a')/100,2)+') = <b>'+F(r1(S0),1)+' см</b>')+
+  (g('v')&&g('z')?tr('Оберти диска','n = 1667 · v / (S · z) = 1667 · '+F(g('v'),1)+' / ('+F(r1(S0),1)+' · '+F(g('z'))+') = <b>'+F(r1(discRPM(g('v'),S0,g('z'))),1)+' об/хв</b>'):'')+
+  (g('v')?tr('Насінин за секунду','v/3,6 / (S/100) = <b>'+F(r1(g('v')/3.6/(S0/100)),1)+' шт/с</b> на один ряд'):'')+
+  '</table></div>'}
+s+='<h3>Часовий бюджет секційного вимикання</h3>';
+s+='<div class="r3"><div>'+inp('calc.Tg','T_GNSS, с','0,25')+'</div><div>'+inp('calc.Tk','T_кл, с','0,35')+'</div><div>'+inp('calc.Tp','T_пад, с','0,25')+'</div></div>';
+s+='<div class="r3"><div>'+inp('calc.Tl','T_лід, с','0,5')+'</div><div>'+inp('calc.B','B — ширина захвату, м','5,6')+'</div><div></div></div>';
+if(g('Tg')!=null&&g('Tk')!=null&&g('Tp')!=null&&g('v')){const Tz=g('Tg')+g('Tk')+g('Tp'),Tl=g('Tl')??0,d=Tz-Tl,dl=g('v')/3.6*d;
+ s+='<div class="tw"><table class="t2">'+
+  tr('Сумарне запізнення','T_заг = '+F(g('Tg'),2)+' + '+F(g('Tk'),2)+' + '+F(g('Tp'),2)+' = <b>'+F(r2(Tz),2)+' с</b>')+
+  tr('Неузгодженість','T_заг − T_лід = '+F(r2(d),2)+' с')+
+  tr('Шлях помилки','ΔL = v/3,6 · (T_заг − T_лід) = '+F(g('v'),1)+'/3,6 · '+F(r2(d),2)+' = <b>'+F(r2(dl),2)+' м</b> '+(d>0?'пересіву':d<0?'пропуску':''))+
+  (g('B')?tr('Площа на одному перетині','ΔL · B = '+F(r2(Math.abs(dl)),2)+' · '+F(g('B'),1)+' = <b>'+F(r1(Math.abs(dl)*g('B')),1)+' м²</b>'):'')+
+  '</table></div>'}
+s+='<h3>Економічна оцінка</h3>';
+s+='<div class="r3"><div>'+inp('calc.S','S_пл — площа, га','300')+'</div><div>'+inp('calc.Y','Y — урожайність, т/га','9,0')+'</div><div>'+inp('calc.Cp','C_прод — ціна, грн/т','7500')+'</div></div>';
+s+='<div class="r3"><div>'+inp('calc.p1','p₁ — втрати до, %','5')+'</div><div>'+inp('calc.p2','p₂ — втрати після, %','1')+'</div><div>'+inp('calc.k','k — виграна частка площі','0,32')+'</div></div>';
+s+='<div class="r3"><div>'+inp('calc.Csys','C_сист — вартість системи, грн','150000')+'</div><div></div><div></div></div>';
+if(g('S')&&g('Y')&&g('Cp')&&g('p1')!=null&&g('p2')!=null){const kk=g('k')??1,dY=g('Y')*(g('p1')-g('p2'))/100*kk,E=dY*g('Cp')*g('S'),
+ Cs=g('Csys')||0,Cex=.1*Cs,En=E-Cex;
+ s+='<div class="tw"><table class="t2">'+
+  tr('Приріст урожайності','ΔY = Y · (p₁ − p₂)/100 · k = '+F(g('Y'),1)+' · '+F(r1(g('p1')-g('p2')),1)+'/100 · '+F(kk,2)+' = <b>'+F(r2(dY),2)+' т/га</b>')+
+  tr('Вигода','E = ΔY · C_прод · S_пл = '+F(r2(dY),2)+' · '+TH(g('Cp'))+' · '+F(g('S'))+' = <b>'+TH(E)+' грн/рік</b>')+
+  (Cs?tr('Обслуговування','C_екс = 0,10 · '+TH(Cs)+' = '+TH(Cex)+' грн/рік'):'')+
+  (Cs?tr('Чиста вигода','E_чист = '+TH(E)+' − '+TH(Cex)+' = <b>'+TH(En)+' грн/рік</b>'):'')+
+  (Cs&&En>0?tr('Термін окупності','T = C_сист / E_чист = '+TH(Cs)+' / '+TH(En)+' = <b>'+F(r2(Cs/En),2)+' року</b>'):'')+
+  '</table></div>'}
+s+='<p class="hint">Усі формули ті самі, що в методичці. Калькулятор нічого не підказує — він лише рахує за вашими числами.</p>';
+s+=nb([7,'Досліди'],null);
+return s}
+
+/* ===== Навігація, бічна панель, рендер ===== */
+function go(i){S.step=i;save();scrollTo(0,0);R()}
+function nav(){let s='';
+for(let i=0;i<=NST;i++){const d=done(i),cl_=S.step==i?' on':'';
+ s+='<button class="'+cl_.trim()+'" onclick="go('+i+')"'+(i>0&&!S.reg?' disabled':'')+'>'+
+  '<i class="'+(d==1?'ok':d?'pt':'')+'"></i>'+esc(TT[i])+'</button>'}
+s+='<button class="lab'+(S.step==LAB?' on':'')+'" onclick="go('+LAB+')"'+(!S.reg?' disabled':'')+'><i></i>'+esc(TT[LAB])+'</button>';
+s+='<button class="lab'+(S.step==CALC?' on':'')+'" onclick="go('+CALC+')"><i></i>'+esc(TT[CALC])+'</button>';
+return s}
+function dashP(){if(!V)return'<div class="t">МОНІТОР ВИСІВУ</div><div class="d"><span>варіант не отримано</span></div>';
+const l=S.tr.last,mt=meter(V,QS({})),d=(a,b,al)=>'<div class="d'+(al?' al':'')+'"><span>'+a+'</span><span>'+b+'</span></div>';
+let s='<div class="t">МОНІТОР ВИСІВУ · '+esc(V.id)+'</div>';
+s+=d('культура',esc(V.crop));
+s+=d('норма, шт/га',TH(V.N));
+s+=d('крок S, см',F(r1(V.Sopt),1));
+s+=d('вакуум, мбар',F(vacNow()),Math.abs(vacNow()-mt.Pn)/mt.Pn>.1);
+s+=d('диск','z '+zNow()+' · '+F(holeNow(),1)+' мм');
+s+=d('оберти, об/хв',F(r1(mt.nd),1),mt.nd>.85*mt.nm);
+s+=d('швидкість, км/год',F(vNow(),1),vNow()>V.a.vk-2);
+s+=d('T_заг, с',F(V.Tz,2));
+s+=d('T_лід, с',F(n(S.Tl)??0,2),Math.abs((n(S.Tl)??0)-V.Tz)>.1);
+if(l){s+='<div class="t" style="margin-top:8px">ПРОХІД №'+S.tr.n+'</div>';
+ s+=d('пропуски, %',F(l.miss,1),l.miss>5);
+ s+=d('двійники, %',F(l.dbl,1),l.dbl>5);
+ s+=d('одиничність, %',F(l.sing,1),l.sing<95);
+ s+=d('CV, %',F(l.cv,1),l.cv>30);
+ s+=d('ΔL, м',F(l.dL,2),Math.abs(l.dL)>.2);
+ s+=d('тривога по рядах',l.bad.length?l.bad.join(','):'немає',l.bad.length>0)}
+return s}
+function bann(){if(!S.demo)return'';
+return'<div class="bn"><span><b>Відкрито приклад із методички.</b> Усі поля заповнені правильними значеннями — на ньому видно, як має виглядати виконана робота. Для свого звіту отримайте власний варіант.</span>'+
+ '<button class="p" style="margin:0" onclick="go(0)">Отримати свій варіант</button></div>'}
+function R(){const m=document.getElementById('mn');
+ document.getElementById('nv').innerHTML=nav();
+ document.getElementById('bn').innerHTML=bann();
+ document.getElementById('ds').innerHTML=dashP();
+ document.getElementById('chip').textContent=V?('варіант '+V.id+' · '+F(r1(tot()),1)+' / 100'):'варіант не отримано';
+ if(!S.reg||!V){S.step=0}
+ m.innerHTML=[scr0,scr1,scr2,scr3,scr4,scr5,scr6,scr7,scr8][S.step]();
+ /* наведення на графіки */
+ for(const id of ['c3','c5','ch','l1','l2'])chBind(id,chTip(id));
+ if(ANI.run){ANI.last=performance.now();requestAnimationFrame(aniTick)}}
+function chTip(id){const Q=V?QS({}):null,L=S.lab;
+ if(id=='c3')return x=>x<0?null:'T_лід = '+F(r2(x),2)+' с<br>ΔL = '+F(r2(vNow()/3.6*(V.Tz-x)),2)+' м';
+ if(id=='c5'){const e=ecRef(S,V);return e?x=>x<0?null:'рік '+F(r2(x),2)+'<br>накопичено '+TH(e.Enet*x)+' грн':()=>null}
+ if(id=='ch')return x=>{const r=S.hist[Math.round(x)-1];return r?'прохід №'+r.n+'<br>одиничність '+F(r.sing,1)+' %<br>v = '+F(r.v,1)+' км/год, вакуум '+F(r.vac)+' мбар':null};
+ if(id=='l1')return x=>{const m=meter(V,{vac:Math.round(x),hole:L.hole,z:L.z,v:L.v,S:V.Sopt});
+  return'вакуум '+F(Math.round(x))+' мбар<br>пропуски '+F(m.miss,1)+' %<br>двійники '+F(m.dbl,1)+' %'};
+ if(id=='l2')return x=>{const m=meter(V,{vac:L.vac,hole:L.hole,z:L.z,v:r1(x),S:V.Sopt});
+  return F(r1(x),1)+' км/год<br>одиничність '+F(m.sing,1)+' %<br>CV '+F(m.cv,1)+' %<br>оберти '+F(r1(m.nd),1)+' об/хв'};
+ return()=>null}
+/* ===== Запуск ===== */
+theme(0);
+if(!S){demoState();save()}            /* перше відкриття: приклад із методички */
+let RW=innerWidth;addEventListener('resize',()=>{if(Math.abs(innerWidth-RW)>8){RW=innerWidth;clearTimeout(R.t);R.t=setTimeout(R,180)}});
+R();
+</script></body></html>
