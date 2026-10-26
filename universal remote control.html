@@ -1,0 +1,905 @@
+<title>Спільний пульт роботів</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+  /* Пульт. Головний елемент — консоль: темна приладова поверхня
+     з аналоговими джойстиками й круглими кнопками, однакова в обох
+     темах. Решта сторінки — світла або темна за системою.
+     Поверніть телефон — лишається сама консоль на весь екран. */
+  :root {
+    --bg: #E7EBEF;
+    --surface: #FDFEFE;
+    --surface-2: #DAE1E7;
+    --line: #BFCAD3;
+    --line-soft: #D5DDE4;
+    --fg: #141D26;
+    --fg-dim: #566875;
+    --accent: #A8470A;
+    --accent-soft: #FBE6D4;
+    --ok: #0D7055;
+    --danger: #A81F15;
+    --shadow: 0 1px 2px rgba(20,29,38,.10), 0 4px 14px rgba(20,29,38,.06);
+
+    /* консоль — власний світ, однаковий у світлій і темній темі */
+    --con-bg: #161F36;
+    --con-bg2: #0F1729;
+    --con-well: #101830;
+    --con-rim: #2B3759;
+    --con-fg: #E9EFF9;
+    --con-dim: #8094BC;
+    --con-live: #2DD4BF;
+    --con-warn: #FB923C;
+    --con-stop: #F2545B;
+
+    --font-ui: 'Archivo', 'Segoe UI', system-ui, sans-serif;
+    --font-mono: 'IBM Plex Mono', ui-monospace, 'Courier New', monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #0B1017;
+      --surface: #161E27;
+      --surface-2: #202B36;
+      --line: #31404E;
+      --line-soft: #27333F;
+      --fg: #E7EEF4;
+      --fg-dim: #91A5B6;
+      --accent: #F4A024;
+      --accent-soft: #3A2A0E;
+      --ok: #3DD6A0;
+      --danger: #F2736A;
+      --shadow: 0 1px 2px rgba(0,0,0,.45), 0 6px 18px rgba(0,0,0,.32);
+      color-scheme: dark;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #0B1017;
+    --surface: #161E27;
+    --surface-2: #202B36;
+    --line: #31404E;
+    --line-soft: #27333F;
+    --fg: #E7EEF4;
+    --fg-dim: #91A5B6;
+    --accent: #F4A024;
+    --accent-soft: #3A2A0E;
+    --ok: #3DD6A0;
+    --danger: #F2736A;
+    --shadow: 0 1px 2px rgba(0,0,0,.45), 0 6px 18px rgba(0,0,0,.32);
+    color-scheme: dark;
+  }
+
+  html, body { height: 100%; }
+  body {
+    background: var(--bg);
+    color: var(--fg);
+    font-family: var(--font-ui);
+    font-size: 15px;
+    line-height: 1.5;
+    -webkit-text-size-adjust: 100%;
+    overscroll-behavior: contain;
+  }
+  body::before {
+    content: "";
+    position: fixed;
+    inset: 0 0 auto;
+    height: env(safe-area-inset-top, 0px);
+    z-index: 10;
+    background: var(--surface);
+  }
+
+  .wrap {
+    max-width: 620px;
+    margin: 0 auto;
+    padding-left: max(16px, env(safe-area-inset-left, 0px));
+    padding-right: max(16px, env(safe-area-inset-right, 0px));
+    padding-block: 0 28px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+
+  /* ---------- заголовок ---------- */
+  header {
+    position: sticky;
+    top: env(safe-area-inset-top, 0px);
+    z-index: 9;
+    background: var(--surface);
+    border-bottom: 1px solid var(--line-soft);
+    margin-left: calc(-1 * max(16px, env(safe-area-inset-left, 0px)));
+    margin-right: calc(-1 * max(16px, env(safe-area-inset-right, 0px)));
+    padding-left: max(16px, env(safe-area-inset-left, 0px));
+    padding-right: max(16px, env(safe-area-inset-right, 0px));
+    padding-block: 10px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  h1 {
+    font-size: 16px; font-weight: 700; letter-spacing: -0.015em;
+    margin: 0; flex: 1; min-width: 0;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .status {
+    display: inline-flex; align-items: center; gap: 7px;
+    font-family: var(--font-mono); font-size: 11.5px;
+    padding: 4px 10px; border-radius: 999px;
+    border: 1px solid var(--line); background: var(--surface-2);
+    color: var(--fg-dim); white-space: nowrap;
+    max-width: 42vw; overflow: hidden; text-overflow: ellipsis;
+  }
+  .dot { width: 8px; height: 8px; border-radius: 50%; background: currentColor; flex: none; opacity: .7; }
+  .status[data-state="on"]   { color: var(--ok); border-color: color-mix(in srgb, var(--ok) 45%, transparent); }
+  .status[data-state="busy"] { color: var(--accent); border-color: color-mix(in srgb, var(--accent) 45%, transparent); }
+  .status[data-state="on"] .dot, .status[data-state="busy"] .dot { opacity: 1; }
+
+  .icon-btn { flex: none; width: 38px; height: 38px; display: grid; place-items: center; padding: 0; font-size: 16px; border-radius: 10px; }
+
+  /* ---------- звичайні кнопки ---------- */
+  button {
+    font: inherit; font-weight: 600; color: var(--fg);
+    background: var(--surface); border: 1px solid var(--line);
+    border-radius: 11px; padding: 11px 14px; cursor: pointer;
+    touch-action: none; -webkit-tap-highlight-color: transparent; user-select: none;
+    box-shadow: var(--shadow);
+    transition: transform .06s ease, background-color .12s ease, border-color .12s ease;
+  }
+  button:active { transform: translateY(1px); }
+  button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  button:disabled { opacity: .4; cursor: default; box-shadow: none; }
+  button.primary { background: var(--accent); border-color: var(--accent); color: #FFF8F0; }
+  @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) button.primary { color: #1D1304; } }
+  :root[data-theme="dark"] button.primary { color: #1D1304; }
+  button.held, button.on { background: var(--accent-soft); border-color: var(--accent); color: var(--accent); }
+
+  /* ---------- перемикач робота ---------- */
+  .seg {
+    display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px;
+    background: var(--surface-2); border: 1px solid var(--line-soft);
+    border-radius: 13px; padding: 5px;
+  }
+  .seg button {
+    border: none; background: transparent; box-shadow: none;
+    padding: 8px 3px; font-size: 12.5px; border-radius: 9px; text-align: center; min-width: 0;
+    overflow: hidden; text-overflow: ellipsis;
+  }
+  .seg button small {
+    display: block; font-weight: 400; font-size: 10.5px;
+    color: var(--fg-dim); font-family: var(--font-mono); letter-spacing: .02em;
+  }
+  .seg button[aria-selected="true"] { background: var(--surface); color: var(--accent); box-shadow: var(--shadow); }
+  .seg button[aria-selected="true"] small { color: var(--accent); }
+
+  /* ================= КОНСОЛЬ ================= */
+  .console {
+    background:
+      radial-gradient(120% 100% at 50% 0%, #1E2A49 0%, var(--con-bg) 45%, var(--con-bg2) 100%);
+    border: 1px solid var(--con-rim);
+    border-radius: 20px;
+    padding: 16px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+    align-items: center;
+    color: var(--con-fg);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.07), 0 8px 24px rgba(8,12,24,.35);
+    min-width: 0;
+  }
+
+  .stick-cell { display: grid; justify-items: center; gap: 8px; min-width: 0; }
+  .stick-cap {
+    font-size: 10px; font-weight: 700; letter-spacing: .12em;
+    text-transform: uppercase; color: var(--con-dim);
+  }
+  .stick {
+    position: relative;
+    width: min(100%, 150px);
+    aspect-ratio: 1;
+    border-radius: 50%;
+    background:
+      radial-gradient(circle at 50% 42%, #1A2444 0%, var(--con-well) 70%),
+      var(--con-well);
+    border: 1px solid var(--con-rim);
+    box-shadow: inset 0 6px 16px rgba(0,0,0,.55), inset 0 -1px 0 rgba(255,255,255,.05);
+    touch-action: none;
+    display: grid;
+    place-items: center;
+    cursor: grab;
+  }
+  .stick::before, .stick::after {
+    content: ""; position: absolute; background: var(--con-rim); opacity: .55;
+  }
+  .stick::before { left: 12%; right: 12%; height: 1px; }
+  .stick::after  { top: 12%; bottom: 12%; width: 1px; }
+  .stick.live { border-color: var(--con-live); }
+  .knob {
+    width: 42%; aspect-ratio: 1; border-radius: 50%;
+    background: linear-gradient(180deg, #F6F9FF 0%, #C3CEE4 100%);
+    box-shadow: 0 4px 10px rgba(0,0,0,.45), inset 0 -2px 4px rgba(0,0,0,.18), inset 0 2px 3px rgba(255,255,255,.9);
+    transition: transform .08s ease-out;
+    pointer-events: none;
+    display: grid; place-items: center;
+  }
+  .stick.live .knob { background: linear-gradient(180deg, #8FF4E6 0%, #23B5A4 100%); transition: none; }
+  .knob span { font-size: 15px; color: #2B3759; opacity: .5; }
+
+  .con-right { display: flex; flex-direction: column; gap: 12px; min-width: 0; }
+
+  .pills { display: flex; gap: 6px; background: var(--con-well); border: 1px solid var(--con-rim); border-radius: 999px; padding: 4px; }
+  .pills button {
+    flex: 1; min-width: 0; border: none; background: transparent; box-shadow: none;
+    color: var(--con-dim); font-size: 11.5px; font-weight: 700;
+    padding: 7px 4px; border-radius: 999px;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .pills button.on { background: rgba(45,212,191,.16); color: var(--con-live); }
+
+  .pads { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; justify-items: center; }
+  .pad {
+    width: 100%; max-width: 62px; aspect-ratio: 1;
+    border-radius: 50%; border: 1px solid var(--con-rim);
+    background: linear-gradient(180deg, #273355 0%, #1A2440 100%);
+    color: var(--con-fg);
+    box-shadow: 0 3px 8px rgba(0,0,0,.4), inset 0 1px 0 rgba(255,255,255,.1);
+    display: grid; place-items: center; gap: 1px;
+    padding: 0; font-size: 19px; line-height: 1;
+  }
+  .pad small { font-size: 8.5px; font-weight: 700; letter-spacing: .04em; color: var(--con-dim); text-transform: uppercase; }
+  .pad.held, .pad.on {
+    background: linear-gradient(180deg, #1F6F68 0%, #16534F 100%);
+    border-color: var(--con-live); color: #EAFFFB;
+  }
+  .pad.held small, .pad.on small { color: #9FF0E4; }
+  .pad.danger { background: linear-gradient(180deg, #5A2328 0%, #3E181C 100%); border-color: #7D3038; color: #FFD9DB; }
+  .pad.danger small { color: #F7A9AD; }
+
+  .con-foot { display: flex; align-items: center; justify-content: space-between; gap: 8px; grid-column: 1 / -1; }
+  .con-foot .hint { font-size: 11px; color: var(--con-dim); min-width: 0; }
+
+  /* ---------- картки з повним списком команд ---------- */
+  .card {
+    background: var(--surface); border: 1px solid var(--line-soft);
+    border-radius: 16px; padding: 16px;
+    display: flex; flex-direction: column; gap: 14px; box-shadow: var(--shadow);
+  }
+  h2 {
+    font-size: 10.5px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase;
+    color: var(--fg-dim); margin: 0; display: flex; align-items: center; gap: 9px;
+  }
+  h2::after { content: ""; flex: 1; height: 1px; background: var(--line-soft); }
+
+  .grid2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
+  .grid3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+  .grid2 button, .grid3 button { font-size: 13px; padding: 10px 6px; min-width: 0; }
+  .row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+  .row > .grow { flex: 1; min-width: 0; }
+
+  input[type="text"] {
+    font: inherit; font-family: var(--font-mono); color: var(--fg);
+    background: var(--surface-2); border: 1px solid var(--line);
+    border-radius: 11px; padding: 10px 12px; min-width: 0; width: 100%;
+  }
+  input[type="range"] { width: 100%; accent-color: var(--accent); }
+  label.field { display: flex; flex-direction: column; gap: 5px; font-size: 12px; color: var(--fg-dim); min-width: 0; }
+  label.field b { font-family: var(--font-mono); color: var(--fg); font-weight: 500; font-variant-numeric: tabular-nums; }
+
+  .note { font-size: 13px; color: var(--fg-dim); margin: 0; }
+  code { font-family: var(--font-mono); font-size: .9em; background: var(--surface-2); padding: 1px 5px; border-radius: 5px; }
+  .warn {
+    border-left: 3px solid var(--accent); background: var(--accent-soft);
+    padding: 11px 13px; border-radius: 0 11px 11px 0; font-size: 13px;
+  }
+  .warn strong { color: var(--accent); }
+
+  #log {
+    font-family: var(--font-mono); font-size: 11.5px; line-height: 1.55;
+    background: var(--surface-2); border: 1px solid var(--line-soft);
+    border-radius: 11px; padding: 10px 12px; height: 124px; overflow-y: auto;
+    display: flex; flex-direction: column; gap: 1px;
+  }
+  #log div { white-space: pre-wrap; word-break: break-word; }
+  #log .err { color: var(--danger); }
+  #log .sys { color: var(--fg-dim); }
+  #log .rx  { color: var(--ok); }
+
+  a { color: var(--accent); }
+
+  /* ================= РЕЖИМ ГЕЙМПАДА ================= */
+  body.gamepad { overflow: hidden; }
+  body.gamepad .wrap {
+    max-width: none; height: 100%;
+    padding-block: 0 max(6px, env(safe-area-inset-bottom, 0px));
+    gap: 7px;
+  }
+  body.gamepad header { padding-block: 5px; border-bottom-color: transparent; background: transparent; }
+  body.gamepad header h1 { font-size: 13px; }
+  body.gamepad .seg { padding: 3px; gap: 3px; }
+  body.gamepad .seg button { padding: 5px 4px; font-size: 12px; }
+  body.gamepad .seg button small { display: none; }
+  body.gamepad .panel { flex: 1; min-height: 0; display: flex; }
+  body.gamepad .panel[hidden] { display: none; }
+  body.gamepad .console { flex: 1; min-height: 0; align-content: center; padding: 10px 14px; }
+  body.gamepad .stick { width: min(100%, 34vh); }
+  body.gamepad .pad { max-width: 9vh; }
+  body.gamepad .details, body.gamepad #logCard, body.gamepad .hide-in-pad { display: none; }
+  body.gamepad.linked .connect-row { display: none; }
+
+  @media (max-width: 380px) {
+    .pads { gap: 7px; }
+    .pad { font-size: 17px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    * { transition: none !important; animation: none !important; }
+    button:active { transform: none; }
+  }
+</style>
+
+<div class="wrap">
+  <header>
+    <h1>Спільний пульт роботів</h1>
+    <span class="status" id="status" data-state="off"><span class="dot"></span><span id="statusText">не підключено</span></span>
+    <button class="icon-btn" id="btnPad" title="Режим геймпада" aria-label="Режим геймпада" aria-pressed="false">⛶</button>
+  </header>
+
+  <div class="seg" role="tablist" aria-label="Вибір робота">
+    <button role="tab" id="tab-arm" aria-selected="true" data-panel="panel-arm">Маніпулятор<small>KS0523</small></button>
+    <button role="tab" id="tab-tank" aria-selected="false" data-panel="panel-tank">Танк<small>KS0555</small></button>
+    <button role="tab" id="tab-esp" aria-selected="false" data-panel="panel-esp">Машинка<small>FNK0053</small></button>
+    <button role="tab" id="tab-picar" aria-selected="false" data-panel="panel-picar">PiCar<small>ADR019</small></button>
+  </div>
+
+  <div class="row connect-row">
+    <button class="primary grow" id="btnConnect">Підключити по Bluetooth</button>
+    <button id="btnDisconnect" disabled>Від'єднати</button>
+  </div>
+
+  <div class="warn hide-in-pad" id="noBle" hidden>
+    <strong>Браузер не підтримує Web Bluetooth.</strong>
+    Відкрийте сторінку в Chrome на Android або в Chrome на комп'ютері. У Safari на iPhone Bluetooth із веб-сторінки недоступний.
+  </div>
+
+  <!-- ================= МАНІПУЛЯТОР ================= -->
+  <section class="panel" id="panel-arm">
+    <div class="console">
+      <div class="stick-cell">
+        <div class="stick" data-stick="drive"><div class="knob"><span>✛</span></div></div>
+        <span class="stick-cap">Машина</span>
+      </div>
+      <div class="stick-cell">
+        <div class="stick" data-stick="arm"><div class="knob"><span>⌖</span></div></div>
+        <span class="stick-cap">Стріла й основа</span>
+      </div>
+      <div class="con-right" style="grid-column:1/-1">
+        <div class="pills">
+          <button data-tap="Y">Об'їзд</button>
+          <button data-tap="X">Лінія</button>
+          <button data-tap="U">Слідування</button>
+          <button data-tap="G">Падіння</button>
+        </div>
+        <div class="pads">
+          <button class="pad" data-jog="Q">⊂⊃<small>відкр</small></button>
+          <button class="pad" data-jog="E">⊃⊂<small>стисн</small></button>
+          <button class="pad" data-tap="t">⦿<small>запис</small></button>
+          <button class="pad" data-tap="i">▶<small>відтвор</small></button>
+          <button class="pad" data-tap="c">⌫<small>очистити</small></button>
+          <button class="pad danger" data-tap="S">■<small>стоп</small></button>
+        </div>
+      </div>
+    </div>
+
+    <div class="details card hide-in-pad" style="margin-top:14px">
+      <h2>Швидкість</h2>
+      <div class="grid2">
+        <button data-tap="d">Повільніше</button>
+        <button data-tap="a">Швидше</button>
+      </div>
+      <p class="note">Лівий джойстик веде машину, правий — руку: вгору-вниз стріла, вліво-вправо основа. Відпустили — зупинилось.</p>
+    </div>
+  </section>
+
+  <!-- ================= ТАНК ================= -->
+  <section class="panel" id="panel-tank" hidden>
+    <div class="console">
+      <div class="stick-cell">
+        <div class="stick" data-stick="drive"><div class="knob"><span>✛</span></div></div>
+        <span class="stick-cap">Рух танка</span>
+      </div>
+      <div class="con-right">
+        <div class="pills">
+          <button data-tap="e">Лінія</button>
+          <button data-tap="g">Об'їзд</button>
+          <button data-tap="h">Слідування</button>
+        </div>
+        <div class="pads">
+          <button class="pad" data-tap="k">☺<small>смайл</small></button>
+          <button class="pad" data-tap="p">♥<small>серце</small></button>
+          <button class="pad" data-tap="n">☹<small>сум</small></button>
+          <button class="pad" data-tap="f">▣<small>межа</small></button>
+          <button class="pad" data-tap="i">☀<small>світло</small></button>
+          <button class="pad danger" data-tap="S">■<small>стоп</small></button>
+        </div>
+      </div>
+    </div>
+
+    <div class="details card hide-in-pad" style="margin-top:14px">
+      <h2>Матриця</h2>
+      <div class="grid3">
+        <button data-tap="m">Радість</button>
+        <button data-tap="l">Невдоволення</button>
+        <button data-tap="o">Зневага</button>
+      </div>
+      <div class="row">
+        <input type="text" id="mxText" class="grow" maxlength="16" placeholder="Напис латиницею" value="UMAN">
+        <button id="btnText">Вивести</button>
+      </div>
+      <div class="grid2">
+        <button data-tap="z">Очистити екран</button>
+        <button data-tap="a" id="ledBtn">Світло увімк.</button>
+      </div>
+
+      <h2>Потужність моторів</h2>
+      <label class="field" for="spdL">Лівий борт — <b id="valL">200</b>
+        <input type="range" id="spdL" min="80" max="255" value="200">
+      </label>
+      <label class="field" for="spdR">Правий борт — <b id="valR">200</b>
+        <input type="range" id="spdR" min="80" max="255" value="200">
+      </label>
+    </div>
+  </section>
+
+  <!-- ================= FREENOVE ================= -->
+  <section class="panel" id="panel-esp" hidden>
+    <div class="console">
+      <div class="stick-cell">
+        <div class="stick" data-stick="drive"><div class="knob"><span>✛</span></div></div>
+        <span class="stick-cap">Машина</span>
+      </div>
+      <div class="stick-cell">
+        <div class="stick" data-stick="arm"><div class="knob"><span>◎</span></div></div>
+        <span class="stick-cap">Голова з камерою</span>
+      </div>
+      <div class="con-right" style="grid-column:1/-1">
+        <div class="pills">
+          <button data-tap="e">Лінія</button>
+          <button data-tap="h">На світло</button>
+          <button data-tap="S">Ручний</button>
+        </div>
+        <div class="pads">
+          <button class="pad" data-tap="k">☺<small>усмішка</small></button>
+          <button class="pad" data-tap="w">✦<small>підсвітка</small></button>
+          <button class="pad" data-tap="c">⌖<small>по центру</small></button>
+          <button class="pad" data-tap="P">⚡<small>батарея</small></button>
+          <button class="pad" data-tap="z">○<small>згасити</small></button>
+          <button class="pad danger" data-tap="S">■<small>стоп</small></button>
+        </div>
+      </div>
+    </div>
+
+    <div class="details card hide-in-pad" style="margin-top:14px">
+      <h2>Камера</h2>
+      <div class="row">
+        <input type="text" id="camUrl" class="grow" value="http://192.168.4.1/stream" aria-label="Адреса відеопотоку">
+      </div>
+      <a id="camLink" href="http://192.168.4.1/stream" target="_blank" rel="noopener">Відкрити потік у новій вкладці</a>
+      <p class="note">Відео йде по Wi-Fi, керування по Bluetooth — телефон має бути приєднаний до точки <code>Sunshine</code>, пароль такий самий.</p>
+
+      <h2>Швидкість</h2>
+      <div class="grid2">
+        <button data-tap="d">Повільніше</button>
+        <button data-tap="a">Швидше</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= PiCar-Pro ================= -->
+  <section class="panel" id="panel-picar" hidden>
+    <div class="console">
+      <div class="stick-cell">
+        <div class="stick" data-stick="drive"><div class="knob"><span>✛</span></div></div>
+        <span class="stick-cap">Машина</span>
+      </div>
+      <div class="stick-cell">
+        <div class="stick" data-stick="arm"><div class="knob"><span>⌖</span></div></div>
+        <span class="stick-cap">Голова й стріла</span>
+      </div>
+      <div class="con-right" style="grid-column:1/-1">
+        <div class="pills">
+          <button data-tap="e">Лінія</button>
+          <button data-tap="g">Об'їзд</button>
+          <button data-tap="k">За кольором</button>
+          <button data-tap="z">Вимкнути</button>
+        </div>
+        <div class="pads">
+          <button class="pad" data-jog="Q">⊂⊃<small>відкр</small></button>
+          <button class="pad" data-jog="E">⊃⊂<small>стисн</small></button>
+          <button class="pad" data-jog="u">⇧<small>кисть ↑</small></button>
+          <button class="pad" data-jog="j">⇩<small>кисть ↓</small></button>
+          <button class="pad" data-tap="c">⌂<small>вихідна</small></button>
+          <button class="pad danger" data-tap="S">■<small>стоп</small></button>
+        </div>
+      </div>
+    </div>
+
+    <div class="details card hide-in-pad" style="margin-top:14px">
+      <h2>Камера</h2>
+      <div class="row">
+        <input type="text" id="picarCam" class="grow" value="http://192.168.1.100:5000/video_feed" aria-label="Адреса відеопотоку PiCar">
+      </div>
+      <a id="picarCamLink" href="http://192.168.1.100:5000/video_feed" target="_blank" rel="noopener">Відкрити потік у новій вкладці</a>
+      <p class="note">Підставте адресу свого Raspberry Pi. Телефон має бути в тій самій мережі Wi-Fi, що й робот.</p>
+
+      <h2>Швидкість</h2>
+      <div class="grid2">
+        <button data-tap="d">Повільніше</button>
+        <button data-tap="a">Швидше</button>
+      </div>
+      <p class="note">Повороти в PiCar не крутять на місці: кермо доводертається і машина їде вперед. Це особливість шасі з кермовим сервоприводом.</p>
+    </div>
+  </section>
+
+  <section class="card" id="logCard">
+    <h2>Журнал обміну</h2>
+    <div id="log" aria-live="polite"></div>
+    <p class="note"><code>→</code> надіслано, <code>←</code> відповідь робота.</p>
+  </section>
+</div>
+
+<script>
+(function () {
+  'use strict';
+
+  // Відомі способи, якими модулі показують послідовний порт через BLE.
+  // Перебираємо їх по черзі, тож панель чіпляється не лише до HM-10.
+  var UART_PROFILES = [
+    { name: 'HM-10 та сумісні', svc: '0000ffe0-0000-1000-8000-00805f9b34fb' },
+    { name: 'Nordic UART',      svc: '6e400001-b5a3-f393-e0a9-e50e24dcca9e' },
+    { name: 'FFF0',             svc: '0000fff0-0000-1000-8000-00805f9b34fb' },
+    { name: 'Microchip RN487x', svc: '49535343-fe7d-4ae5-8fa9-9fafd205e455' }
+  ];
+  var ALL_SVCS = UART_PROFILES.map(function (p) { return p.svc; });
+
+  var device = null, chara = null, queue = Promise.resolve();
+  var rxBuf = '';
+
+  var logEl = document.getElementById('log');
+  var statusEl = document.getElementById('status');
+  var statusText = document.getElementById('statusText');
+  var btnConnect = document.getElementById('btnConnect');
+  var btnDisconnect = document.getElementById('btnDisconnect');
+
+  function pad2(n) { return n < 10 ? '0' + n : '' + n; }
+
+  function log(msg, cls) {
+    var d = document.createElement('div');
+    if (cls) d.className = cls;
+    var t = new Date();
+    d.textContent = pad2(t.getHours()) + ':' + pad2(t.getMinutes()) + ':' + pad2(t.getSeconds()) + '  ' + msg;
+    logEl.appendChild(d);
+    while (logEl.childElementCount > 150) logEl.removeChild(logEl.firstChild);
+    logEl.scrollTop = logEl.scrollHeight;
+  }
+
+  function setStatus(state, text) { statusEl.dataset.state = state; statusText.textContent = text; }
+  function buzz(ms) { try { if (navigator.vibrate) navigator.vibrate(ms); } catch (e) {} }
+
+  function send(str) {
+    if (!chara) { log('немає зв\'язку, команда ' + str + ' не пішла', 'err'); return; }
+    var data = new TextEncoder().encode(str);
+    queue = queue.then(function () {
+      return chara.writeValueWithoutResponse
+        ? chara.writeValueWithoutResponse(data)
+        : chara.writeValue(data);
+    }).catch(function (e) { log('помилка передачі: ' + e.message, 'err'); });
+    log('→ ' + str);
+  }
+
+  // ---------- підключення ----------
+  if (!navigator.bluetooth) {
+    document.getElementById('noBle').hidden = false;
+    btnConnect.disabled = true;
+    log('Web Bluetooth у цьому браузері недоступний', 'err');
+  }
+
+  function onNotify(e) {
+    var txt = new TextDecoder().decode(e.target.value);
+    rxBuf += txt;
+    var parts = rxBuf.split(/\r?\n/);
+    rxBuf = parts.pop();
+    parts.forEach(function (line) { if (line.trim()) log('← ' + line.trim(), 'rx'); });
+    if (rxBuf.length > 200) rxBuf = '';
+  }
+
+  // Шукає серед відомих профілів той, що дає канал запису
+  async function pickChannel(server) {
+    for (var i = 0; i < UART_PROFILES.length; i++) {
+      var p = UART_PROFILES[i], svc;
+      try { svc = await server.getPrimaryService(p.svc); }
+      catch (e) { continue; }                       // такого сервісу немає
+
+      var chars = await svc.getCharacteristics();
+      var w = null, n = null;
+      chars.forEach(function (c) {
+        if (!w && (c.properties.writeWithoutResponse || c.properties.write)) w = c;
+        if (!n && c.properties.notify) n = c;
+      });
+      if (w) {
+        log('профіль зв\'язку: ' + p.name, 'sys');
+        return { write: w, notify: n };
+      }
+    }
+    return null;
+  }
+
+  btnConnect.addEventListener('click', async function () {
+    setStatus('busy', 'пошук…');
+    try {
+      var d = await navigator.bluetooth.requestDevice({
+        acceptAllDevices: true,
+        optionalServices: ALL_SVCS
+      });
+      device = d;
+      device.addEventListener('gattserverdisconnected', onDrop);
+      setStatus('busy', 'з\'єднання…');
+      log('знайдено: ' + (d.name || 'без імені'), 'sys');
+
+      var server = await d.gatt.connect();
+      var ch = await pickChannel(server);
+
+      if (!ch) {
+        log('пристрій підключився, але послідовного порту в ньому не видно', 'err');
+        log('це не модуль HM-10 і не сумісний із ним — керувати звідси не вийде', 'err');
+        setStatus('off', 'не підійшов');
+        d.gatt.disconnect();
+        return;
+      }
+
+      chara = ch.write;
+      if (ch.notify) {
+        try {
+          await ch.notify.startNotifications();
+          ch.notify.addEventListener('characteristicvaluechanged', onNotify);
+        } catch (e) { log('відповіді робота недоступні, працюємо в один бік', 'sys'); }
+      } else {
+        log('робот не шле відповідей, працюємо в один бік', 'sys');
+      }
+
+      setStatus('on', device.name || 'підключено');
+      document.body.classList.add('linked');
+      btnDisconnect.disabled = false;
+      btnConnect.disabled = true;
+      log('зв\'язок встановлено', 'sys');
+      buzz(30);
+      keepAwake();
+
+    } catch (e) {
+      setStatus('off', 'не підключено');
+      if (e && e.name === 'NotFoundError') log('вибір скасовано', 'sys');
+      else log('не вдалось підключитись: ' + (e && e.message ? e.message : e), 'err');
+    }
+  });
+
+  function onDrop() {
+    chara = null;
+    document.body.classList.remove('linked');
+    setStatus('off', 'зв\'язок втрачено');
+    btnDisconnect.disabled = true;
+    btnConnect.disabled = false;
+    log('робот від\'єднався', 'err');
+  }
+
+  btnDisconnect.addEventListener('click', function () {
+    if (device && device.gatt.connected) device.gatt.disconnect();
+    chara = null;
+    document.body.classList.remove('linked');
+    setStatus('off', 'не підключено');
+    btnDisconnect.disabled = true;
+    btnConnect.disabled = false;
+    log('від\'єднано', 'sys');
+  });
+
+  // ---------- джойстики ----------
+  // Напрямок визначається сектором, у який відведено ручку. Команда
+  // летить лише коли сектор змінився, тож ефір не забивається.
+  var STICK_MAP = {
+    drive: { up: 'F', down: 'B', left: 'L', right: 'R', release: 'S' },
+    arm:   { up: 'f', down: 'b', left: 'l', right: 'r', release: 's' }
+  };
+
+  function makeStick(el, map) {
+    var knob = el.querySelector('.knob');
+    var active = false, cur = null;
+
+    function geom() {
+      var r = el.getBoundingClientRect();
+      return { x: r.left + r.width / 2, y: r.top + r.height / 2, r: r.width / 2 };
+    }
+    function apply(e) {
+      var g = geom();
+      var dx = e.clientX - g.x, dy = e.clientY - g.y;
+      var len = Math.sqrt(dx * dx + dy * dy);
+      var max = g.r * 0.58;
+      var k = len > max ? max / len : 1;
+      knob.style.transform = 'translate(' + (dx * k).toFixed(1) + 'px,' + (dy * k).toFixed(1) + 'px)';
+
+      var dir = null;
+      if (len > g.r * 0.3) {
+        var a = Math.atan2(dy, dx) * 180 / Math.PI;
+        if (a >= -45 && a < 45) dir = 'right';
+        else if (a >= 45 && a < 135) dir = 'down';
+        else if (a >= -135 && a < -45) dir = 'up';
+        else dir = 'left';
+      }
+      if (dir !== cur) {
+        cur = dir;
+        el.classList.toggle('live', !!dir);
+        if (dir) { buzz(10); send(map[dir]); }
+        else send(map.release);
+      }
+    }
+    function release() {
+      if (!active) return;
+      active = false;
+      cur = null;
+      knob.style.transform = '';
+      el.classList.remove('live');
+      send(map.release);
+    }
+    el.addEventListener('pointerdown', function (e) {
+      e.preventDefault();
+      active = true;
+      try { el.setPointerCapture(e.pointerId); } catch (err) {}
+      apply(e);
+    });
+    el.addEventListener('pointermove', function (e) { if (active) apply(e); });
+    el.addEventListener('pointerup', release);
+    el.addEventListener('pointercancel', release);
+  }
+
+  Array.prototype.forEach.call(document.querySelectorAll('[data-stick]'), function (el) {
+    makeStick(el, STICK_MAP[el.dataset.stick]);
+  });
+
+  // ---------- кнопки ----------
+  function bindHold(el, onDown, onUp) {
+    var active = false;
+    function down(e) {
+      e.preventDefault();
+      if (active || el.disabled) return;
+      active = true; el.classList.add('held'); buzz(12); onDown();
+    }
+    function up() {
+      if (!active) return;
+      active = false; el.classList.remove('held'); onUp();
+    }
+    el.addEventListener('pointerdown', down);
+    el.addEventListener('pointerup', up);
+    el.addEventListener('pointercancel', up);
+    el.addEventListener('pointerleave', up);
+  }
+
+  Array.prototype.forEach.call(document.querySelectorAll('[data-jog]'), function (el) {
+    var cmd = el.dataset.jog;
+    bindHold(el, function () { send(cmd); }, function () { send('s'); });
+  });
+
+  Array.prototype.forEach.call(document.querySelectorAll('[data-tap]'), function (el) {
+    el.addEventListener('click', function () { buzz(12); send(el.dataset.tap); });
+  });
+
+  // підсвічування активного режиму в стрічці pills
+  Array.prototype.forEach.call(document.querySelectorAll('.pills'), function (group) {
+    var btns = Array.prototype.slice.call(group.querySelectorAll('button'));
+    btns.forEach(function (b) {
+      b.addEventListener('click', function () {
+        btns.forEach(function (x) { x.classList.toggle('on', x === b); });
+      });
+    });
+  });
+  // будь-який СТОП гасить підсвічування режимів
+  Array.prototype.forEach.call(document.querySelectorAll('[data-tap="S"]'), function (el) {
+    el.addEventListener('click', function () {
+      Array.prototype.forEach.call(document.querySelectorAll('.pills button.on'), function (x) {
+        x.classList.remove('on');
+      });
+    });
+  });
+
+  // ---------- вкладки ----------
+  var tabs = Array.prototype.slice.call(document.querySelectorAll('[role="tab"]'));
+  tabs.forEach(function (tab) {
+    tab.addEventListener('click', function () {
+      tabs.forEach(function (t) {
+        var on = t === tab;
+        t.setAttribute('aria-selected', on ? 'true' : 'false');
+        document.getElementById(t.dataset.panel).hidden = !on;
+      });
+    });
+  });
+
+  // ---------- танк: напис ----------
+  var mxText = document.getElementById('mxText');
+  document.getElementById('btnText').addEventListener('click', function () {
+    var s = mxText.value.toUpperCase().replace(/[^A-Z0-9 .\-!]/g, '').slice(0, 16);
+    if (!s) { log('напис порожній або лише з незнайомих символів', 'err'); return; }
+    mxText.value = s;
+    send('T' + s + '#');
+  });
+
+  // ---------- танк: світло ----------
+  var ledBtn = document.getElementById('ledBtn');
+  var ledState = false;
+  ledBtn.addEventListener('click', function () {
+    ledState = !ledState;
+    ledBtn.dataset.tap = ledState ? 'b' : 'a';
+    ledBtn.textContent = ledState ? 'Світло вимк.' : 'Світло увімк.';
+    ledBtn.classList.toggle('on', ledState);
+  });
+
+  // ---------- танк: повзунки ----------
+  function bindSpeed(slider, valueEl, letter) {
+    var timer = null;
+    slider.addEventListener('input', function () {
+      valueEl.textContent = slider.value;
+      clearTimeout(timer);
+      timer = setTimeout(function () { send(letter + slider.value + '#'); }, 120);
+    });
+  }
+  bindSpeed(document.getElementById('spdL'), document.getElementById('valL'), 'u');
+  bindSpeed(document.getElementById('spdR'), document.getElementById('valR'), 'v');
+
+  // ---------- Freenove: камера ----------
+  var camUrl = document.getElementById('camUrl');
+  var camLink = document.getElementById('camLink');
+  camUrl.addEventListener('input', function () { camLink.href = camUrl.value.trim(); });
+
+  // ---------- PiCar: камера ----------
+  var picarCam = document.getElementById('picarCam');
+  var picarCamLink = document.getElementById('picarCamLink');
+  picarCam.addEventListener('input', function () { picarCamLink.href = picarCam.value.trim(); });
+
+  // ---------- режим геймпада ----------
+  var btnPad = document.getElementById('btnPad');
+  var mq = window.matchMedia('(orientation: landscape) and (max-height: 560px)');
+  var manual = null;
+
+  function applyLayout() {
+    var on = manual === null ? mq.matches : manual;
+    document.body.classList.toggle('gamepad', on);
+    btnPad.setAttribute('aria-pressed', on ? 'true' : 'false');
+    btnPad.textContent = on ? '⤢' : '⛶';
+  }
+  if (mq.addEventListener) mq.addEventListener('change', function () { manual = null; applyLayout(); });
+  btnPad.addEventListener('click', function () {
+    manual = !document.body.classList.contains('gamepad');
+    applyLayout();
+  });
+  applyLayout();
+
+  // ---------- екран не гасне ----------
+  var wakeLock = null;
+  function keepAwake() {
+    if (!navigator.wakeLock) return;
+    navigator.wakeLock.request('screen').then(function (l) {
+      wakeLock = l;
+      l.addEventListener('release', function () { wakeLock = null; });
+    }).catch(function () {});
+  }
+  document.addEventListener('visibilitychange', function () {
+    if (document.visibilityState === 'visible' && !wakeLock && chara) keepAwake();
+  });
+
+  // ---------- клавіатура ----------
+  var keyMap = { ArrowUp: 'F', ArrowDown: 'B', ArrowLeft: 'L', ArrowRight: 'R' };
+  var keyHeld = {};
+  window.addEventListener('keydown', function (e) {
+    if (e.target.tagName === 'INPUT') return;
+    if (keyMap[e.key] && !keyHeld[e.key]) { keyHeld[e.key] = true; send(keyMap[e.key]); e.preventDefault(); }
+    if (e.key === ' ') { send('S'); e.preventDefault(); }
+  });
+  window.addEventListener('keyup', function (e) {
+    if (keyMap[e.key] && keyHeld[e.key]) { keyHeld[e.key] = false; send('S'); }
+  });
+
+  log('панель готова, оберіть робота й натисніть «Підключити»', 'sys');
+}());
+</script>
