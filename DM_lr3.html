@@ -5,88 +5,122 @@
 <title>ЛР 3 · Симулятор черв'ячної та ланцюгової передач</title>
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <style>
-/* Макет: шапка з двома вкладками; у кожній — вузька колонка вхідних даних і широка колонка «креслення → результат». */
+/* Макет: шапка з двома вкладками; у кожній — колонка вхідних даних і колонка інтерактивного креслення, KPI та результатів. */
 :root{
-  --bg:#f3f5f8; --surface:#ffffff; --ink:#17212b; --muted:#566475; --line:#d2d9e1; --field:#f7f9fb;
-  --pin:#1f5f8b; --pin-fill:#d6e6f3; --wheel:#b4541c; --wheel-fill:#f8e1d1;
-  --ok:#1a7745; --bad:#b3261e; --clash:#d32f2f; --code:#edf1f5;
-  --font:"Segoe UI",system-ui,-apple-system,Roboto,"Helvetica Neue",Arial,sans-serif;
-  --mono:ui-monospace,"Cascadia Mono",Consolas,"DejaVu Sans Mono",monospace;
+  --bg:#eef2f7; --surface:#ffffff; --surface-2:#f8fafc; --ink:#0f172a; --muted:#475569; --line:#cbd5e1; --field:#f1f5f9;
+  --pin:#1d4ed8; --pin-2:#3b82f6; --pin-fill:#dbeafe; --wheel:#b45309; --wheel-2:#d97706; --wheel-fill:#fef3c7;
+  --ok:#15803d; --ok-bg:#dcfce7; --bad:#b91c1c; --bad-bg:#fee2e2; --clash:#dc2626; --code:#0f172a; --code-ink:#e2e8f0;
+  --shadow:0 4px 18px -4px rgba(15,23,42,.08),0 2px 6px -2px rgba(15,23,42,.04);
+  --font:"Inter","Segoe UI",system-ui,-apple-system,Roboto,"Helvetica Neue",Arial,sans-serif;
+  --mono:"JetBrains Mono",ui-monospace,"Cascadia Mono",Consolas,"DejaVu Sans Mono",monospace;
   box-sizing:border-box; padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
 }
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
-  --bg:#0f151b; --surface:#18212a; --ink:#e6ecf2; --muted:#9aa8b6; --line:#2b3743; --field:#111921;
-  --pin:#78b6e4; --pin-fill:#22465f; --wheel:#e79c69; --wheel-fill:#553726;
-  --ok:#5fc88e; --bad:#ff8f85; --clash:#ff5a4f; --code:#111a22; color-scheme:dark}}
+  --bg:#0b1120; --surface:#111827; --surface-2:#1e293b; --ink:#f1f5f9; --muted:#94a3b8; --line:#334155; --field:#1e293b;
+  --pin:#60a5fa; --pin-2:#3b82f6; --pin-fill:#1e3a5f; --wheel:#fbbf24; --wheel-2:#f59e0b; --wheel-fill:#45270d;
+  --ok:#4ade80; --ok-bg:#143523; --bad:#f87171; --bad-bg:#3b1818; --clash:#ef4444; --code:#090d16; --code-ink:#e2e8f0;
+  --shadow:0 8px 24px -4px rgba(0,0,0,.45); color-scheme:dark}}
 :root[data-theme="dark"]{
-  --bg:#0f151b; --surface:#18212a; --ink:#e6ecf2; --muted:#9aa8b6; --line:#2b3743; --field:#111921;
-  --pin:#78b6e4; --pin-fill:#22465f; --wheel:#e79c69; --wheel-fill:#553726;
-  --ok:#5fc88e; --bad:#ff8f85; --clash:#ff5a4f; --code:#111a22; color-scheme:dark}
+  --bg:#0b1120; --surface:#111827; --surface-2:#1e293b; --ink:#f1f5f9; --muted:#94a3b8; --line:#334155; --field:#1e293b;
+  --pin:#60a5fa; --pin-2:#3b82f6; --pin-fill:#1e3a5f; --wheel:#fbbf24; --wheel-2:#f59e0b; --wheel-fill:#45270d;
+  --ok:#4ade80; --ok-bg:#143523; --bad:#f87171; --bad-bg:#3b1818; --clash:#ef4444; --code:#090d16; --code-ink:#e2e8f0;
+  --shadow:0 8px 24px -4px rgba(0,0,0,.45); color-scheme:dark}
 *{box-sizing:border-box}
 [hidden]{display:none!important}
 html{scroll-padding-top:env(safe-area-inset-top,0px)}
-body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 var(--font)}
-main{max-width:1080px;margin:0 auto;padding-inline:16px;padding-block:18px 28px;display:flex;flex-direction:column;gap:16px}
-.eyebrow{margin:0;font-size:.78rem;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
-h1{margin:2px 0 4px;font-size:1.5rem;line-height:1.2;text-wrap:balance}
-.lead{margin:0;color:var(--muted);max-width:68ch}
-h2{margin:0;font-size:1rem}
+body{margin:0;background:var(--bg);color:var(--ink);font:15.5px/1.5 var(--font);-webkit-font-smoothing:antialiased}
+main{max-width:1180px;margin:0 auto;padding-inline:18px;padding-block:20px 34px;display:flex;flex-direction:column;gap:18px}
+header.top-header{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:18px 22px;box-shadow:var(--shadow);display:flex;flex-direction:column;gap:8px}
+.header-top{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap}
+.eyebrow{margin:0;font-size:.76rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--pin)}
+h1{margin:2px 0 4px;font-size:1.55rem;line-height:1.2;font-weight:800;letter-spacing:-.015em;text-wrap:balance}
+.lead{margin:0;color:var(--muted);max-width:74ch;font-size:.94rem}
+h2{margin:0;font-size:.98rem;font-weight:700;letter-spacing:-.01em;display:flex;align-items:center;gap:8px}
+h2::before{content:"";display:inline-block;width:4px;height:15px;border-radius:2px;background:var(--pin)}
 sub{font-size:.72em;line-height:0}
-.tabs{display:flex;gap:6px;margin-top:12px;flex-wrap:wrap}
-.tabs button{font:inherit;font-weight:600;padding:8px 16px;border:1px solid var(--line);border-radius:999px;background:var(--surface);color:var(--muted);cursor:pointer}
-.tabs button[aria-selected="true"]{background:var(--pin);border-color:var(--pin);color:var(--surface)}
-.pane{display:grid;grid-template-columns:minmax(0,300px) minmax(0,1fr);gap:16px;align-items:start}
-@media(max-width:800px){.pane{grid-template-columns:minmax(0,1fr)}}
+.tabs-bar{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-top:8px;flex-wrap:wrap}
+.tabs{display:inline-flex;gap:6px;padding:4px;background:var(--field);border:1px solid var(--line);border-radius:11px;flex-wrap:wrap}
+.tabs button{font:inherit;font-size:.92rem;font-weight:650;padding:8px 18px;border:0;border-radius:8px;background:transparent;color:var(--muted);cursor:pointer;transition:all .16s ease}
+.tabs button:hover{color:var(--ink)}
+.tabs button[aria-selected="true"]{background:var(--pin);color:#ffffff;box-shadow:0 2px 8px rgba(29,78,216,.28)}
+.theme-btn{font:inherit;font-size:.84rem;font-weight:600;padding:7px 12px;border:1px solid var(--line);border-radius:8px;background:var(--field);color:var(--ink);cursor:pointer;transition:all .15s ease}
+.theme-btn:hover{border-color:var(--pin)}
+.pane{display:grid;grid-template-columns:minmax(0,320px) minmax(0,1fr);gap:18px;align-items:start}
+@media(max-width:860px){.pane{grid-template-columns:minmax(0,1fr)}}
 .col{display:flex;flex-direction:column;gap:16px;min-width:0}
-.card{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:14px;display:flex;flex-direction:column;gap:10px;min-width:0}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:13px;padding:16px;display:flex;flex-direction:column;gap:12px;min-width:0;box-shadow:var(--shadow)}
 .fields{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 .fields .wide{grid-column:1/-1}
-label{display:block;font-size:.84rem;color:var(--muted)}
-label>input,label>select{display:block;margin-top:3px}
-input[type=number],select{width:100%;padding:7px 8px;border:1px solid var(--line);border-radius:6px;background:var(--field);color:var(--ink);font:inherit;font-variant-numeric:tabular-nums}
-input[type=range]{width:100%;accent-color:var(--pin)}
-button.btn{font:inherit;font-size:.9rem;padding:7px 12px;border:1px solid var(--line);border-radius:6px;background:var(--field);color:var(--ink);cursor:pointer}
-button.btn[aria-pressed="true"]{background:var(--pin);border-color:var(--pin);color:var(--surface)}
+label{display:block;font-size:.82rem;font-weight:600;color:var(--muted)}
+label>input,label>select{display:block;margin-top:4px;font-weight:500}
+input[type=number],select{width:100%;padding:8px 10px;border:1px solid var(--line);border-radius:8px;background:var(--field);color:var(--ink);font:inherit;font-variant-numeric:tabular-nums;transition:border-color .15s,box-shadow .15s}
+input[type=number]:focus,select:focus{outline:none;border-color:var(--pin);box-shadow:0 0 0 3px rgba(59,130,246,.2)}
+input[type=range]{width:100%;accent-color:var(--pin);cursor:pointer}
+button.btn{font:inherit;font-size:.88rem;font-weight:600;padding:8px 14px;border:1px solid var(--line);border-radius:8px;background:var(--field);color:var(--ink);cursor:pointer;transition:all .15s ease}
+button.btn:hover{border-color:var(--pin);background:var(--surface-2)}
+button.btn[aria-pressed="true"]{background:var(--pin);border-color:var(--pin);color:#ffffff}
 :focus-visible{outline:2px solid var(--pin);outline-offset:2px}
-.hint{margin:0;font-size:.82rem;color:var(--muted)}
-.stage svg{display:block;width:100%;height:auto;max-height:440px;background:var(--field);border-radius:8px}
-#bPoly{display:block;width:100%;height:auto;background:var(--field);border-radius:8px}
+.hint{margin:0;font-size:.82rem;color:var(--muted);line-height:1.45}
+.kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+@media(max-width:600px){.kpis{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.kpi{background:var(--surface-2);border:1px solid var(--line);border-radius:10px;padding:9px 11px;display:flex;flex-direction:column;gap:2px}
+.kpi span{font-size:.78rem;font-weight:600;color:var(--muted);letter-spacing:.01em}
+.kpi strong{font-size:1.05rem;font-weight:800;color:var(--ink);font-variant-numeric:tabular-nums}
+.stage-wrap{position:relative;border:1px solid var(--line);border-radius:11px;overflow:hidden;background:var(--field)}
+.stage svg{display:block;width:100%;height:auto;max-height:460px;background:transparent}
+#bPoly{display:block;width:100%;height:auto;background:var(--field);border:1px solid var(--line);border-radius:10px}
+.legend-bar{display:flex;flex-wrap:wrap;gap:12px;align-items:center;padding:8px 12px;background:var(--surface-2);border-top:1px solid var(--line);font-size:.78rem;color:var(--muted)}
+.legend-item{display:inline-flex;align-items:center;gap:6px;font-weight:600}
+.swatch{width:12px;height:12px;border-radius:3px;display:inline-block;border:1px solid rgba(0,0,0,.15)}
 .row{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center}
 .row .grow{flex:1 1 180px;min-width:0}
-.seg{display:inline-flex;border:1px solid var(--line);border-radius:6px;overflow:hidden}
-.seg button{font:inherit;font-size:.9rem;padding:6px 12px;border:0;background:var(--field);color:var(--ink);cursor:pointer}
-.seg button[aria-pressed="true"]{background:var(--pin);color:var(--surface)}
-label.check{display:flex;align-items:center;gap:6px;color:var(--ink);font-size:.9rem}
-label.check>input{margin:0}
-.status{margin:0;padding:8px 10px;border-radius:6px;background:var(--field);font-weight:600;border-left:4px solid var(--ok);color:var(--ok)}
-.status.bad{border-left-color:var(--bad);color:var(--bad)}
-.tablewrap{overflow-x:auto}
-table{width:100%;border-collapse:collapse;font-size:.92rem;font-variant-numeric:tabular-nums}
-th,td{padding:5px 8px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
-th{font-size:.8rem;color:var(--muted);font-weight:600}
-td.num,th.num{text-align:right;white-space:nowrap}
-.checks{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:3px;font-size:.92rem}
-.checks .ok{color:var(--ok)} .checks .bad{color:var(--bad)}
-pre{margin:0;padding:10px;background:var(--code);border-radius:6px;font:.86rem/1.5 var(--mono);overflow-x:auto}
-.chips{display:flex;flex-wrap:wrap;gap:6px}
-.chips button{font:inherit;font-size:.82rem;line-height:1.25;padding:5px 8px;border:1px solid var(--line);border-radius:6px;background:var(--field);color:var(--ink);cursor:pointer;text-align:center;font-variant-numeric:tabular-nums}
-.chips button small{display:block;color:var(--muted)}
-.chips button[aria-pressed="true"]{border-color:var(--pin);box-shadow:inset 0 0 0 1px var(--pin)}
-.chips button.best small{color:var(--ok);font-weight:600}
-.chips button.fail{opacity:.55}
-footer{font-size:.82rem;color:var(--muted);max-width:90ch}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:8px;overflow:hidden;background:var(--field)}
+.seg button{font:inherit;font-size:.86rem;font-weight:600;padding:7px 14px;border:0;background:transparent;color:var(--ink);cursor:pointer;transition:all .15s ease}
+.seg button[aria-pressed="true"]{background:var(--pin);color:#ffffff}
+label.check{display:inline-flex;align-items:center;gap:7px;color:var(--ink);font-size:.88rem;font-weight:600;cursor:pointer;padding:6px 10px;border-radius:8px;background:var(--field);border:1px solid var(--line)}
+label.check>input{margin:0;accent-color:var(--pin)}
+.status{margin:0;padding:10px 13px;border-radius:9px;background:var(--ok-bg);font-weight:650;font-size:.9rem;border-left:4px solid var(--ok);color:var(--ok)}
+.status.bad{background:var(--bad-bg);border-left-color:var(--bad);color:var(--bad)}
+.tablewrap{overflow-x:auto;border:1px solid var(--line);border-radius:9px}
+table{width:100%;border-collapse:collapse;font-size:.9rem;font-variant-numeric:tabular-nums}
+th,td{padding:7px 11px;border-bottom:1px solid var(--line);text-align:left;vertical-align:middle}
+tr:last-child td{border-bottom:0}
+tr:nth-child(even) td{background:var(--surface-2)}
+th{font-size:.78rem;color:var(--muted);font-weight:600}
+td.num,th.num{text-align:right;white-space:nowrap;font-weight:600;font-family:var(--mono);font-size:.86rem}
+.checks{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:7px;font-size:.86rem}
+.checks li{padding:7px 10px;border-radius:8px;font-weight:600;display:flex;align-items:center;gap:6px}
+.checks .ok{color:var(--ok);background:var(--ok-bg)}
+.checks .bad{color:var(--bad);background:var(--bad-bg)}
+pre{margin:0;padding:13px 15px;background:var(--code);color:var(--code-ink);border-radius:9px;font:.84rem/1.55 var(--mono);overflow-x:auto;border:1px solid var(--line)}
+.chips{display:flex;flex-wrap:wrap;gap:7px}
+.chips button{font:inherit;font-size:.82rem;line-height:1.3;padding:7px 10px;border:1px solid var(--line);border-radius:8px;background:var(--field);color:var(--ink);cursor:pointer;text-align:center;font-variant-numeric:tabular-nums;transition:all .15s ease}
+.chips button:hover{border-color:var(--pin)}
+.chips button small{display:block;color:var(--muted);font-size:.74rem;margin-top:2px}
+.chips button[aria-pressed="true"]{border-color:var(--pin);background:var(--pin-fill);box-shadow:inset 0 0 0 1px var(--pin)}
+.chips button.best small{color:var(--ok);font-weight:700}
+.chips button.fail{opacity:.58}
+footer{font-size:.82rem;color:var(--muted);background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:13px 16px;line-height:1.5}
 .svg-ink{fill:var(--ink)} .svg-muted{fill:var(--muted)}
+.svg-halo{paint-order:stroke;stroke:var(--field);stroke-width:3px;stroke-linejoin:round}
 </style>
 </head>
 <body>
 <main>
-<header>
-  <p class="eyebrow">Деталі машин та ПТМ · лабораторна робота № 3</p>
-  <h1>Симулятор черв'ячної та ланцюгової передач</h1>
+<header class="top-header">
+  <div class="header-top">
+    <div>
+      <p class="eyebrow">Деталі машин та ПТМ · лабораторна робота № 3</p>
+      <h1>Симулятор черв'ячної та ланцюгової передач</h1>
+    </div>
+    <button type="button" class="theme-btn" id="themeBtn" title="Перемкнути тему">◐ Тема</button>
+  </div>
   <p class="lead">Самоперевірка розрахунку й наочна кінематика. Введіть свої дані — числа мають збігтися з Excel-шаблоном. Зараз підставлено приклад із методичних вказівок.</p>
-  <div class="tabs" role="tablist">
-    <button type="button" role="tab" id="tabA" aria-controls="paneA" aria-selected="true">А. Черв'ячна</button>
-    <button type="button" role="tab" id="tabB" aria-controls="paneB" aria-selected="false">Б. Ланцюгова</button>
+  <div class="tabs-bar">
+    <div class="tabs" role="tablist">
+      <button type="button" role="tab" id="tabA" aria-controls="paneA" aria-selected="true">А. Черв'ячна</button>
+      <button type="button" role="tab" id="tabB" aria-controls="paneB" aria-selected="false">Б. Ланцюгова</button>
+    </div>
   </div>
 </header>
 
@@ -120,7 +154,17 @@ footer{font-size:.82rem;color:var(--muted);max-width:90ch}
   </div>
   <div class="col">
     <div class="card stage">
-      <svg id="aSvg" role="img" aria-label="Осьовий переріз черв'ячної передачі"></svg>
+      <div class="kpis" id="aKpis"></div>
+      <div class="stage-wrap">
+        <svg id="aSvg" role="img" aria-label="Осьовий переріз черв'ячної передачі"></svg>
+        <div class="legend-bar">
+          <span class="legend-item"><i class="swatch" style="background:var(--pin-fill);border-color:var(--pin)"></i>Черв'як (z₁, d₁)</span>
+          <span class="legend-item"><i class="swatch" style="background:var(--wheel-fill);border-color:var(--wheel)"></i>Черв'ячне колесо (z₂, d₂)</span>
+          <span class="legend-item"><i class="swatch" style="background:var(--wheel)"></i>F<sub>t2</sub> = F<sub>a1</sub></span>
+          <span class="legend-item"><i class="swatch" style="background:var(--pin)"></i>F<sub>t1</sub> = F<sub>a2</sub></span>
+          <span class="legend-item"><i class="swatch" style="background:var(--ink)"></i>F<sub>r</sub></span>
+        </div>
+      </div>
       <div class="row">
         <button type="button" class="btn" id="aPlay" aria-pressed="false">▶ Обертати</button>
         <label class="grow">Кут повороту черв'яка<input id="aPhi" type="range" min="0" max="360" step="0.5" value="0"></label>
@@ -178,7 +222,15 @@ footer{font-size:.82rem;color:var(--muted);max-width:90ch}
   </div>
   <div class="col">
     <div class="card stage">
-      <svg id="bSvg" role="img" aria-label="Ланцюгова передача з двома зірочками"></svg>
+      <div class="kpis" id="bKpis"></div>
+      <div class="stage-wrap">
+        <svg id="bSvg" role="img" aria-label="Ланцюгова передача з двома зірочками"></svg>
+        <div class="legend-bar">
+          <span class="legend-item"><i class="swatch" style="background:var(--wheel-fill);border-color:var(--wheel)"></i>Ведуча та ведена зірочки (z₁, z₂)</span>
+          <span class="legend-item"><i class="swatch" style="background:var(--pin-fill);border-color:var(--pin)"></i>Ролики та пластини ланцюга (крок p)</span>
+          <span class="legend-item">Обидві зірочки обертаються в один бік</span>
+        </div>
+      </div>
       <div class="row">
         <button type="button" class="btn" id="bPlay" aria-pressed="false">▶ Обертати</button>
         <label class="grow">Кут повороту меншої зірочки<input id="bPhi" type="range" min="0" max="360" step="0.5" value="0"></label>
@@ -359,6 +411,7 @@ if (typeof document !== "undefined") (function () {
   const f = (x, k = 1) => x.toFixed(k).replace(".", ","), g = x => String(+x.toFixed(4)).replace(".", ",");
   const d = (x, k) => String(+x.toFixed(k));   /* для Fusion — з крапкою */
   const row = (a, b) => `<tr><td>${a}</td><td class="num">${b}</td></tr>`;
+  const kpi = (lbl, v) => `<div class="kpi"><span>${lbl}</span><strong>${v}</strong></div>`;
   const chk = list => list.map(([ok, t]) => `<li class="${ok ? "ok" : "bad"}">${ok ? "✔" : "✘"} ${t}</li>`).join("");
   const val = id => parseFloat($(id).value);
   const path = pts => "M" + pts.map(p => p[0].toFixed(3) + " " + p[1].toFixed(3)).join("L") + "Z";
@@ -368,10 +421,29 @@ if (typeof document !== "undefined") (function () {
     try { navigator.clipboard.writeText(pre.textContent).then(done, sel); } catch (e) { sel(); }
   });
 
+  /* ---------- перемикач теми ---------- */
+  $("themeBtn").addEventListener("click", () => {
+    const root = document.documentElement;
+    const cur = root.getAttribute("data-theme");
+    const isDark = cur ? cur === "dark" : window.matchMedia("(prefers-color-scheme:dark)").matches;
+    root.setAttribute("data-theme", isDark ? "light" : "dark");
+  });
+
   /* ---------- вкладки ---------- */
   const tabs = { a: [$("tabA"), $("paneA")], b: [$("tabB"), $("paneB")] };
   function show(k) { for (const key in tabs) { tabs[key][0].setAttribute("aria-selected", key === k); tabs[key][1].hidden = key !== k; } stopA(); stopB(); }
   $("tabA").addEventListener("click", () => show("a")); $("tabB").addEventListener("click", () => show("b"));
+
+  /* ---------- вектор сили з масштабованим наконечником (коректний і в огляді, і в режимі «Зачеплення») ---------- */
+  function forceVec(x1, y1, x2, y2, color, hl, hw, sw) {
+    const dx = x2 - x1, dy = y2 - y1, len = Math.hypot(dx, dy);
+    if (len < 1e-6) return "";
+    const ux = dx / len, uy = dy / len, px = -uy, py = ux;
+    const hLen = Math.min(hl, len * 0.45);
+    const bx = x2 - ux * hLen, by = y2 - uy * hLen;
+    return `<line x1="${x1.toFixed(2)}" y1="${y1.toFixed(2)}" x2="${bx.toFixed(2)}" y2="${by.toFixed(2)}" stroke="${color}" stroke-width="${sw}" vector-effect="non-scaling-stroke" stroke-linecap="round"/>` +
+      `<polygon points="${x2.toFixed(2)},${y2.toFixed(2)} ${(bx + px * hw).toFixed(2)},${(by + py * hw).toFixed(2)} ${(bx - px * hw).toFixed(2)},${(by - py * hw).toFixed(2)}" fill="${color}"/>`;
+  }
 
   /* ================= А. ЧЕРВ'ЯЧНА ================= */
   let A = null, aQ = 0, aView = "all", aPlaying = false, aRaf = 0, aLast = 0;
@@ -381,6 +453,11 @@ if (typeof document !== "undefined") (function () {
     if (!(i.M2 > 0 && i.u >= 5 && i.n1 > 0 && i.sH > 0 && i.K > 0 && i.f > 0)) return;
     A = SIM.worm(i);
     $("aHint").innerHTML = `z₁ = ${A.z1}, z₂ = ${A.z2}; автоматичний q = ${g(A.qAuto)}` + (A.q === A.qAuto ? "." : `, зараз вибрано ${g(A.q)}.`);
+    $("aKpis").innerHTML =
+      kpi("Міжосьова a_w", g(A.a) + " мм") +
+      kpi("Модуль m / q", g(A.m) + " мм / " + g(A.q)) +
+      kpi("ККД передачі η", f(A.eta, 3)) +
+      kpi("Ковзання v_s", f(A.vs, 2) + " м/с");
     $("aOut").innerHTML =
       row("z₁ / z₂", A.z1 + " / " + A.z2) + row("Дійсне u; відхилення", f(A.ud, 3) + "; " + f(A.du, 2) + " %") +
       row("q", g(A.q)) + row("a<sub>w,min</sub> / a<sub>w</sub>, мм", f(A.awmin) + " / " + g(A.a)) +
@@ -414,16 +491,24 @@ if (typeof document !== "undefined") (function () {
 
   function buildA() {
     const wh = path(SIM.gearPoly(A.z2, A.m, 0.1));
-    const teeth = SIM.wormTeeth(A, 0, true).concat(SIM.wormTeeth(A, 0, false));
-    $("aSvg").innerHTML = `<defs><clipPath id="aClip"><rect x="${-A.b1 / 2}" y="${-A.a - A.da1}" width="${A.b1}" height="${2 * A.da1}"/></clipPath>
-      ${[["I", "ink"], ["W", "wheel"]].map(([k, c]) => `<marker id="a${k}" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5" markerHeight="5" orient="auto"><path d="M0 0L10 5L0 10z" fill="var(--${c})"/></marker>`).join("")}</defs>
-      <g id="aAx" stroke="var(--ink)" stroke-width="1" stroke-dasharray="7 3 1.5 3" vector-effect="non-scaling-stroke" opacity=".5"></g>
-      <path id="aWh" d="${wh}" fill="var(--wheel-fill)" stroke="var(--wheel)" vector-effect="non-scaling-stroke" stroke-width="1.2"/>
-      <g clip-path="url(#aClip)"><rect id="aCore" fill="var(--pin-fill)" stroke="var(--pin)" vector-effect="non-scaling-stroke" stroke-width="1.2"/>
-        <g id="aTeeth" fill="var(--pin-fill)" stroke="var(--pin)" vector-effect="non-scaling-stroke" stroke-width="1.2"></g></g>
-      <g id="aBore" fill="none" stroke="var(--muted)" vector-effect="non-scaling-stroke" stroke-width="1"></g>
-      <g id="aFrc" fill="none" stroke-width="2" vector-effect="non-scaling-stroke"></g>
-      <g id="aLab" font-size="${(A.m * 2.2).toFixed(2)}"></g>`;
+    const gs = (A.m * 4).toFixed(2);
+    $("aSvg").innerHTML = `<defs>
+      <pattern id="aGrid" width="${gs}" height="${gs}" patternUnits="userSpaceOnUse">
+        <path d="M ${gs} 0 L 0 0 0 ${gs}" fill="none" stroke="var(--line)" stroke-width="0.6" vector-effect="non-scaling-stroke" opacity="0.55"/>
+      </pattern>
+      <clipPath id="aClip"><rect x="${-A.b1 / 2}" y="${-A.a - A.da1}" width="${A.b1}" height="${2 * A.da1}"/></clipPath></defs>
+      <rect id="aBg" x="-2000" y="-2000" width="4000" height="4000" fill="url(#aGrid)"/>
+      <g id="aDim" stroke="var(--muted)" stroke-width="1" vector-effect="non-scaling-stroke" opacity=".75"></g>
+      <g id="aAx" stroke="var(--ink)" stroke-width="1" stroke-dasharray="7 3 1.5 3" vector-effect="non-scaling-stroke" opacity=".55"></g>
+      <path id="aWh" d="${wh}" fill="var(--wheel-fill)" stroke="var(--wheel)" vector-effect="non-scaling-stroke" stroke-width="1.35"/>
+      <circle cx="0" cy="0" r="${(A.d2 / 2).toFixed(2)}" fill="none" stroke="var(--wheel)" stroke-dasharray="5 3" vector-effect="non-scaling-stroke" stroke-width="1" opacity=".7"/>
+      <g clip-path="url(#aClip)"><rect id="aCore" fill="var(--pin-fill)" stroke="var(--pin)" vector-effect="non-scaling-stroke" stroke-width="1.35"/>
+        <g id="aTeeth" fill="var(--pin-fill)" stroke="var(--pin)" vector-effect="non-scaling-stroke" stroke-width="1.35"></g>
+        <line x1="${-A.b1 / 2}" y1="${(-A.a + A.d1 / 2).toFixed(2)}" x2="${A.b1 / 2}" y2="${(-A.a + A.d1 / 2).toFixed(2)}" stroke="var(--pin)" stroke-dasharray="5 3" vector-effect="non-scaling-stroke" stroke-width="1" opacity=".75"/>
+      </g>
+      <g id="aBore" fill="var(--surface)" stroke="var(--muted)" vector-effect="non-scaling-stroke" stroke-width="1.1"></g>
+      <g id="aFrc" fill="none"></g>
+      <g id="aLab" font-weight="700"></g>`;
     frameA();
   }
 
@@ -437,25 +522,58 @@ if (typeof document !== "undefined") (function () {
     $("aTeeth").innerHTML = SIM.wormTeeth(A, shift, true).concat(SIM.wormTeeth(A, shift, false))
       .map(t => `<path d="${path(t)}"/>`).join("");
     const halfW = Math.max(A.b1 / 2, A.da2 / 2);
-    $("aAx").innerHTML = `<path d="M${-halfW - A.m} ${-A.a}H${halfW + A.m}"/><path d="M${-halfW - A.m} 0H${halfW + A.m}"/><path d="M0 ${-A.a - A.da1 / 2 - A.m}V${A.da2 / 2 + A.m}"/>`;
+    $("aAx").innerHTML = `<path d="M${-halfW - A.m * 3} ${-A.a}H${halfW + A.m * 3}"/><path d="M${-halfW - A.m * 3} 0H${halfW + A.m * 3}"/><path d="M0 ${-A.a - A.da1 / 2 - A.m * 2}V${A.da2 / 2 + A.m * 2}"/>`;
     const dsh = (A.m * 1.2).toFixed(2) + " " + (A.m * 0.8).toFixed(2);
-    $("aBore").innerHTML = `<circle cx="0" cy="0" r="${A.dv2 / 2}"/><circle cx="0" cy="0" r="${A.df2 / 2}" stroke-dasharray="${dsh}"/>` +
+    $("aBore").innerHTML = `<circle cx="0" cy="0" r="${A.dv2 / 2}"/><circle cx="0" cy="0" r="${A.df2 / 2}" fill="none" stroke-dasharray="${dsh}"/>` +
       `<path d="M${-A.b1 / 2 - 2.5 * A.m} ${-A.a - A.dv1 / 2}h${2.5 * A.m}v${A.dv1}h${-2.5 * A.m}z"/>` +
       `<path d="M${A.b1 / 2} ${-A.a - A.dv1 / 2}h${2.5 * A.m}v${A.dv1}h${-2.5 * A.m}z"/>`;
+
+    /* Розмірна лінія a_w у режимі «Уся пара» */
+    if (aView === "all") {
+      const xd = -halfW - A.m * 2.2, fsDim = (A.m * 2.1).toFixed(2);
+      $("aDim").innerHTML =
+        `<line x1="${xd}" y1="${-A.a}" x2="${xd}" y2="0"/>` +
+        `<line x1="${xd - A.m * 0.8}" y1="${-A.a}" x2="${-A.b1 / 2 - 2.8 * A.m}" y2="${-A.a}" stroke-dasharray="2 2"/>` +
+        `<line x1="${xd - A.m * 0.8}" y1="0" x2="${-halfW}" y2="0" stroke-dasharray="2 2"/>` +
+        `<text x="${(xd - A.m * 0.8).toFixed(2)}" y="${(-A.a / 2).toFixed(2)}" text-anchor="end" dominant-baseline="middle" font-size="${fsDim}" fill="var(--muted)" stroke="none" font-weight="600">a_w = ${g(A.a)}</text>`;
+    } else {
+      $("aDim").innerHTML = "";
+    }
+
+    /* Вектори сил у полюсі зачеплення (0, -d2/2): адаптовані як для «Уся пара», так і для «Зачеплення» */
     if ($("aForces").checked) {
-      const s = A.da2 / 2 / Math.max(A.Ft2, A.Ft1, A.Fr) * 0.55, y0 = -A.d2 / 2, e = A.m * 0.5;
+      const y0 = -A.d2 / 2, fMax = Math.max(A.Ft2, A.Ft1, A.Fr);
+      const isMesh = aView === "mesh";
+      const maxLen = isMesh ? 3.8 * A.m : A.da2 * 0.36;
+      const s = maxLen / fMax;
+      const hl = isMesh ? 0.58 * A.m : 2.1 * A.m;
+      const hw = isMesh ? 0.25 * A.m : 0.9 * A.m;
+      const fs = isMesh ? (0.52 * A.m).toFixed(2) : (2.15 * A.m).toFixed(2);
+      const haloW = isMesh ? (0.14 * A.m).toFixed(2) : (0.65 * A.m).toFixed(2);
+      const xFt2 = A.Ft2 * s, xFt1 = -A.Ft1 * s, yFr = y0 + A.Fr * s;
+      const dyTxt = isMesh ? -0.35 * A.m : -0.8 * A.m;
+
       $("aFrc").innerHTML =
-        `<path d="M0 ${y0}h${(A.Ft2 * s).toFixed(2)}" stroke="var(--wheel)" marker-end="url(#aW)"/>` +
-        `<path d="M0 ${y0}v${(A.Fr * s).toFixed(2)}" stroke="var(--ink)" marker-end="url(#aI)"/>` +
-        `<path d="M0 ${y0}h${(-A.Ft1 * s).toFixed(2)}" stroke="var(--pin)" marker-end="url(#aW)"/>`;
+        forceVec(0, y0, xFt2, y0, "var(--wheel)", hl, hw, 2.3) +
+        forceVec(0, y0, 0, yFr, "var(--ink)", hl, hw, 2.3) +
+        forceVec(0, y0, xFt1, y0, "var(--pin)", hl, hw, 2.3) +
+        `<circle cx="0" cy="${y0.toFixed(2)}" r="${(isMesh ? 0.16 * A.m : 0.55 * A.m).toFixed(2)}" fill="var(--ink)"/>`;
+
+      $("aLab").setAttribute("font-size", fs);
       $("aLab").innerHTML =
-        `<text class="svg-muted" x="${(A.Ft2 * s + e).toFixed(2)}" y="${(y0 - e).toFixed(2)}">Ft2 = Fa1</text>` +
-        `<text class="svg-muted" x="${e}" y="${(y0 + A.Fr * s + 2.2 * A.m).toFixed(2)}">Fr</text>` +
-        `<text class="svg-muted" text-anchor="end" x="${(-A.Ft1 * s - e).toFixed(2)}" y="${(y0 - e).toFixed(2)}">Ft1 = Fa2</text>`;
+        `<text x="${(xFt2 * 0.55).toFixed(2)}" y="${(y0 + dyTxt).toFixed(2)}" text-anchor="middle" fill="var(--wheel)" style="paint-order:stroke;stroke:var(--field);stroke-width:${haloW}px">Ft2 = Fa1 (${f(A.Ft2, 0)} Н)</text>` +
+        `<text x="${(isMesh ? 0.35 * A.m : 1.1 * A.m).toFixed(2)}" y="${(yFr + (isMesh ? 0.42 * A.m : 1.6 * A.m)).toFixed(2)}" text-anchor="start" fill="var(--ink)" style="paint-order:stroke;stroke:var(--field);stroke-width:${haloW}px">Fr (${f(A.Fr, 0)} Н)</text>` +
+        `<text x="${(xFt1 - (isMesh ? 0.15 * A.m : 0.6 * A.m)).toFixed(2)}" y="${(y0 + dyTxt).toFixed(2)}" text-anchor="end" fill="var(--pin)" style="paint-order:stroke;stroke:var(--field);stroke-width:${haloW}px">Ft1 = Fa2 (${f(A.Ft1, 0)} Н)</text>`;
     } else { $("aFrc").innerHTML = ""; $("aLab").innerHTML = ""; }
+
     let vb;
-    if (aView === "all") { const pad = 2 * A.m + 4; vb = [-halfW - pad, -A.a - A.da1 / 2 - pad, 2 * (halfW + pad), A.a + A.da1 / 2 + A.da2 / 2 + 2 * pad]; }
-    else { const w = 9 * A.m, h = 7 * A.m; vb = [-w / 2, -A.d2 / 2 - h / 2, w, h]; }
+    if (aView === "all") {
+      const padL = 7 * A.m + 14, padR = 3 * A.m + 8, padY = 2.4 * A.m + 6;
+      vb = [-halfW - padL, -A.a - A.da1 / 2 - padY, 2 * halfW + padL + padR, A.a + A.da1 / 2 + A.da2 / 2 + 2 * padY];
+    } else {
+      const w = 10.5 * A.m, h = 7.5 * A.m;
+      vb = [-w / 2, -A.d2 / 2 - h / 2, w, h];
+    }
     $("aSvg").setAttribute("viewBox", vb.map(x => x.toFixed(2)).join(" "));
     const bad = A.checks.filter(c => !c[0]).length;
     $("aStatus").className = "status" + (bad ? " bad" : "");
@@ -497,6 +615,11 @@ if (typeof document !== "undefined") (function () {
     B = SIM.chain(i);
     $("bAval").textContent = `a = ${val("bA")}·p = ${f(B.a, 0)} мм`;
     $("bHint").innerHTML = `K<sub>е</sub> = ${f(B.Ke, 3)}; p<sub>min</sub> = ${f(B.pMin, 2)} мм; автоматичний крок ${f(B.pAuto, 3)} мм` + (B.p === B.pAuto ? "." : `, зараз вибрано ${f(B.p, 3)} мм.`);
+    $("bKpis").innerHTML =
+      kpi("Крок ланцюга p", f(B.p, 2) + " мм") +
+      kpi("Зірочки z₁ / z₂", B.z1 + " / " + B.z2) +
+      kpi("Тиск p_ц / [p]", f(B.pc, 1) + " / " + f(val("bP"), 0) + " МПа") +
+      kpi("Міжосьова a_ф", f(B.aFact, 1) + " мм (" + B.Lp + " л.)");
     $("bOut").innerHTML =
       row("z₁ / z₂", B.z1 + " / " + B.z2) + row("Дійсне u; відхилення", f(B.ud, 3) + "; " + f(B.du, 2) + " %") +
       row("K<sub>е</sub> = K<sub>д</sub>·K<sub>зм</sub>", f(B.Ke, 3)) + row("p<sub>min</sub> / p, мм", f(B.pMin, 2) + " / " + f(B.p, 3)) +
@@ -527,47 +650,59 @@ if (typeof document !== "undefined") (function () {
   }
 
   function polyB(psi) {
-    const W = 100, H = 42, L = 16, R = 9, T = 4, Bm = 10;
-    const zs = [[9, "var(--bad)", "3 2", 1.1], [B.z1, "var(--pin)", "", 1.8]];
+    const W = 100, H = 46, L = 21, R = 5, T = 8.5, Bm = 10;
+    const zs = [[9, "var(--bad)", "2.5 1.8", 1.2], [B.z1, "var(--pin)", "", 1.9]];
     let lo = 1e9, hi = -1e9;
     for (const [z] of zs) { lo = Math.min(lo, SIM.polyCurve(z, 1)); hi = Math.max(hi, SIM.polyCurve(z, 0)); }
-    lo = (lo - 1) * 100 - 0.6; hi = (hi - 1) * 100 + 0.6;
+    lo = (lo - 1) * 100 - 0.8; hi = (hi - 1) * 100 + 0.8;
     const X = t => L + (W - L - R) * (t + 1) / 2;
     const Y = p => H - Bm - (H - Bm - T) * (p - lo) / (hi - lo);
     const line = z => { let d = ""; for (let i = 0; i <= 60; i++) { const t = -1 + 2 * i / 60;
       d += (i ? "L" : "M") + X(t).toFixed(2) + " " + Y((SIM.polyCurve(z, t) - 1) * 100).toFixed(2); } return d; };
     const tn = ((psi % (2 * Math.PI / B.z1)) / (2 * Math.PI / B.z1)) * 2 - 1;
     const yn = Y((SIM.polyCurve(B.z1, tn) - 1) * 100);
+    const d9 = (Math.PI / (9 * Math.sin(Math.PI / 9))) * (1 - Math.cos(Math.PI / 9)) * 100;
     $("bPoly").setAttribute("viewBox", `0 0 ${W} ${H}`);
     $("bPoly").innerHTML =
-      `<path d="M${L} ${Y(0)}H${W - R}" stroke="var(--muted)" stroke-dasharray="3 2" stroke-width=".3" fill="none"/>` +
-      `<text x="${L - 1}" y="${Y(0) + 1}" text-anchor="end" font-size="2.6" class="svg-muted">середня v</text>` +
+      `<rect x="${L}" y="${T}" width="${W - L - R}" height="${H - Bm - T}" fill="var(--surface)" stroke="var(--line)" stroke-width=".25" rx="1"/>` +
+      `<path d="M${X(0)} ${T}V${H - Bm}" stroke="var(--line)" stroke-dasharray="1.5 1.5" stroke-width=".25"/>` +
+      `<path d="M${L} ${Y(0)}H${W - R}" stroke="var(--muted)" stroke-dasharray="2.5 1.8" stroke-width=".35" fill="none"/>` +
+      `<text x="${L - 1.2}" y="${Y(0) + 0.9}" text-anchor="end" font-size="2.5" class="svg-muted" font-weight="600">середня v (0%)</text>` +
       zs.map(([z, c, dash, w]) => `<path d="${line(z)}" fill="none" stroke="${c}" stroke-width="${w * 0.35}" stroke-dasharray="${dash}"/>`).join("") +
-      `<circle cx="${X(tn).toFixed(2)}" cy="${yn.toFixed(2)}" r="1.5" fill="var(--pin)"/>` +
-      `<text x="${W - R}" y="${Y((SIM.polyCurve(B.z1, 0) - 1) * 100) - 1.4}" text-anchor="end" font-size="2.8" fill="var(--pin)">z = ${B.z1}: δк = ${f(B.delta, 1)} %</text>` +
-      `<text x="${W - R}" y="${Y((SIM.polyCurve(9, 0) - 1) * 100) - 1.4}" text-anchor="end" font-size="2.8" fill="var(--bad)">z = 9: δк = ${f((Math.PI / (9 * Math.sin(Math.PI / 9))) * (1 - Math.cos(Math.PI / 9)) * 100, 1)} %</text>` +
-      `<text x="${X(-1)}" y="${H - 5.6}" text-anchor="middle" font-size="2.6" class="svg-muted">−180°/z</text>` +
-      `<text x="${X(1)}" y="${H - 5.6}" text-anchor="middle" font-size="2.6" class="svg-muted">+180°/z</text>` +
-      `<text x="${(X(-1) + X(1)) / 2}" y="${H - 1.2}" text-anchor="middle" font-size="2.8" class="svg-ink">поворот зірочки в межах одного зуба</text>`;
+      `<circle cx="${X(tn).toFixed(2)}" cy="${yn.toFixed(2)}" r="1.45" fill="var(--pin)" stroke="var(--surface)" stroke-width=".4"/>` +
+      /* Підписи винесені у верхню панель графіка без жодних перетинів із кривими */
+      `<text x="${L}" y="${T - 2.2}" text-anchor="start" font-size="2.65" fill="var(--pin)" font-weight="700">● z₁ = ${B.z1}: δк = ${f(B.delta, 2)} %</text>` +
+      `<text x="${W - R}" y="${T - 2.2}" text-anchor="end" font-size="2.65" fill="var(--bad)" font-weight="700">- - z = 9: δк = ${f(d9, 1)} %</text>` +
+      `<text x="${X(-1)}" y="${H - 5.6}" text-anchor="middle" font-size="2.5" class="svg-muted">−180°/z</text>` +
+      `<text x="${X(0)}" y="${H - 5.6}" text-anchor="middle" font-size="2.5" class="svg-muted">0°</text>` +
+      `<text x="${X(1)}" y="${H - 5.6}" text-anchor="middle" font-size="2.5" class="svg-muted">+180°/z</text>` +
+      `<text x="${(X(-1) + X(1)) / 2}" y="${H - 1.3}" text-anchor="middle" font-size="2.7" class="svg-ink" font-weight="600">поворот зірочки в межах одного зуба</text>`;
   }
 
   function frameB() {
     if (!B) return;
     const psi = val("bPhi") * Math.PI / 180, G = SIM.chainRollers(B, psi);
-    const notch = (cx, rr, z, th, ra) =>
-      `<circle cx="${cx}" cy="0" r="${ra}" fill="var(--wheel-fill)" stroke="var(--wheel)" vector-effect="non-scaling-stroke" stroke-width="1.2"/>` +
+    const gs = (B.p * 2.5).toFixed(2);
+    const notch = (cx, rr, z, th, ra, lbl) =>
+      `<circle cx="${cx}" cy="0" r="${ra}" fill="var(--wheel-fill)" stroke="var(--wheel)" vector-effect="non-scaling-stroke" stroke-width="1.35"/>` +
       Array.from({ length: z }, (_, k) => { const an = th + 2 * Math.PI * k / z;
-        return `<circle cx="${(cx + rr * Math.cos(an)).toFixed(3)}" cy="${(rr * Math.sin(an)).toFixed(3)}" r="${B.dSeat / 2}" fill="var(--field)" stroke="var(--wheel)" vector-effect="non-scaling-stroke" stroke-width=".8"/>`; }).join("") +
+        return `<circle cx="${(cx + rr * Math.cos(an)).toFixed(3)}" cy="${(rr * Math.sin(an)).toFixed(3)}" r="${B.dSeat / 2}" fill="var(--field)" stroke="var(--wheel)" vector-effect="non-scaling-stroke" stroke-width=".85"/>`; }).join("") +
       `<circle cx="${cx}" cy="0" r="${rr}" fill="none" stroke="var(--muted)" stroke-dasharray="5 4" vector-effect="non-scaling-stroke" stroke-width="1"/>` +
-      `<circle cx="${cx}" cy="0" r="${(B.p === 0 ? 1 : (cx ? B.dv2 : B.dv1) / 2)}" fill="var(--surface)" stroke="var(--muted)" vector-effect="non-scaling-stroke" stroke-width="1"/>`;
-    const plate = G.pts.length ? `<path d="${path(G.pts.map(q => [q[0], q[1]]))}" fill="none" stroke="var(--pin)" stroke-width="${(B.dRoll * 0.7).toFixed(2)}" stroke-linejoin="round" opacity=".5"/>` : "";
+      `<circle cx="${cx}" cy="0" r="${(B.p === 0 ? 1 : (cx ? B.dv2 : B.dv1) / 2)}" fill="var(--surface)" stroke="var(--muted)" vector-effect="non-scaling-stroke" stroke-width="1.15"/>` +
+      `<text x="${cx}" y="${(ra + B.p * 1.75).toFixed(1)}" text-anchor="middle" font-size="${(B.p * 0.82).toFixed(1)}" class="svg-ink" font-weight="700" style="paint-order:stroke;stroke:var(--field);stroke-width:${(B.p * 0.28).toFixed(1)}px">${lbl}</text>`;
+    const plate = G.pts.length ? `<path d="${path(G.pts.map(q => [q[0], q[1]]))}" fill="none" stroke="var(--pin)" stroke-width="${(B.dRoll * 0.68).toFixed(2)}" stroke-linejoin="round" opacity=".52"/>` : "";
     const rollers = G.pts.map(q => `<circle cx="${q[0].toFixed(3)}" cy="${q[1].toFixed(3)}" r="${B.dRoll / 2}" fill="var(--pin-fill)" stroke="var(--pin)" vector-effect="non-scaling-stroke" stroke-width="1.2"/>`).join("");
-    const pad = B.p * 1.2;
+    const pad = B.p * 2.4;
     const xmin = -B.da1 / 2 - pad, xmax = G.a + B.da2 / 2 + pad, ymax = B.da2 / 2 + pad;
     $("bSvg").setAttribute("viewBox", `${xmin.toFixed(1)} ${(-ymax).toFixed(1)} ${(xmax - xmin).toFixed(1)} ${(2 * ymax).toFixed(1)}`);
-    $("bSvg").innerHTML = notch(0, G.r1, B.z1, G.th1, B.da1 / 2) + notch(G.a, G.r2, B.z2, G.th2, B.da2 / 2) + plate + rollers +
-      `<path d="M0 0H${G.a.toFixed(2)}" stroke="var(--ink)" stroke-dasharray="9 4 2 4" vector-effect="non-scaling-stroke" stroke-width="1" opacity=".5"/>` +
-      `<text class="svg-muted" x="${(G.a / 2).toFixed(1)}" y="${(-B.p * 0.35).toFixed(1)}" text-anchor="middle" font-size="${(B.p * 0.9).toFixed(1)}">a = ${f(B.aFact, 1)} мм</text>`;
+    $("bSvg").innerHTML =
+      `<defs><pattern id="bGrid" width="${gs}" height="${gs}" patternUnits="userSpaceOnUse"><path d="M ${gs} 0 L 0 0 0 ${gs}" fill="none" stroke="var(--line)" stroke-width="0.6" vector-effect="non-scaling-stroke" opacity="0.55"/></pattern></defs>` +
+      `<rect x="${(xmin - 100).toFixed(0)}" y="${(-ymax - 100).toFixed(0)}" width="${(xmax - xmin + 200).toFixed(0)}" height="${(2 * ymax + 200).toFixed(0)}" fill="url(#bGrid)"/>` +
+      notch(0, G.r1, B.z1, G.th1, B.da1 / 2, `z₁ = ${B.z1} (d₁ = ${f(B.d1, 1)} мм)`) +
+      notch(G.a, G.r2, B.z2, G.th2, B.da2 / 2, `z₂ = ${B.z2} (d₂ = ${f(B.d2, 1)} мм)`) +
+      plate + rollers +
+      `<path d="M0 0H${G.a.toFixed(2)}" stroke="var(--ink)" stroke-dasharray="9 4 2 4" vector-effect="non-scaling-stroke" stroke-width="1.1" opacity=".6"/>` +
+      `<text class="svg-ink" x="${(G.a / 2).toFixed(1)}" y="${(-B.p * 0.45).toFixed(1)}" text-anchor="middle" font-size="${(B.p * 0.92).toFixed(1)}" font-weight="700" style="paint-order:stroke;stroke:var(--field);stroke-width:${(B.p * 0.25).toFixed(1)}px">a_ф = ${f(B.aFact, 2)} мм (${B.Lp} ланок)</text>`;
     polyB(psi);
     const bad = B.checks.filter(c => !c[0]).length;
     $("bStatus").className = "status" + (bad ? " bad" : "");
