@@ -28,6 +28,14 @@
 *{box-sizing:border-box}
 [hidden]{display:none!important}
 html{scroll-padding-top:env(safe-area-inset-top,0px)}
+.variant{display:flex;flex-wrap:wrap;align-items:flex-end;gap:12px;margin-top:10px;padding:12px 14px;border:1px solid var(--line);border-radius:11px;background:var(--field)}
+.variant label{display:block;font-size:.82rem;font-weight:600;color:var(--muted)}
+.variant input{width:140px;margin-top:4px}
+.variant .go{background:var(--pin);border-color:var(--pin);color:#fff}
+.vbadge{margin:0;flex:1 1 320px;min-width:260px;font-size:.88rem;color:var(--muted)}
+.vbadge b{color:var(--ink)}
+.vbadge.set{color:var(--ink);font-weight:600}
+pre.proto{white-space:pre-wrap}
 body{margin:0;background:var(--bg);color:var(--ink);font:15.5px/1.5 var(--font);-webkit-font-smoothing:antialiased}
 main{max-width:1180px;margin:0 auto;padding-inline:18px;padding-block:20px 34px;display:flex;flex-direction:column;gap:18px}
 header.top-header{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:18px 22px;box-shadow:var(--shadow);display:flex;flex-direction:column;gap:8px}
@@ -115,7 +123,12 @@ footer{font-size:.82rem;color:var(--muted);background:var(--surface);border:1px 
     </div>
     <button type="button" class="theme-btn" id="themeBtn" title="Перемкнути тему">◐ Тема</button>
   </div>
-  <p class="lead">Самоперевірка розрахунку й наочна кінематика. Введіть свої дані — числа мають збігтися з Excel-шаблоном. Зараз підставлено приклад із методичних вказівок.</p>
+  <p class="lead">Введіть свій номер у списку — симулятор відкриє ваш варіант, порахує всі числа роботи й збере їх у «Протокол для звіту». Ці самі числа ви перевіряєте в Excel-шаблоні й уводите в параметри Fusion. Зараз показано приклад із методичних вказівок.</p>
+  <div class="variant">
+    <label>№ у списку групи<input id="vNo" type="number" min="1" max="40" step="1" placeholder="напр. 7"></label>
+    <button type="button" class="btn go" id="vGo">Відкрити мій варіант</button>
+    <p class="vbadge" id="vBadge">Непарний номер у списку — <b>варіант А</b> (черв'ячна передача), парний — <b>варіант Б</b> (ланцюгова). Введіть номер: симулятор сам відкриє вашу вкладку й підставить ваші дані.</p>
+  </div>
   <div class="tabs-bar">
     <div class="tabs" role="tablist">
       <button type="button" role="tab" id="tabA" aria-controls="paneA" aria-selected="true">А. Черв'ячна</button>
@@ -145,13 +158,7 @@ footer{font-size:.82rem;color:var(--muted);background:var(--surface);border:1px 
       <div class="chips" id="aChips"></div>
       <button type="button" class="btn" id="aQreset">Повернути автоматичний q</button>
     </div>
-    <div class="card">
-      <h2>Навчальні дані за номером студента</h2>
-      <div class="row"><label class="grow">№ у списку групи<input id="aNst" type="number" min="1" max="30" step="1" placeholder="1…30"></label>
-      <button type="button" class="btn" id="aNbtn">Підставити</button></div>
-      <p class="hint">M₂ = 150 + 10·№, u = 12,5, n₁ = 1430 об/хв. Лише якщо у вашій схемі немає черв'ячної передачі (додаток Б).</p>
-    </div>
-  </div>
+      </div>
   <div class="col">
     <div class="card stage">
       <div class="kpis" id="aKpis"></div>
@@ -187,6 +194,13 @@ footer{font-size:.82rem;color:var(--muted);background:var(--surface);border:1px 
       <div class="row"><h2 class="grow">Параметри для Fusion (аркуш «Fusion_параметри»)</h2><button type="button" class="btn" id="aCopy">Копіювати</button></div>
       <pre id="aFp"></pre>
     </div>
+    <div class="card">
+      <div class="row"><h2 class="grow">Протокол для звіту</h2>
+        <button type="button" class="btn" id="aPrCopy">Копіювати</button>
+        <button type="button" class="btn" id="aPrSave">Зберегти .txt</button></div>
+      <p class="hint">Усі числа цієї роботи в одному блоці: перенесіть їх у звіт і в Excel-шаблон для самоперевірки.</p>
+      <pre class="proto" id="aPr"></pre>
+    </div>
   </div>
 </section>
 
@@ -213,13 +227,7 @@ footer{font-size:.82rem;color:var(--muted);background:var(--surface);border:1px 
       <div class="chips" id="bChips"></div>
       <button type="button" class="btn" id="bPreset">Повернути автоматичний крок</button>
     </div>
-    <div class="card">
-      <h2>Навчальні дані за номером студента</h2>
-      <div class="row"><label class="grow">№ у списку групи<input id="bNst" type="number" min="1" max="30" step="1" placeholder="1…30"></label>
-      <button type="button" class="btn" id="bNbtn">Підставити</button></div>
-      <p class="hint">M₁ = 80 + 5·№, u = 2,5, n₁ = 200 об/хв. Лише якщо у вашій схемі немає ланцюгової передачі (додаток Б).</p>
-    </div>
-  </div>
+      </div>
   <div class="col">
     <div class="card stage">
       <div class="kpis" id="bKpis"></div>
@@ -254,11 +262,18 @@ footer{font-size:.82rem;color:var(--muted);background:var(--surface);border:1px 
       <div class="row"><h2 class="grow">Параметри для Fusion (аркуш «Fusion_параметри»)</h2><button type="button" class="btn" id="bCopy">Копіювати</button></div>
       <pre id="bFp"></pre>
     </div>
+    <div class="card">
+      <div class="row"><h2 class="grow">Протокол для звіту</h2>
+        <button type="button" class="btn" id="bPrCopy">Копіювати</button>
+        <button type="button" class="btn" id="bPrSave">Зберегти .txt</button></div>
+      <p class="hint">Усі числа цієї роботи в одному блоці: перенесіть їх у звіт і в Excel-шаблон для самоперевірки.</p>
+      <pre class="proto" id="bPr"></pre>
+    </div>
   </div>
 </section>
 
 <footer>
-  Спрощений навчальний розрахунок. Черв'ячна передача — за контактною міцністю вінця колеса: a<sub>w,min</sub> = (z₂/q + 1)·∛((170/([σ<sub>H</sub>]·z₂/q))²·M₂·10³·K); ККД η = tg γ / tg(γ + ρ). Ланцюгова — за тиском у шарнірі: p ≥ 2,8·∛(M₁·10³·K<sub>е</sub>/(z₁·[p])), K<sub>е</sub> = K<sub>д</sub>·K<sub>зм</sub>; крок, діаметр ролика, ширина ланки та площа шарніра — за ISO 606. Перевірку зубців на згин, тепловий розрахунок і розрахунок ланцюга на розривне навантаження тут не виконують. На рисунках зубці колеса показано прямими, профіль витка — трапецієподібним (архімедів черв'як).
+  Спрощений навчальний розрахунок. Черв'ячна передача — за контактною міцністю вінця колеса: a<sub>w,min</sub> = (z₂/q + 1)·∛((170/([σ<sub>H</sub>]·z₂/q))²·M₂·10³·K); ККД η = tg γ / tg(γ + ρ). Ланцюгова — за тиском у шарнірі: p ≥ 2,8·∛(M₁·10³·K<sub>е</sub>/(z₁·[p])), K<sub>е</sub> = K<sub>д</sub>·K<sub>зм</sub>; крок, діаметр ролика, ширина ланки та площа шарніра — за ISO 606. Перевірку зубців на згин, тепловий розрахунок і розрахунок ланцюга на розривне навантаження тут не виконують. На рисунку «Уся пара» зубці колеса показано прямими, у режимі «Зачеплення» — спряженими з витком; профіль витка — трапецієподібний (архімедів черв'як).
 </footer>
 </main>
 
@@ -297,7 +312,9 @@ var SIM = (function () {
     r.v1 = Math.PI * r.d1 * i.n1 / 60000; r.vs = r.v1 / Math.cos(g);
     r.px = Math.PI * m; r.pz = Math.PI * m * z1;
     r.dv1 = bore(r.M1); r.dv2 = bore(i.M2);
-    r.sSec = (r.da1 - r.df1) / 2 / 0.75; r.revW = r.b1 / r.pz; r.dThr = r.da1 + 0.4 * m;
+    r.sSec = (r.da1 - r.df1) / 2 / 0.75; r.revW = r.b1 / r.pz;
+    /* Горловина: тор, що залишає вершину зубця на відстані a_w − d_a2/2 від осі черв'яка. */
+    r.dThr = 2 * r.a - r.da2;
     r.checks = [[z2 >= 28, "z₂ ≥ 28 (зубці колеса не підрізаються)"], [r.du <= 4, "відхилення u не більше 4 %"],
       [m >= r.mMin - 1e-9, "m ≥ m<sub>min</sub> (міцність забезпечено)"], [r.vs >= 2 && r.vs <= 8, "швидкість ковзання 2…8 м/с"],
       [(r.df2 - r.dv2) / 2 >= 2.5 * m, "стінка колеса: (d<sub>f2</sub> − d<sub>в2</sub>)/2 ≥ 2,5·m"]];
@@ -316,6 +333,26 @@ var SIM = (function () {
                 [xc + half - w.m * t, yT], [xc - half + w.m * t, yT]]);
     }
     return out;
+  }
+
+  /* Зубці колеса в осьовому перерізі — негатив западин витка: крок рівно p_x,
+     вершина лежить на колі d_a2, западина — на колі d_f2. Саме так їх нарізає
+     черв'ячна фреза, тому зубець завжди входить у западину витка. */
+  function wheelMeshPath(w, shift, x0, x1) {
+    const t = Math.tan(AL), Ra = w.da2 / 2, Rf = w.df2 / 2;
+    const hTip = Math.max(0.25 * w.m, w.px / 4 - 1.2 * w.m * t - 0.08 * w.m);
+    const hRoot = hTip + (Ra - Rf) * t;
+    const yR = x => -Math.sqrt(Math.max(Rf * Rf - x * x, 1));
+    const yA = x => -Math.sqrt(Math.max(Ra * Ra - x * x, 1));
+    const k0 = Math.floor((x0 - shift) / w.px) - 1, k1 = Math.ceil((x1 - shift) / w.px) + 1;
+    const L = (x, y) => `L${x.toFixed(2)} ${y.toFixed(2)}`;
+    let d = `M${x0.toFixed(2)} ${yR(x0).toFixed(2)}`;
+    for (let k = k0; k <= k1; k++) {
+      const xc = (k + 0.5) * w.px + shift;
+      d += L(xc - hRoot, yR(xc - hRoot)) + L(xc - hTip, yA(xc - hTip)) +
+           L(xc + hTip, yA(xc + hTip)) + L(xc + hRoot, yR(xc + hRoot));
+    }
+    return d + L(x1, yR(x1)) + L(x1, 0) + L(x0, 0) + "Z";
   }
 
   /* ---------- ланцюгова передача ---------- */
@@ -402,7 +439,7 @@ var SIM = (function () {
   }
   /* Багатокутниковий ефект: відносна миттєва швидкість у межах одного зуба, t ∈ [−1; 1]. */
   function polyCurve(z, t) { return Math.PI / (z * Math.sin(Math.PI / z)) * Math.cos(Math.PI / z * t); }
-  return { MW, QW, PCH, CH, worm, chain, wormTeeth, chainRollers, gearPoly, polyCurve };
+  return { MW, QW, PCH, CH, worm, chain, wormTeeth, wheelMeshPath, chainRollers, gearPoly, polyCurve };
 })();
 
 /* ============================== ІНТЕРФЕЙС ============================== */
@@ -421,6 +458,18 @@ if (typeof document !== "undefined") (function () {
     try { navigator.clipboard.writeText(pre.textContent).then(done, sel); } catch (e) { sel(); }
   });
 
+  let stuNo = null;
+  const saveTxt = (name, text) => {
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(new Blob([text], { type: "text/plain;charset=utf-8" }));
+    a.download = name; document.body.appendChild(a); a.click();
+    setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 0);
+  };
+  const head = (v) => `ЛАБОРАТОРНА РОБОТА № 3 — ВАРІАНТ ${v}\n` +
+    `Студент: ____________________   Група: __________   № у списку: ${stuNo === null ? "____" : stuNo}\n` +
+    `Дата: ____________\n`;
+  const ok = b => b ? "так" : "НІ";
+
   /* ---------- перемикач теми ---------- */
   $("themeBtn").addEventListener("click", () => {
     const root = document.documentElement;
@@ -433,6 +482,24 @@ if (typeof document !== "undefined") (function () {
   const tabs = { a: [$("tabA"), $("paneA")], b: [$("tabB"), $("paneB")] };
   function show(k) { for (const key in tabs) { tabs[key][0].setAttribute("aria-selected", key === k); tabs[key][1].hidden = key !== k; } stopA(); stopB(); }
   $("tabA").addEventListener("click", () => show("a")); $("tabB").addEventListener("click", () => show("b"));
+
+  /* ---------- варіант за номером у списку ---------- */
+  $("vGo").addEventListener("click", () => {
+    const n = Math.round(parseFloat($("vNo").value));
+    if (!(n >= 1 && n <= 40)) { $("vBadge").className = "vbadge"; $("vBadge").textContent = "Введіть номер у списку від 1 до 40."; return; }
+    stuNo = n;
+    const odd = n % 2 === 1;
+    if (odd) { $("aM").value = 150 + 10 * n; $("aU").value = 12.5; $("aN1").value = 1430; aQ = 0; calcA(); show("a"); }
+    else { $("bM").value = 80 + 5 * n; $("bU").value = 2.5; $("bN1").value = 200; bP = 0; calcB(); show("b"); }
+    $("vBadge").className = "vbadge set";
+    $("vBadge").innerHTML = odd
+      ? `№ ${n} — непарний → <b>варіант А: черв'ячна передача</b>. Підставлено M₂ = ${150 + 10 * n} Н·м, u = 12,5, n₁ = 1430 об/хв.`
+      : `№ ${n} — парний → <b>варіант Б: ланцюгова передача</b>. Підставлено M₁ = ${80 + 5 * n} Н·м, u = 2,5, n₁ = 200 об/хв.`;
+  });
+  $("vNo").addEventListener("keydown", e => { if (e.key === "Enter") $("vGo").click(); });
+  copy($("aPrCopy"), $("aPr")); copy($("bPrCopy"), $("bPr"));
+  $("aPrSave").addEventListener("click", () => saveTxt(`ЛР3_варіант_А_№${stuNo || "__"}.txt`, $("aPr").textContent));
+  $("bPrSave").addEventListener("click", () => saveTxt(`ЛР3_варіант_Б_№${stuNo || "__"}.txt`, $("bPr").textContent));
 
   /* ---------- вектор сили з масштабованим наконечником (коректний і в огляді, і в режимі «Зачеплення») ---------- */
   function forceVec(x1, y1, x2, y2, color, hl, hw, sw) {
@@ -477,6 +544,44 @@ if (typeof document !== "undefined") (function () {
       `d_f1  = ${d(A.df1, 2)} mm\nd_a1  = ${d(A.da1, 2)} mm\nb_1   = ${A.b1} mm\np_z   = ${d(A.pz, 2)} mm\n` +
       `s_sec = ${d(A.sSec, 2)} mm\nn_rev = ${d(A.revW, 3)}\nb_2   = ${A.b2} mm\nd_thr = ${d(A.dThr, 2)} mm\n` +
       `dv_1  = ${A.dv1} mm\ndv_2  = ${A.dv2} mm`;
+    $("aPr").textContent = head("А (черв'ячна передача)") +
+`
+1. ВХІДНІ ДАНІ
+   M2 = ${f(val("aM"), 1)} Н·м      u = ${g(val("aU"))}      n1 = ${g(val("aN1"))} об/хв
+   [sH] = ${g(val("aS"))} МПа     K = ${g(val("aK"))}     f = ${g(val("aF"))}
+
+2. ЧИСЛА ЗУБЦІВ І КОЕФІЦІЄНТ ДІАМЕТРА
+   z1 = ${A.z1}      z2 = ${A.z2}      u_д = ${f(A.ud, 3)}   (відхилення ${f(A.du, 2)} %)
+   q = ${g(A.q)}  (автоматичний ${g(A.qAuto)})
+
+3. РОЗМІРИ, мм
+   a_w,min = ${f(A.awmin, 1)}      a_w = ${g(A.a)}
+   m_min = ${f(A.mMin, 3)}        m = ${g(A.m)}
+   черв'як:  d1 = ${g(A.d1)}   d_a1 = ${g(A.da1)}   d_f1 = ${g(A.df1)}   b1 = ${A.b1}
+   колесо:   d2 = ${g(A.d2)}   d_a2 = ${g(A.da2)}   d_f2 = ${g(A.df2)}   b2 = ${A.b2}
+   крок p_x = ${f(A.px, 3)}      хід p_z = ${f(A.pz, 3)}
+   отвори: d_в1 = ${A.dv1}   d_в2 = ${A.dv2}
+
+4. КІНЕМАТИКА Й ККД
+   gamma = ${f(A.gammaDeg, 3)}°     rho = ${f(A.rho, 3)}°     ККД = ${f(A.eta, 3)}
+   v1 = ${f(A.v1, 3)} м/с      v_s = ${f(A.vs, 3)} м/с
+
+5. МОМЕНТИ Й СИЛИ
+   M1 = ${f(A.M1, 2)} Н·м      M2 = ${f(val("aM"), 2)} Н·м
+   F_t2 = F_a1 = ${f(A.Ft2, 0)} Н     F_t1 = F_a2 = ${f(A.Ft1, 0)} Н     F_r = ${f(A.Fr, 0)} Н
+
+6. ПЕРЕВІРКИ
+${A.checks.map(c => "   " + (c[0] ? "+" : "-") + " " + c[1].replace(/<[^>]+>/g, "") + " — " + ok(c[0])).join("\n")}
+
+7. ПАРАМЕТРИ ДЛЯ FUSION (Modify -> Change Parameters)
+${$("aFp").textContent.split("\n").map(l => "   " + l).join("\n")}
+
+8. ДОСЛІД: ЯК ВПЛИВАЄ q
+${SIM.QW.map(q => { const w = SIM.worm({ M2: val("aM"), u: val("aU"), n1: val("aN1"), sH: val("aS"), K: val("aK"), f: val("aF"), q: q });
+  return `   q = ${String(g(q)).padEnd(5)} a_w = ${String(f(w.a, 0)).padStart(4)} мм   m = ${String(g(w.m)).padStart(4)}   ККД = ${f(w.eta, 3)}   v_s = ${f(w.vs, 2)} м/с`; }).join("\n")}
+
+ВИСНОВОК (написати самому): ________________________________________
+`;
     chipsA(); buildA();
   }
 
@@ -501,6 +606,7 @@ if (typeof document !== "undefined") (function () {
       <g id="aDim" stroke="var(--muted)" stroke-width="1" vector-effect="non-scaling-stroke" opacity=".75"></g>
       <g id="aAx" stroke="var(--ink)" stroke-width="1" stroke-dasharray="7 3 1.5 3" vector-effect="non-scaling-stroke" opacity=".55"></g>
       <path id="aWh" d="${wh}" fill="var(--wheel-fill)" stroke="var(--wheel)" vector-effect="non-scaling-stroke" stroke-width="1.35"/>
+      <path id="aWhM" d="" fill="var(--wheel-fill)" stroke="var(--wheel)" vector-effect="non-scaling-stroke" stroke-width="1.35" hidden/>
       <circle cx="0" cy="0" r="${(A.d2 / 2).toFixed(2)}" fill="none" stroke="var(--wheel)" stroke-dasharray="5 3" vector-effect="non-scaling-stroke" stroke-width="1" opacity=".7"/>
       <g clip-path="url(#aClip)"><rect id="aCore" fill="var(--pin-fill)" stroke="var(--pin)" vector-effect="non-scaling-stroke" stroke-width="1.35"/>
         <g id="aTeeth" fill="var(--pin-fill)" stroke="var(--pin)" vector-effect="non-scaling-stroke" stroke-width="1.35"></g>
@@ -517,6 +623,11 @@ if (typeof document !== "undefined") (function () {
     const phi = val("aPhi") * Math.PI / 180, shift = A.pz * phi / (2 * Math.PI);
     const th2 = (-Math.PI / 2 + Math.PI / A.z2 + phi / A.ud) * 180 / Math.PI;
     $("aWh").setAttribute("transform", `rotate(${th2})`);
+    if (aView === "mesh") {
+      const wM = 10.5 * A.m + 2 * A.px;
+      $("aWhM").setAttribute("d", SIM.wheelMeshPath(A, shift, -wM / 2, wM / 2));
+      $("aWhM").removeAttribute("hidden"); $("aWh").setAttribute("hidden", "");
+    } else { $("aWhM").setAttribute("hidden", ""); $("aWh").removeAttribute("hidden"); }
     $("aCore").setAttribute("x", -A.b1 / 2); $("aCore").setAttribute("y", -A.a - A.df1 / 2);
     $("aCore").setAttribute("width", A.b1); $("aCore").setAttribute("height", A.df1);
     $("aTeeth").innerHTML = SIM.wormTeeth(A, shift, true).concat(SIM.wormTeeth(A, shift, false))
@@ -575,6 +686,8 @@ if (typeof document !== "undefined") (function () {
       vb = [-w / 2, -A.d2 / 2 - h / 2, w, h];
     }
     $("aSvg").setAttribute("viewBox", vb.map(x => x.toFixed(2)).join(" "));
+    for (const id of ["aAx", "aBore", "aDim", "aTeeth", "aFrc"])
+      for (const el of $(id).children) el.setAttribute("vector-effect", "non-scaling-stroke");
     const bad = A.checks.filter(c => !c[0]).length;
     $("aStatus").className = "status" + (bad ? " bad" : "");
     $("aStatus").textContent = bad ? `Не виконано перевірок: ${bad} — дивіться список нижче` :
@@ -600,10 +713,6 @@ if (typeof document !== "undefined") (function () {
   ["aM", "aU", "aN1", "aS", "aK", "aF"].forEach(id => $(id).addEventListener("input", () => { aQ = 0; calcA(); }));
   $("aChips").addEventListener("click", e => { const b = e.target.closest("button"); if (b) { aQ = parseFloat(b.dataset.q); calcA(); } });
   $("aQreset").addEventListener("click", () => { aQ = 0; calcA(); });
-  $("aNbtn").addEventListener("click", () => {
-    const n = parseInt($("aNst").value);
-    if (n >= 1 && n <= 30) { $("aM").value = 150 + 10 * n; $("aU").value = 12.5; $("aN1").value = 1430; aQ = 0; calcA(); }
-  });
   copy($("aCopy"), $("aFp"));
 
   /* ================= Б. ЛАНЦЮГОВА ================= */
@@ -640,6 +749,43 @@ if (typeof document !== "undefined") (function () {
       `a_c    = ${d(B.aFact, 2)} mm\nd_roll = ${d(B.dRoll, 2)} mm\nb_roll = ${d(B.bRoll, 2)} mm\n` +
       `h_pl   = ${d(B.hPl, 2)} mm\nt_pl   = ${d(B.tPl, 2)} mm\nd_pin  = ${d(B.dPin, 2)} mm\n` +
       `dvc_1  = ${B.dv1} mm\ndvc_2  = ${B.dv2} mm`;
+    $("bPr").textContent = head("Б (ланцюгова передача)") +
+`
+1. ВХІДНІ ДАНІ
+   M1 = ${f(val("bM"), 1)} Н·м      u = ${g(val("bU"))}      n1 = ${g(val("bN1"))} об/хв
+   [p] = ${g(val("bP"))} МПа      K_д = ${g(val("bKd"))}      K_зм = ${g(val("bKz"))}      K_е = ${f(B.Ke, 3)}
+
+2. ЗІРОЧКИ
+   z1 = ${B.z1}      z2 = ${B.z2}      u_д = ${f(B.ud, 3)}   (відхилення ${f(B.du, 2)} %)
+
+3. ВИБІР ЛАНЦЮГА
+   p_min = ${f(B.pMin, 2)} мм   ->   прийнято p = ${f(B.p, 3)} мм (ISO 606)
+   d_ролика = ${f(B.dRoll, 2)} мм   b_ланки = ${f(B.bRoll, 2)} мм   A = ${B.A} мм²
+   тиск у шарнірі p_ц = ${f(B.pc, 2)} МПа при [p] = ${g(val("bP"))} МПа
+
+4. РОЗМІРИ, мм
+   d1 = ${f(B.d1, 2)}      d2 = ${f(B.d2, 2)}
+   d_a1 = ${f(B.da1, 2)}    d_a2 = ${f(B.da2, 2)}
+   a попередня = ${f(B.a, 0)}   число ланок L_p = ${B.Lp}   a фактична = ${f(B.aFact, 2)}
+   отвори: d_в1 = ${B.dv1}   d_в2 = ${B.dv2}
+
+5. ШВИДКІСТЬ І СИЛИ
+   v середня = ${f(B.v, 3)} м/с      v_max = ${f(B.vMax, 3)}   v_min = ${f(B.vMin, 3)} м/с
+   нерівномірність δ_к = ${f(B.delta, 2)} %
+   F_t = ${f(B.Ft, 0)} Н      F_в = ${f(B.Fv, 0)} Н
+   M1 = ${f(val("bM"), 2)} Н·м      M2 = ${f(B.M2, 2)} Н·м
+
+6. ПЕРЕВІРКИ
+${B.checks.map(c => "   " + (c[0] ? "+" : "-") + " " + c[1].replace(/<[^>]+>/g, "") + " — " + ok(c[0])).join("\n")}
+
+7. ПАРАМЕТРИ ДЛЯ FUSION (Modify -> Change Parameters)
+${$("bFp").textContent.split("\n").map(l => "   " + l).join("\n")}
+
+8. ДОСЛІД: ВИБІР КРОКУ ЗА ТИСКОМ У ШАРНІРІ
+${B.table.map(t => `   p = ${String(f(t.p, 2)).padStart(5)} мм   p_ц = ${String(f(t.pc, 1)).padStart(6)} МПа   ${t.ok ? "проходить" : "не проходить"}`).join("\n")}
+
+ВИСНОВОК (написати самому): ________________________________________
+`;
     chipsB(); frameB();
   }
 
@@ -728,10 +874,6 @@ if (typeof document !== "undefined") (function () {
   $("bA").addEventListener("input", calcB);
   $("bChips").addEventListener("click", e => { const b = e.target.closest("button"); if (b) { bP = parseFloat(b.dataset.p); calcB(); } });
   $("bPreset").addEventListener("click", () => { bP = 0; calcB(); });
-  $("bNbtn").addEventListener("click", () => {
-    const n = parseInt($("bNst").value);
-    if (n >= 1 && n <= 30) { $("bM").value = 80 + 5 * n; $("bU").value = 2.5; $("bN1").value = 200; bP = 0; calcB(); }
-  });
   copy($("bCopy"), $("bFp"));
 
   calcA(); calcB();
