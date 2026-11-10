@@ -66,6 +66,7 @@ input[type=number]:focus,select:focus{outline:none;border-color:var(--pin);box-s
 input[type=range]{width:100%;accent-color:var(--pin);cursor:pointer}
 button.btn{font:inherit;font-size:.88rem;font-weight:600;padding:8px 14px;border:1px solid var(--line);border-radius:8px;background:var(--field);color:var(--ink);cursor:pointer;transition:all .15s ease}
 button.btn:hover{border-color:var(--pin);background:var(--surface-2)}
+.variant .go:hover{background:var(--pin);border-color:var(--pin);color:#fff;filter:brightness(1.12)}
 button.btn[aria-pressed="true"]{background:var(--pin);border-color:var(--pin);color:#ffffff}
 :focus-visible{outline:2px solid var(--pin);outline-offset:2px}
 .hint{margin:0;font-size:.82rem;color:var(--muted);line-height:1.45}
@@ -102,6 +103,27 @@ td.num,th.num{text-align:right;white-space:nowrap;font-weight:600;font-family:va
 .checks .bad{color:var(--bad);background:var(--bad-bg)}
 pre{margin:0;padding:13px 15px;background:var(--code);color:var(--code-ink);border-radius:9px;font:.84rem/1.55 var(--mono);overflow-x:auto;border:1px solid var(--line)}
 .chips{display:flex;flex-wrap:wrap;gap:7px}
+.solve{list-style:none;margin:0;padding:0;display:grid;gap:9px;counter-reset:st}
+.solve li{counter-increment:st;border:1px solid var(--line);border-radius:11px;padding:9px 11px;background:var(--surface-2)}
+.solve li.locked{opacity:.5}
+.solve li.done{border-color:var(--ok);background:var(--ok-bg)}
+.solve .slab{font-weight:700;font-size:.9rem;color:var(--ink)}
+.solve .slab::before{content:counter(st) ". "}
+.solve .sform{display:block;font-weight:400;color:var(--muted);font-size:.8rem;margin-top:2px;font-variant-numeric:tabular-nums}
+.solve .srow{display:flex;gap:6px;align-items:center;margin-top:7px}
+.solve .srow input{flex:1 1 80px;min-width:0;padding:6px 9px}
+.solve .srow .btn{padding:6px 12px;font-size:.84rem;white-space:nowrap}
+.solve .chips{margin-top:7px}
+.solve .sv{margin:6px 0 0;font-size:.84rem;font-weight:600}
+.solve .sv.ok{color:var(--ok)}
+.solve .sv.bad{color:var(--bad)}
+.solve .sv.note{color:var(--muted);font-weight:400}
+.solve .shelp{display:block;margin-top:6px;background:none;border:0;padding:0;color:var(--muted);font:inherit;font-size:.8rem;text-decoration:underline;cursor:pointer}
+.solve .shelp:hover{color:var(--bad)}
+.lock{border-style:dashed;align-items:flex-start}
+.lock h2{color:var(--muted)}
+b.q{color:var(--bad);font-weight:800}
+.checks li.wait{color:var(--muted);font-weight:400}
 .chips button{font:inherit;font-size:.82rem;line-height:1.3;padding:7px 10px;border:1px solid var(--line);border-radius:8px;background:var(--field);color:var(--ink);cursor:pointer;text-align:center;font-variant-numeric:tabular-nums;transition:all .15s ease}
 .chips button:hover{border-color:var(--pin)}
 .chips button small{display:block;color:var(--muted);font-size:.74rem;margin-top:2px}
@@ -162,10 +184,9 @@ footer{font-size:.82rem;color:var(--muted);background:var(--surface);border:1px 
       <p class="hint" id="aHint"></p>
     </div>
     <div class="card">
-      <h2>Добір різьби Tr</h2>
-      <p class="hint">Береться перша різьба ряду ISO 2904, що проходить <b>і</b> за тиском у витках (q ≤ [q]), <b>і</b> за стійкістю (s ≥ 3). Зелені — проходять обидві умови; натисніть будь-яку, щоб порівняти.</p>
-      <div class="chips" id="aChips"></div>
-      <button type="button" class="btn" id="aReset">Повернути автоматичний добір</button>
+      <h2>Ваш розрахунок</h2>
+      <p class="hint">Ці числа симулятор не показує: ви рахуєте їх самі за формулами таблиці 5.2 методички — калькулятором або в Excel. Правильна відповідь відкриває наступний пункт, а добір різьби — усе креслення, результати й протокол.</p>
+      <ol class="solve" id="aSolve"></ol>
     </div>
     <div class="card">
       <h2>Перевірки</h2>
@@ -173,6 +194,11 @@ footer{font-size:.82rem;color:var(--muted);background:var(--surface);border:1px 
     </div>
   </div>
   <div class="col">
+    <div class="card lock" id="aLock" hidden>
+      <h2>Відкриється після добору різьби</h2>
+      <p class="hint">Креслення домкрата, профіль різьби, таблиця результатів, параметри для Fusion і протокол з'являться, щойно ви виконаєте пункти 1 і 2 ліворуч: порахуєте d₂,min і доберете різьбу Tr.</p>
+    </div>
+    <div id="aStage" class="col">
     <div class="card stage">
       <div class="kpis" id="aKpis"></div>
       <div class="stage2">
@@ -209,6 +235,7 @@ footer{font-size:.82rem;color:var(--muted);background:var(--surface);border:1px 
       <p class="hint">Усі числа цієї роботи в одному блоці: перенесіть їх у звіт і в Excel-шаблон для самоперевірки.</p>
       <pre class="proto" id="aPr"></pre>
     </div>
+    </div>
   </div>
 </section>
 
@@ -228,6 +255,11 @@ footer{font-size:.82rem;color:var(--muted);background:var(--surface);border:1px 
       <p class="hint">Навчальні дані: M = 100 + 5·№, F<sub>t</sub> = 2000 + 50·№, F<sub>r</sub> = 0,364·F<sub>t</sub>, F<sub>в</sub> = 0,5·F<sub>t</sub>, b = 50 мм. Сталь 40Х — σ<sub>в</sub> = 780 МПа.</p>
     </div>
     <div class="card">
+      <h2>Ваш розрахунок</h2>
+      <p class="hint">Ці числа симулятор не показує: ви рахуєте їх самі за формулами таблиці 5.3 методички — калькулятором або в Excel. Правильна відповідь відкриває наступний пункт, а вибір діаметра d₁ — усе креслення, результати й протокол.</p>
+      <ol class="solve" id="bSolve"></ol>
+    </div>
+    <div class="card">
       <h2>Що показати на валу</h2>
       <label class="check"><input type="checkbox" id="bShowL" checked> довжини ділянок L₁…L₆</label>
       <label class="check"><input type="checkbox" id="bShowParts" checked> шків, колесо й підшипники</label>
@@ -239,6 +271,11 @@ footer{font-size:.82rem;color:var(--muted);background:var(--surface);border:1px 
     </div>
   </div>
   <div class="col">
+    <div class="card lock" id="bLock" hidden>
+      <h2>Відкриється після вибору d₁</h2>
+      <p class="hint">Креслення вала, епюри, таблиця результатів, параметри для Fusion і протокол з'являться, щойно ви виконаєте пункти 1 і 2 ліворуч: порахуєте d_min і виберете діаметр d₁ із ряду Ra40.</p>
+    </div>
+    <div id="bStage" class="col">
     <div class="card stage">
       <div class="kpis" id="bKpis"></div>
       <div class="stage-wrap"><svg id="bSvg" role="img" aria-label="Ступінчастий вал і епюри моментів"></svg>
@@ -264,6 +301,7 @@ footer{font-size:.82rem;color:var(--muted);background:var(--surface);border:1px 
         <button type="button" class="btn" id="bPrSave">Зберегти .txt</button></div>
       <p class="hint">Усі числа цієї роботи в одному блоці: перенесіть їх у звіт і в Excel-шаблон для самоперевірки.</p>
       <pre class="proto" id="bPr"></pre>
+    </div>
     </div>
   </div>
 </section>
@@ -441,6 +479,84 @@ if (typeof document !== "undefined") (function () {
     `Студент: ____________________   Група: __________   № у списку: ${stuNo === null ? "____" : stuNo}\n` +
     `Дата: ____________\n`;
 
+
+  /* ================= самостійний розрахунок ================= */
+  const SOL = { a: {}, b: {} };
+  const sv = (v, id) => SOL[v][id] || (SOL[v][id] = { done: false, shown: false, tries: 0, msg: "", cls: "" });
+  const done = (v, id) => !!(SOL[v][id] && SOL[v][id].done);
+  const mk = (v, id, s) => done(v, id) ? s : '<b class="q">?</b>';     /* у таблиці й KPI */
+  const mkt = (v, id, s) => done(v, id) ? String(s) : "?";             /* у протоколі */
+  const mk2 = (v, i1, i2, s) => done(v, i1) && done(v, i2) ? s : '<b class="q">?</b>';
+  const mkt2 = (v, i1, i2, s) => done(v, i1) && done(v, i2) ? String(s) : "?";
+  const solReset = v => { SOL[v] = {}; };
+  function solHow(v, id) {
+    const st = SOL[v][id];
+    return !st || !st.done ? "НЕ ПОРАХОВАНО" :
+      st.shown ? `з підказкою після ${st.tries} спроб` :
+        `ваша відповідь${st.tries > 1 ? ` з ${st.tries} спроб` : " з першої спроби"}`;
+  }
+
+  function drawSolve(v, spec) {
+    let open = true, h = "";
+    spec.forEach(q => {
+      const st = sv(v, q.id);
+      h += `<li class="${st.done ? "done" : open ? "now" : "locked"}"><div class="slab">${q.lbl}` +
+           `<span class="sform">${q.form}</span></div>`;
+      if (st.done) h += `<p class="sv ok">${q.show()} — ${solHow(v, q.id)}</p>`;
+      else if (!open) h += `<p class="sv note">спершу виконайте пункт вище</p>`;
+      else {
+        h += q.chips ? `<div class="chips" data-q="${q.id}">${q.chips()}</div>`
+          : `<div class="srow"><input type="number" step="any" inputmode="decimal" data-q="${q.id}" placeholder="ваше число">` +
+            `<button type="button" class="btn" data-go="${q.id}">Перевірити</button></div>`;
+        if (st.msg) h += `<p class="sv ${st.cls}">${st.msg}</p>`;
+        if (st.tries >= 3 && !q.chips) h += `<button type="button" class="shelp" data-show="${q.id}">не виходить — показати відповідь</button>`;
+      }
+      h += "</li>";
+      if (!st.done) open = false;
+    });
+    $(v + "Solve").innerHTML = h;
+  }
+
+  function solAnswer(v, q, x) {
+    const st = sv(v, q.id), ref = q.ref();
+    st.tries++;
+    if (!isFinite(x)) { st.cls = "bad"; st.msg = "Уведіть число."; return; }
+    if (Math.abs(x - ref) <= Math.max(0.01 * Math.abs(ref), 0.01)) { st.done = true; st.cls = "ok"; st.msg = ""; return; }
+    st.cls = "bad";
+    const k = Math.abs(ref) > 1e-9 ? x / ref : 0;
+    st.msg = (k > 900 && k < 1100) || (k > 0.0009 && k < 0.0011)
+      ? "Не збігається рівно в 1000 разів — перевірте одиниці (кН і Н, Н·м і Н·мм)."
+      : k > 1.8 || (k < 0.55 && k > 0) ? "Не збігається, і дуже сильно. Перевірте формулу й порядок дій."
+        : "Не збігається. Перевірте, які саме числа ви підставили.";
+  }
+
+  function solBind(v, spec) {
+    $(v + "Solve").addEventListener("click", e => {
+      const go = e.target.closest("[data-go]"), sh = e.target.closest("[data-show]"),
+            ch = e.target.closest(".chips button");
+      if (go) {
+        const q = spec().find(x => x.id === go.dataset.go);
+        solAnswer(v, q, parseFloat($(v + "Solve").querySelector(`input[data-q="${q.id}"]`).value.replace(",", ".")));
+      } else if (sh) {
+        const st = sv(v, sh.dataset.show); st.done = true; st.shown = true;
+      } else if (ch) {
+        const q = spec().find(x => x.id === ch.closest(".chips").dataset.q);
+        q.pick(+ch.dataset.k, sv(v, q.id));
+      } else return;
+      v === "a" ? calcA() : calcB();
+    });
+    $(v + "Solve").addEventListener("keydown", e => {
+      if (e.key === "Enter" && e.target.dataset.q) {
+        e.preventDefault();
+        $(v + "Solve").querySelector(`[data-go="${e.target.dataset.q}"]`).click();
+      }
+    });
+  }
+
+  function gate(v, ok) {
+    $(v + "Lock").hidden = ok; $(v + "Stage").hidden = !ok;
+  }
+
   /* ---------- тема й вкладки ---------- */
   $("themeBtn").addEventListener("click", () => {
     const root = document.documentElement, cur = root.getAttribute("data-theme");
@@ -480,7 +596,7 @@ if (typeof document !== "undefined") (function () {
       <line x1="0" y1="0" x2="0" y2="3" stroke="var(--muted)" stroke-width="0.6" opacity=".55"/></pattern>`;
 
   /* ======================= А. ГВИНТ-ГАЙКА ======================= */
-  let A = null, AG = null, aPick = -1, aPlaying = false, aRaf = 0, aLast = 0, aT = 0;   /* aT — оберти рукоятки (повзунок лише показує їх) */
+  let A = null, AG = null, aPlaying = false, aRaf = 0, aLast = 0, aT = 0;   /* aT — оберти рукоятки (повзунок лише показує їх) */
 
   /* Зуби гвинта й гайки в осьовому перерізі (праворуч від осі; sx = ±1 — бік).
      Профіль Tr 30°: на кожному радіусі сума півширин зубів = p/2 − зазор, тому вони
@@ -608,61 +724,85 @@ if (typeof document !== "undefined") (function () {
     $("aThrCap").textContent = `Tr ${J.d}×${J.p}: робоча висота h = 0,5·P = ${g(J.h)} мм, кут профілю 30°`;
   }
 
-  function aInputs(pick) {
-    return { F: val("aF"), h: val("aH"), q: val("aQ"), psiH: val("aPsi"), f: val("aFt"), fT: val("aFf"), Fhand: val("aFh"), pick };
-  }
-  function jackWithPick(i) {
-    /* дослід: обрано іншу різьбу — той самий розрахунок, але з рядом з однієї різьби */
-    const J = SIM.jack(i);
-    if (i.pick < 0 || i.pick === J.i_pick) return J;
-    const keep = SIM.TR.slice(); SIM.TR.length = 0; SIM.TR.push(keep[i.pick]);
-    let K; try { K = SIM.jack(i); } finally { SIM.TR.length = 0; keep.forEach(t => SIM.TR.push(t)); }
-    K.rows = J.rows; K.i_pick = i.pick; K.auto = J.i_pick; K.trial = true;
-    return K;
+  function aInputs() {
+    return { F: val("aF"), h: val("aH"), q: val("aQ"), psiH: val("aPsi"), f: val("aFt"), fT: val("aFf"), Fhand: val("aFh") };
   }
 
+  /* ---------- що студент рахує сам у варіанті А ---------- */
+  const specA = () => [
+    { id: "d2min", short: "d2,min", lbl: "Середній діаметр з умови зносостійкості d₂,min, мм",
+      form: "d₂,min = √(F / (π · ψ_H · ψ_h · [q])),   ψ_h = 0,5",
+      ref: () => A.d2_min, show: () => `d₂,min = ${f(A.d2_min, 2)} мм` },
+    { id: "pick", short: "добір різьби Tr", lbl: "Яку різьбу беремо?",
+      form: "першу різьбу ряду ISO 2904, що проходить і за тиском (q ≤ [q]), і за стійкістю (s ≥ 3). Натискайте — симулятор скаже, чи проходить ця різьба",
+      ref: () => A.i_pick, show: () => `Tr ${A.d}×${A.p}`,
+      chips: () => A.rows.map((r, k) =>
+        `<button type="button" data-k="${k}"${A.tried && A.tried.has(k) ? ` class="${r.ok ? "" : "fail"}"` : ""}>Tr ${r.d}×${r.p}</button>`).join(""),
+      pick: (k, st) => {
+        const r = A.rows[k]; st.tries++;
+        A.tried = A.tried || new Set(); A.tried.add(k);
+        if (!r.ok) {
+          st.cls = "bad";
+          st.msg = `Tr ${r.d}×${r.p} не проходить: ` +
+            (r.q > A.q_all ? "тиск у витках більший за [q] — витки зімнуться."
+              : "замалий запас стійкості — гвинт втратить стійкість.");
+        } else if (k > A.i_pick) {
+          st.cls = "bad";
+          st.msg = `Tr ${r.d}×${r.p} проходить, але в ряду є менша різьба, яка теж проходить. Беруть найменшу з тих, що проходять.`;
+        } else { st.done = true; st.cls = "ok"; st.msg = ""; }
+      } },
+    { id: "q", short: "тиск у витках q", lbl: "Тиск у витках q, МПа", form: "q = F / (π · d₂ · h · z)",
+      ref: () => A.q, show: () => `q = ${f(A.q, 2)} МПа` },
+    { id: "psi", short: "кут підйому psi", lbl: "Кут підйому гвинтової лінії ψ, град", form: "tg ψ = P / (π · d₂)",
+      ref: () => A.psi, show: () => `ψ = ${f(A.psi, 3)}°` },
+    { id: "T", short: "момент у різьбі T", lbl: "Момент у різьбі T_різьби, Н·м", form: "T = 0,5 · F · d₂ · tg(ψ + ρ′) / 1000",
+      ref: () => A.T_thr, show: () => `T = ${f(A.T_thr, 2)} Н·м` },
+  ];
+
   function calcA() {
-    const i = aInputs(aPick);
+    const i = aInputs();
     if (!(i.F > 0 && i.h > 0 && i.q > 0 && i.psiH > 0 && i.f > 0 && i.fT >= 0 && i.Fhand > 0)) return;
-    A = jackWithPick(i); AG = SIM.jackGeom(A);
-    const trial = !!A.trial;
-    $("aHint").innerHTML = `d₂,min = ${f(A.d2_min, 2)} мм з умови зносостійкості; ` +
-      (trial ? `<b>дослід:</b> узято Tr ${A.d}×${A.p} замість автоматичної.` : `обрано Tr ${A.d}×${A.p}.`);
+    const tried = A && A.tried;
+    A = SIM.jack(i); AG = SIM.jackGeom(A); A.tried = tried;
+    drawSolve("a", specA());
+    gate("a", done("a", "pick"));
+    $("aHint").innerHTML = done("a", "d2min")
+      ? `d₂,min = ${f(A.d2_min, 2)} мм з умови зносостійкості; ` +
+        (done("a", "pick") ? `обрано Tr ${A.d}×${A.p}.` : "тепер доберіть різьбу — пункт 2 нижче.")
+      : "Порахуйте d₂,min — пункт 1 нижче. Поки симулятор його не показує.";
+    if (!done("a", "pick")) {
+      $("aChk").innerHTML = '<li class="wait">перевірки з\'являться після добору різьби</li>';
+      return;
+    }
     $("aKpis").innerHTML =
       kpi("Різьба", `Tr ${A.d}×${A.p}`) + kpi("Гайка H / витків", `${g(A.H)} мм / ${A.z}`) +
-      kpi("Самогальмування", `ψ ${f(A.psi, 2)}° &lt; ρ′ ${f(A.rho, 2)}°`.replace("&lt;", A.self_lock ? "&lt;" : "≥")) +
+      kpi("Самогальмування", mk("a", "psi", `ψ ${f(A.psi, 2)}° &lt; ρ′ ${f(A.rho, 2)}°`.replace("&lt;", A.self_lock ? "&lt;" : "≥"))) +
       kpi("Запас стійкості s", f(A.s_st, 2));
     $("aOut").innerHTML =
       row("Різьба; діаметри d / d₂ / d₃ / D₁, мм", `Tr ${A.d}×${A.p}`, `${g(A.d)} / ${g(A.d2)} / ${g(A.d3)} / ${g(A.d1)}`) +
-      row("d₂,min з умови зносостійкості, мм", f(A.d2_min, 2)) +
+      row("d₂,min з умови зносостійкості, мм", mk("a", "d2min", f(A.d2_min, 2))) +
       row("Висота гайки H, мм / витків z", g(A.H), A.z) +
-      row("Тиск у витках q / [q], МПа", f(A.q, 2), g(A.q_all)) +
-      row("Кут підйому ψ / зведений кут тертя ρ′, град", f(A.psi, 3), f(A.rho, 3)) +
-      row("ККД різьби", f(A.eta_thr, 3)) +
-      row("Напруження гвинта σ / τ / σ<sub>екв</sub>, МПа", `${f(A.sig, 1)} / ${f(A.tau, 1)}`, f(A.sig_eq, 1)) +
+      row("Тиск у витках q / [q], МПа", mk("a", "q", f(A.q, 2)), g(A.q_all)) +
+      row("Кут підйому ψ / зведений кут тертя ρ′, град", mk("a", "psi", f(A.psi, 3)), f(A.rho, 3)) +
+      row("ККД різьби", mk("a", "psi", f(A.eta_thr, 3))) +
+      row("Напруження гвинта σ / τ / σ<sub>екв</sub>, МПа", mk("a", "T", `${f(A.sig, 1)} / ${f(A.tau, 1)}`), mk("a", "T", f(A.sig_eq, 1))) +
       row("Довжина стиснутої частини l, мм / гнучкість λ", g(A.l_col), f(A.lam, 1)) +
       row(`Критична сила F<sub>кр</sub> (${A.mode}), кН / запас s`, f(A.F_cr / 1000, 1), f(A.s_st, 2)) +
       row("Витки гайки: зріз τ / згин σ, МПа", f(A.tau_cut, 1), f(A.sig_bend, 1)) +
       row("Гайка: D / D_б (буртик) / висота буртика, мм", `${A.D} / ${A.D1}`, A.h_b) +
-      row("Момент у різьбі / на торці п'яти, Н·м", f(A.T_thr, 2), f(A.T_face, 2)) +
-      row("Момент на рукоятці T, Н·м / довжина рукоятки, мм", f(A.T_tot, 2), f(A.l_h, 0)) +
-      row("Діаметр рукоятки d<sub>р</sub>, мм / ККД домкрата", f(A.d_h, 1), f(A.eta_jack, 3)) +
-      row("З упорним підшипником: рукоятка, мм / ККД", f(A.l_h_b, 0), f(A.eta_jack_b, 3));
+      row("Момент у різьбі / на торці п'яти, Н·м", mk("a", "T", f(A.T_thr, 2)), f(A.T_face, 2)) +
+      row("Момент на рукоятці T, Н·м / довжина рукоятки, мм", mk("a", "T", f(A.T_tot, 2)), mk("a", "T", f(A.l_h, 0))) +
+      row("Діаметр рукоятки d<sub>р</sub>, мм / ККД домкрата", mk("a", "T", f(A.d_h, 1)), mk("a", "T", f(A.eta_jack, 3))) +
+      row("З упорним підшипником: рукоятка, мм / ККД", mk("a", "T", f(A.l_h_b, 0)), mk("a", "T", f(A.eta_jack_b, 3)));
     $("aChk").innerHTML = chk(A.checks);
     $("aFp").textContent =
       `d_scr  = ${d(A.d, 2)} mm\np_scr  = ${d(A.p, 2)} mm\nl_scr  = ${AG.l_scr} mm\nH_nut  = ${d(A.H, 2)} mm\n` +
       `D_nut  = ${A.D} mm\nD_fl   = ${A.D1} mm\nh_fl   = ${A.h_b} mm\nl_hand = ${AG.l_hand} mm\n` +
       `d_hand = ${AG.d_hand} mm\nz_hand = ${d(AG.z_hand, 2)} mm`;
-    chipsA(); $("aTurns").max = String(Math.ceil(A.h_lift / A.p));
+    $("aTurns").max = String(Math.ceil(A.h_lift / A.p));
     if (aT > A.h_lift / A.p) aT = A.h_lift / A.p;
     $("aTurns").value = String(aT);
     drawThread(A); frameA(); protoA();
-  }
-
-  function chipsA() {
-    $("aChips").innerHTML = A.rows.map((r, k) =>
-      `<button type="button" data-k="${k}" aria-pressed="${k === A.i_pick}" class="${r.ok ? "" : "fail"}${k === (A.trial ? A.auto : A.i_pick) ? " best" : ""}">Tr ${r.d}×${r.p}
-        <small>q ${f(r.q, 1)} · s ${f(r.s, 1)}</small></button>`).join("");
   }
 
   function frameA() {
@@ -691,43 +831,46 @@ if (typeof document !== "undefined") (function () {
     if (aPlaying) { aLast = 0; aRaf = requestAnimationFrame(tickA); } else stopA();
   });
   $("aTurns").addEventListener("input", () => { aT = val("aTurns"); frameA(); });
-  ["aF", "aH", "aQ", "aPsi", "aFt", "aFf", "aFh"].forEach(id => $(id).addEventListener("input", () => { aPick = -1; calcA(); }));
-  $("aChips").addEventListener("click", e => { const b = e.target.closest("button"); if (b) { aPick = +b.dataset.k; calcA(); } });
-  $("aReset").addEventListener("click", () => { aPick = -1; calcA(); });
+  ["aF", "aH", "aQ", "aPsi", "aFt", "aFf", "aFh"].forEach(id =>
+    $(id).addEventListener("input", () => { solReset("a"); if (A) A.tried = null; calcA(); }));
+  solBind("a", specA);
   copy($("aCopy"), $("aFp"));
 
   function protoA() {
-    const J = A, G = AG, auto = SIM.jack(aInputs(-1));
+    const J = A, G = AG, auto = J;
     const around = J.rows.map((r, k) => ({ r, k })).filter(o => Math.abs(o.k - auto.i_pick) <= 2);
     $("aPr").textContent = head("А (передача гвинт-гайка, гвинтовий домкрат)") + `
+0. ЩО СТУДЕНТ ПОРАХУВАВ САМ
+${specA().map(q => `   ${(q.short + " ").padEnd(28, ".")} ${solHow("a", q.id)}`).join("\n")}
+
 1. ВХІДНІ ДАНІ
    F = ${g(J.F / 1000)} кН      висота підйому h = ${g(J.h_lift)} мм
    [q] = ${g(J.q_all)} МПа     psi_H = ${g(J.psi_H)}     f у різьбі = ${g(J.f)}     f на торці = ${g(val("aFf"))}
    зусилля робітника F_р = ${g(val("aFh"))} Н
 
 2. ПРОЕКТНИЙ РОЗРАХУНОК І ДОБІР РІЗЬБИ
-   d2,min = ${f(J.d2_min, 2)} мм (з умови зносостійкості витків)
-   прийнято Tr ${J.d}×${J.p}${J.trial ? "  (ДОСЛІД — не автоматичний вибір!)" : ""}
+   d2,min = ${mkt("a", "d2min", f(J.d2_min, 2))} мм (з умови зносостійкості витків)
+   прийнято Tr ${J.d}×${J.p}
    d = ${g(J.d)}   d2 = ${g(J.d2)}   d3 = ${g(J.d3)}   D1 = ${g(J.d1)}   робоча висота h = ${g(J.h)} мм
 
 3. КУТИ Й САМОГАЛЬМУВАННЯ
-   кут підйому psi = ${f(J.psi, 3)}°      зведений кут тертя rho' = ${f(J.rho, 3)}°
-   самогальмування psi < rho' — ${okw(J.self_lock)}      ККД різьби = ${f(J.eta_thr, 3)}
+   кут підйому psi = ${mkt("a", "psi", f(J.psi, 3))}°      зведений кут тертя rho' = ${f(J.rho, 3)}°
+   самогальмування psi < rho' — ${okw(J.self_lock)}      ККД різьби = ${mkt("a", "psi", f(J.eta_thr, 3))}
 
 4. ГАЙКА
-   висота H = ${g(J.H)} мм, витків z = ${J.z}      тиск у витках q = ${f(J.q, 2)} МПа
+   висота H = ${g(J.H)} мм, витків z = ${J.z}      тиск у витках q = ${mkt("a", "q", f(J.q, 2))} МПа
    витки: зріз tau = ${f(J.tau_cut, 1)} МПа, згин sigma = ${f(J.sig_bend, 1)} МПа
    зовнішній діаметр D = ${J.D} мм, буртик D_б = ${J.D1} мм, висота буртика = ${J.h_b} мм
 
 5. ГВИНТ: МІЦНІСТЬ І СТІЙКІСТЬ
-   sigma = ${f(J.sig, 1)}   tau = ${f(J.tau, 1)}   sigma_екв = ${f(J.sig_eq, 1)} МПа
+   sigma = ${f(J.sig, 1)}   tau = ${mkt("a", "T", f(J.tau, 1))}   sigma_екв = ${mkt("a", "T", f(J.sig_eq, 1))} МПа
    l = ${g(J.l_col)} мм   lambda = ${f(J.lam, 1)}   формула ${J.mode}
    F_кр = ${f(J.F_cr / 1000, 1)} кН      запас стійкості s = ${f(J.s_st, 2)}
 
 6. РУКОЯТКА
-   моменти: у різьбі ${f(J.T_thr, 2)} + на торці ${f(J.T_face, 2)} = ${f(J.T_tot, 2)} Н·м
-   довжина рукоятки ${f(J.l_h, 0)} мм (прийнято ${G.l_hand}), діаметр ${f(J.d_h, 1)} мм (прийнято ${G.d_hand})
-   ККД домкрата ${f(J.eta_jack, 3)}; з упорним підшипником — рукоятка ${f(J.l_h_b, 0)} мм, ККД ${f(J.eta_jack_b, 3)}
+   моменти: у різьбі ${mkt("a", "T", f(J.T_thr, 2))} + на торці ${f(J.T_face, 2)} = ${mkt("a", "T", f(J.T_tot, 2))} Н·м
+   довжина рукоятки ${mkt("a", "T", f(J.l_h, 0))} мм (прийнято ${G.l_hand}), діаметр ${mkt("a", "T", f(J.d_h, 1))} мм (прийнято ${G.d_hand})
+   ККД домкрата ${mkt("a", "T", f(J.eta_jack, 3))}; з упорним підшипником — рукоятка ${mkt("a", "T", f(J.l_h_b, 0))} мм, ККД ${mkt("a", "T", f(J.eta_jack_b, 3))}
 
 7. ПЕРЕВІРКИ
 ${J.checks.map(c => "   " + (c[0] ? "+" : "-") + " " + c[1] + " — " + okw(c[0])).join("\n")}
@@ -736,7 +879,7 @@ ${J.checks.map(c => "   " + (c[0] ? "+" : "-") + " " + c[1] + " — " + okw(c[0]
 ${$("aFp").textContent.split("\n").map(l => "   " + l).join("\n")}
 
 9. ДОСЛІД: СУСІДНІ РІЗЬБИ РЯДУ
-${around.map(o => `   Tr ${String(o.r.d + "×" + o.r.p).padEnd(7)} q = ${String(f(o.r.q, 2)).padStart(6)} МПа   s = ${String(f(o.r.s, 2)).padStart(6)}   ${o.r.ok ? "проходить" : "не проходить"}${o.k === auto.i_pick ? "   <- автоматичний вибір" : ""}`).join("\n")}
+${around.map(o => `   Tr ${String(o.r.d + "×" + o.r.p).padEnd(7)} q = ${String(f(o.r.q, 2)).padStart(6)} МПа   s = ${String(f(o.r.s, 2)).padStart(6)}   ${o.r.ok ? "проходить" : "не проходить"}${o.k === auto.i_pick ? "   <- ваш добір" : ""}`).join("\n")}
 
 ВИСНОВОК (написати самому): ________________________________________
 `;
@@ -744,6 +887,36 @@ ${around.map(o => `   Tr ${String(o.r.d + "×" + o.r.p).padEnd(7)} q = ${String(
 
   /* ======================= Б. СТУПІНЧАСТИЙ ВАЛ ======================= */
   let B = null, BG = null;
+
+  /* ---------- що студент рахує сам у варіанті Б ---------- */
+  const bCand = () => {
+    const lo = B.d_min - 10, hi = B.d_min + 25;
+    return SIM.R40.filter(v => v >= lo && v <= hi);
+  };
+  const specB = () => [
+    { id: "dmin", short: "d_min", lbl: "Найменший діаметр із кручення d_min, мм",
+      form: "d_min = ∛(M · 10³ / (0,2 · [τ])) · 1,05,   [τ] = 25 МПа",
+      ref: () => B.d_min, show: () => `d_min = ${f(B.d_min, 2)} мм` },
+    { id: "d1", short: "вибір діаметра d1", lbl: "Який діаметр d₁ беремо?",
+      form: "найближчий більший за d_min розмір ряду Ra40 (табл. А2.2). Натискайте — симулятор скаже, чи годиться",
+      ref: () => B.d1, show: () => `d₁ = ${B.d1} мм`,
+      chips: () => bCand().map(v =>
+        `<button type="button" data-k="${v}"${B.tried && B.tried.has(v) ? ` class="${v >= B.d_min ? "" : "fail"}"` : ""}>${g(v)}</button>`).join(""),
+      pick: (v, st) => {
+        st.tries++; B.tried = B.tried || new Set(); B.tried.add(v);
+        if (v < B.d_min) { st.cls = "bad"; st.msg = `${g(v)} мм менше за d_min — вал не витримає кручення.`; }
+        else if (v > B.d1) { st.cls = "bad"; st.msg = `${g(v)} мм витримає, але в ряду Ra40 є менший розмір, який теж більший за d_min. Беруть найближчий більший.`; }
+        else { st.done = true; st.cls = "ok"; st.msg = ""; }
+      } },
+    { id: "MB", short: "момент згину M_B", lbl: "Момент згину в опорі B, Н·м", form: "M_B = F_в · l₁ / 1000",
+      ref: () => B.M_B, show: () => `M_B = ${f(B.M_B, 2)} Н·м` },
+    { id: "MK", short: "сумарний момент M_K", lbl: "Сумарний момент згину в колесі, Н·м",
+      form: "M_K = √((R_Aв · l₃)² + (R_Aг · l₃)²) / 1000 — реакції опор у таблиці результатів",
+      ref: () => B.M_K, show: () => `M_K = ${f(B.M_K, 2)} Н·м` },
+    { id: "Meq", short: "еквівалентний момент M_екв", lbl: "Еквівалентний момент M_екв, Н·м",
+      form: "M_екв = √(M²_зг + 0,75 · M²) у небезпечному перерізі",
+      ref: () => B.M_eq, show: () => `M_екв = ${f(B.M_eq, 2)} Н·м` },
+  ];
 
   function drawShaft(S, G) {
     const showL = $("bShowL").checked, parts = $("bShowParts").checked;
@@ -828,7 +1001,8 @@ ${around.map(o => `   Tr ${String(o.r.d + "×" + o.r.p).padEnd(7)} q = ${String(
       }
       s += poly(pts, 'fill="var(--wheel-fill)" stroke="var(--wheel)" stroke-width="1.2"');
       for (const [xm, v] of marks) {
-        s += text(xm, yb - v * sc + (v >= 0 ? -0.35 * fs : 0.95 * fs), f(v, 1), fs * 0.8, 'fill="var(--ink)" text-anchor="middle" font-weight="700"');
+        const lab = k === 3 || (done("b", "MB") && done("b", "MK")) || Math.abs(v) < 1e-9 ? f(v, 1) : "?";
+        s += text(xm, yb - v * sc + (v >= 0 ? -0.35 * fs : 0.95 * fs), lab, fs * 0.8, 'fill="var(--ink)" text-anchor="middle" font-weight="700"');
       }
     });
     /* небезпечний переріз */
@@ -842,12 +1016,19 @@ ${around.map(o => `   Tr ${String(o.r.d + "×" + o.r.p).padEnd(7)} q = ${String(
   function calcB() {
     const i = { M: val("bM"), Ft: val("bFt"), Fr: val("bFr"), Fv: val("bFv"), b: val("bB"), sigB: val("bSb") };
     if (!(i.M > 0 && i.Ft > 0 && i.Fr >= 0 && i.Fv >= 0 && i.b > 0 && i.sigB > 0)) return;
-    B = SIM.shaft(i); BG = SIM.shaftGeom(B);
+    const btried = B && B.tried;
+    B = SIM.shaft(i); BG = SIM.shaftGeom(B); B.tried = btried;
+    drawSolve("b", specB());
+    gate("b", done("b", "d1"));
+    if (!done("b", "d1")) {
+      $("bChk").innerHTML = '<li class="wait">перевірки з\'являться після вибору d₁</li>';
+      return;
+    }
     $("bKpis").innerHTML =
       kpi("Ступені d₁…d₅", `${B.d1}/${B.d2}/${B.d3}/${B.d4}/${B.d5}`) + kpi("Довжина вала", `${g(BG.L_tot)} мм`) +
-      kpi("Небезпечний переріз", B.dang) + kpi("Запас витривалості s", f(B.s_tot, 2));
+      kpi("Небезпечний переріз", mk2("b", "MB", "MK", B.dang)) + kpi("Запас витривалості s", mk2("b", "MB", "MK", f(B.s_tot, 2)));
     $("bOut").innerHTML =
-      row("Найменший діаметр із кручення d<sub>min</sub>, мм", f(B.d_min, 2)) +
+      row("Найменший діаметр із кручення d<sub>min</sub>, мм", mk("b", "dmin", f(B.d_min, 2))) +
       row("Ступені d₁ / d₂ / d₃ / d₄ / d₅, мм", `${B.d1} / ${B.d2} / ${B.d3} / ${B.d4} / ${B.d5}`) +
       row("Відстані схеми l₁ / l₂ / l₃, мм", `${B.l1} / ${B.l2} / ${B.l3}`) +
       row("Довжини ділянок L₁…L₆, мм", [BG.L1, BG.L2, BG.L3, BG.L4, BG.L5, BG.L6].map(g).join(" / ")) +
@@ -855,11 +1036,11 @@ ${around.map(o => `   Tr ${String(o.r.d + "×" + o.r.p).padEnd(7)} q = ${String(
       row("Шпонка на ділянці 1: b×h, глибина паза t₁, довжина, мм", `${BG.kb}×${BG.kh}`, `${g(BG.kt)} / ${BG.kl}`) +
       row("Реакції опори A: верт. / гор., Н", f(B.RA_v, 0), f(B.RA_h, 0)) +
       row("Реакції опори B: верт. / гор., Н", f(B.RB_v, 0), f(B.RB_h, 0)) +
-      row("Момент згину в опорі B / у колесі, Н·м", f(B.M_B, 2), f(B.M_K, 2)) +
-      row("Небезпечний переріз / його діаметр, мм", B.dang, B.d_dang) +
-      row("Еквівалентний момент M<sub>екв</sub>, Н·м / потрібний d, мм", f(B.M_eq, 2), f(B.d_req, 2)) +
-      row("Амплітуди σ<sub>a</sub> / τ<sub>a</sub>, МПа", f(B.sig_a, 2), f(B.tau_a, 2)) +
-      row("Запаси s<sub>σ</sub> / s<sub>τ</sub> / загальний s", `${f(B.s_sig, 2)} / ${f(B.s_tau, 2)}`, f(B.s_tot, 2));
+      row("Момент згину в опорі B / у колесі, Н·м", mk("b", "MB", f(B.M_B, 2)), mk("b", "MK", f(B.M_K, 2))) +
+      row("Небезпечний переріз / його діаметр, мм", mk2("b", "MB", "MK", B.dang), mk2("b", "MB", "MK", B.d_dang)) +
+      row("Еквівалентний момент M<sub>екв</sub>, Н·м / потрібний d, мм", mk("b", "Meq", f(B.M_eq, 2)), mk("b", "Meq", f(B.d_req, 2))) +
+      row("Амплітуди σ<sub>a</sub> / τ<sub>a</sub>, МПа", mk2("b", "MB", "MK", f(B.sig_a, 2)), f(B.tau_a, 2)) +
+      row("Запаси s<sub>σ</sub> / s<sub>τ</sub> / загальний s", mk2("b", "MB", "MK", `${f(B.s_sig, 2)} / ${f(B.s_tau, 2)}`), mk2("b", "MB", "MK", f(B.s_tot, 2)));
     $("bChk").innerHTML = chk(B.checks);
     $("bFp").textContent =
       `d_1   = ${B.d1} mm\nd_2   = ${B.d2} mm\nd_3   = ${B.d3} mm\nd_4   = ${B.d4} mm\nd_5   = ${B.d5} mm\n` +
@@ -869,10 +1050,12 @@ ${around.map(o => `   Tr ${String(o.r.d + "×" + o.r.p).padEnd(7)} q = ${String(
     const bad = B.checks.filter(c => !c[0]).length;
     $("bStatus").className = "status" + (bad ? " bad" : "");
     $("bStatus").textContent = bad ? `Не виконано перевірок: ${bad} — дивіться список ліворуч` :
-      `Небезпечний переріз — ${B.dang}: M_зг = ${f(B.M_z, 1)} Н·м, M_екв = ${f(B.M_eq, 1)} Н·м; потрібно d ≥ ${f(B.d_req, 1)} мм, прийнято ${B.d_dang} мм; запас витривалості ${f(B.s_tot, 2)} ≥ 2,5.`;
+      `Небезпечний переріз — ${B.dang}: M_зг = ${mkt("b", B.dang === "колесо" ? "MK" : "MB", f(B.M_z, 1))} Н·м, M_екв = ${mkt("b", "Meq", f(B.M_eq, 1))} Н·м; потрібно d ≥ ${f(B.d_req, 1)} мм, прийнято ${B.d_dang} мм; запас витривалості ${f(B.s_tot, 2)} ≥ 2,5.`;
     drawShaft(B, BG); protoB();
   }
-  ["bM", "bFt", "bFr", "bFv", "bB", "bSb"].forEach(id => $(id).addEventListener("input", calcB));
+  ["bM", "bFt", "bFr", "bFv", "bB", "bSb"].forEach(id =>
+    $(id).addEventListener("input", () => { solReset("b"); if (B) B.tried = null; calcB(); }));
+  solBind("b", specB);
   ["bShowL", "bShowParts"].forEach(id => $(id).addEventListener("input", () => drawShaft(B, BG)));
   copy($("bCopy"), $("bFp"));
 
@@ -880,12 +1063,15 @@ ${around.map(o => `   Tr ${String(o.r.d + "×" + o.r.p).padEnd(7)} q = ${String(
     const S = B, G = BG;
     const T2 = SIM.shaft({ M: S.M, Ft: S.Ft, Fr: S.Fr, Fv: 2 * S.Fv, b: S.b_wheel, sigB: val("bSb") });
     $("bPr").textContent = head("Б (ступінчастий вал)") + `
+0. ЩО СТУДЕНТ ПОРАХУВАВ САМ
+${specB().map(q => `   ${(q.short + " ").padEnd(32, ".")} ${solHow("b", q.id)}`).join("\n")}
+
 1. ВХІДНІ ДАНІ
    M = ${g(S.M)} Н·м      F_t = ${g(S.Ft)} Н      F_r = ${g(S.Fr)} Н      F_в = ${g(S.Fv)} Н      b = ${g(S.b_wheel)} мм
    сталь: sigma_в = ${g(val("bSb"))} МПа
 
 2. ДІАМЕТРИ СТУПЕНІВ, мм
-   d_min = ${f(S.d_min, 2)} (умовний розрахунок на кручення, [tau] = 25 МПа, +5 % на шпонку)
+   d_min = ${mkt("b", "dmin", f(S.d_min, 2))} (умовний розрахунок на кручення, [tau] = 25 МПа, +5 % на шпонку)
    d1 = ${S.d1} (шків/муфта)   d2 = ${S.d2} (ущільнення)   d3 = ${S.d3} (підшипники)
    d4 = ${S.d4} (колесо)        d5 = ${S.d5} (буртик)
 
@@ -900,14 +1086,14 @@ ${around.map(o => `   Tr ${String(o.r.d + "×" + o.r.p).padEnd(7)} q = ${String(
    горизонтальна площина: R_A = ${f(S.RA_h, 0)}   R_B = ${f(S.RB_h, 0)}
 
 5. МОМЕНТИ, Н·м
-   в опорі B: ${f(S.M_B, 2)}      у колесі: верт. ${f(S.M_K_v, 2)}, гор. ${f(S.M_K_h, 2)}, сумарний ${f(S.M_K, 2)}
-   небезпечний переріз — ${S.dang} (d = ${S.d_dang} мм)
-   M_екв = sqrt(M_зг² + 0,75·T²) = ${f(S.M_eq, 2)}
+   в опорі B: ${mkt("b", "MB", f(S.M_B, 2))}      у колесі: верт. ${mkt("b", "MK", f(S.M_K_v, 2))}, гор. ${mkt("b", "MK", f(S.M_K_h, 2))}, сумарний ${mkt("b", "MK", f(S.M_K, 2))}
+   небезпечний переріз — ${mkt2("b", "MB", "MK", S.dang)} (d = ${mkt2("b", "MB", "MK", S.d_dang)} мм)
+   M_екв = sqrt(M_зг² + 0,75·T²) = ${mkt("b", "Meq", f(S.M_eq, 2))}
 
 6. МІЦНІСТЬ І ВИТРИВАЛІСТЬ
-   потрібний діаметр d = ${f(S.d_req, 2)} мм при [sigma] = 60 МПа — прийнято ${S.d_dang} мм
-   sigma_a = ${f(S.sig_a, 2)} МПа   tau_a = ${f(S.tau_a, 2)} МПа
-   s_sigma = ${f(S.s_sig, 2)}   s_tau = ${f(S.s_tau, 2)}   s = ${f(S.s_tot, 2)} при [s] = 2,5
+   потрібний діаметр d = ${mkt("b", "Meq", f(S.d_req, 2))} мм при [sigma] = 60 МПа — прийнято ${mkt2("b", "MB", "MK", S.d_dang)} мм
+   sigma_a = ${mkt2("b", "MB", "MK", f(S.sig_a, 2))} МПа   tau_a = ${f(S.tau_a, 2)} МПа
+   s_sigma = ${mkt2("b", "MB", "MK", f(S.s_sig, 2))}   s_tau = ${f(S.s_tau, 2)}   s = ${mkt2("b", "MB", "MK", f(S.s_tot, 2))} при [s] = 2,5
 
 7. ПЕРЕВІРКИ
 ${S.checks.map(c => "   " + (c[0] ? "+" : "-") + " " + c[1] + " — " + okw(c[0])).join("\n")}
@@ -933,11 +1119,13 @@ ${$("bFp").textContent.split("\n").map(l => "   " + l).join("\n")}
     stuNo = n;
     const odd = n % 2 === 1;
     if (odd) {
-      $("aF").value = +(10 + 0.5 * n).toFixed(2); $("aH").value = 150 + 5 * n; aPick = -1; aT = 0; calcA(); show("a");
+      $("aF").value = +(10 + 0.5 * n).toFixed(2); $("aH").value = 150 + 5 * n;
+      solReset("a"); if (A) A.tried = null; aT = 0; calcA(); show("a");
     } else {
       const Ft = 2000 + 50 * n;
       $("bM").value = 100 + 5 * n; $("bFt").value = Ft; $("bFr").value = +(0.364 * Ft).toFixed(2);
-      $("bFv").value = +(0.5 * Ft).toFixed(2); $("bB").value = 50; calcB(); show("b");
+      $("bFv").value = +(0.5 * Ft).toFixed(2); $("bB").value = 50;
+      solReset("b"); if (B) B.tried = null; calcB(); show("b");
     }
     $("vBadge").className = "vbadge set";
     $("vBadge").innerHTML = odd
