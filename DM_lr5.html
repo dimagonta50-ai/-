@@ -139,6 +139,51 @@ footer{font-size:.82rem;color:var(--muted);background:var(--surface);border:1px 
 @media(max-width:700px){.stage2{grid-template-columns:minmax(0,1fr)}}
 .stage2 .stage-wrap svg{max-height:640px}
 #bSvg{max-height:none}
+
+/* === Покращення візуальної складової (v2) === */
+.stage-wrap, .card.stage > svg, .card > svg {
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: radial-gradient(circle at 50% 42%, var(--surface), var(--field) 90%);
+  box-shadow: inset 0 1px 4px rgba(15, 23, 42, 0.06);
+}
+.card {
+  transition: transform 0.16s ease, box-shadow 0.16s ease;
+}
+.kpi {
+  position: relative;
+  overflow: hidden;
+  border-left: 3.5px solid var(--pin);
+  background: linear-gradient(135deg, var(--surface-2), var(--surface));
+}
+button.btn[aria-pressed="true"] {
+  background: var(--pin);
+  border-color: var(--pin);
+  color: #ffffff;
+  box-shadow: 0 2px 10px rgba(29, 78, 216, 0.32);
+}
+.stage svg text {
+  user-select: none;
+  font-family: var(--font);
+}
+.teacher-unlock {
+  font: inherit;
+  font-size: .82rem;
+  font-weight: 600;
+  padding: 7px 12px;
+  border: 1px dashed var(--pin);
+  border-radius: 8px;
+  background: var(--pin-fill);
+  color: var(--pin);
+  cursor: pointer;
+  transition: all .15s ease;
+}
+.teacher-unlock:hover {
+  background: var(--pin);
+  color: #fff;
+  border-style: solid;
+}
+
 </style>
 </head>
 <body>
@@ -149,7 +194,7 @@ footer{font-size:.82rem;color:var(--muted);background:var(--surface);border:1px 
       <p class="eyebrow">Деталі машин та ПТМ · лабораторна робота № 5</p>
       <h1>Симулятор передачі гвинт-гайка та ступінчастого вала</h1>
     </div>
-    <button type="button" class="theme-btn" id="themeBtn" title="Перемкнути тему">◐ Тема</button>
+    <div class="row" style="gap:8px"><button type="button" class="teacher-unlock" id="unlockBtn" title="Розблокувати всі розрахунки та креслення (лише для викладача)">🔒 Викладач</button><button type="button" class="theme-btn" id="themeBtn" title="Перемкнути тему">◐ Тема</button></div>
   </div>
   <p class="lead">Введіть свій номер у списку — симулятор відкриє ваш варіант, порахує всі числа роботи
     й збере їх у «Протокол для звіту». Ці самі числа ви перевіряєте в Excel-шаблоні й уводите
@@ -215,7 +260,7 @@ footer{font-size:.82rem;color:var(--muted);background:var(--surface);border:1px 
       </div>
       <div class="row">
         <button type="button" class="btn" id="aPlay" aria-pressed="false">▶ Крутити рукоятку</button>
-        <label class="grow">Обертів рукоятки: <b id="aTurnsVal">0</b><input id="aTurns" type="range" min="0" max="40" step="0.05" value="0"></label>
+        <label class="grow">Обертів рукоятки: <b id="aTurnsVal">0</b><input id="aTurns" type="range" min="0" max="40" step="any" value="0"></label>
       </div>
       <p class="status" id="aStatus"></p>
       <p class="hint">Зверніть увагу: витки в розрізі <b>стоять на місці</b>, хоча гвинт піднімається. Гвинт обертається й водночас підіймається на крок за оберт — ці два рухи в перерізі компенсуються. Тому гайку й закріплюють нерухомо.</p>
@@ -284,6 +329,10 @@ footer{font-size:.82rem;color:var(--muted);background:var(--surface);border:1px 
           <span class="legend-item"><i class="swatch" style="background:var(--wheel-fill);border-color:var(--wheel)"></i>епюри моментів</span>
           <span class="legend-item"><i class="swatch" style="background:var(--bad);border-color:var(--bad)"></i>небезпечний переріз</span>
         </div>
+      </div>
+      <div class="row">
+        <button type="button" class="btn" id="bPlay" aria-pressed="false">▶ Обертати вал</button>
+        <label class="grow">Кут повороту вала<input id="bPhi" type="range" min="0" max="360" step="any" value="0"></label>
       </div>
       <p class="status" id="bStatus"></p>
     </div>
@@ -662,19 +711,23 @@ if (typeof document !== "undefined") (function () {
                'fill="var(--pin-fill)" stroke="var(--pin)" stroke-width="1.3"');
     s1 += poly([[-0.78 * dd, yTop - 0.3 * dd], [0.78 * dd, yTop - 0.3 * dd], [0.62 * dd, yTop], [-0.62 * dd, yTop]],
                'fill="var(--pin-fill)" stroke="var(--pin)" stroke-width="1.3"');
-    /* рукоятка */
-    const hr = G.d_hand / 2, xe = 0.6 * dd + hShow;
-    s1 += poly([[-0.6 * dd, yH - hr], [xe, yH - hr], [xe, yH + hr], [-0.6 * dd, yH + hr]],
+    /* рукоятка в динамічній проєкції обертання */
+    const phiH = aT * 2 * Math.PI, cosH = Math.cos(phiH), sinH = Math.sin(phiH);
+    const hr = G.d_hand / 2, xeFull = 0.6 * dd + hShow, xe = cosH * xeFull, xStart = -cosH * 0.6 * dd;
+    s1 += poly([[xStart, yH - hr], [xe, yH - hr], [xe, yH + hr], [xStart, yH + hr]],
                'fill="var(--surface-2)" stroke="var(--ink)" stroke-width="1.2"');
-    if (cut) {
-      const xc = 0.6 * dd + hShow * 0.62;
-      s1 += `<path d="M${P2(xc - hr * 0.5, yH - hr * 1.8)}L${P2(xc + hr * 0.2, yH)}L${P2(xc - hr * 0.2, yH)}L${P2(xc + hr * 0.5, yH + hr * 1.8)}" fill="none" stroke="var(--ink)" stroke-width="1.2" ${NS}/>`;
+    /* маркер обертання на головці гвинта */
+    const xMark = (dd * 0.36) * cosH;
+    s1 += line(xMark, yTop + 0.14 * dd, xMark, yHead - 0.14 * dd, 'stroke="var(--pin)" stroke-width="2.4" stroke-linecap="round"');
+    /* зусилля робітника: ⊗ коли рукоятка йде від нас, ⊙ коли на нас */
+    const xF = cosH * (xeFull - 1.6 * hr);
+    s1 += `<circle cx="${xF.toFixed(2)}" cy="${yH.toFixed(2)}" r="${(hr * 0.78).toFixed(2)}" fill="var(--surface)" stroke="var(--wheel)" stroke-width="1.4" ${NS}/>`;
+    if (sinH >= 0) {
+      s1 += line(xF - hr * 0.5, yH - hr * 0.5, xF + hr * 0.5, yH + hr * 0.5, 'stroke="var(--wheel)" stroke-width="1.4"') +
+            line(xF - hr * 0.5, yH + hr * 0.5, xF + hr * 0.5, yH - hr * 0.5, 'stroke="var(--wheel)" stroke-width="1.4"');
+    } else {
+      s1 += `<circle cx="${xF.toFixed(2)}" cy="${yH.toFixed(2)}" r="${(hr * 0.28).toFixed(2)}" fill="var(--wheel)" ${NS}/>`;
     }
-    /* зусилля робітника — перпендикулярно до площини креслення: знак ⊗ на кінці рукоятки */
-    const xF = xe - 1.6 * hr;
-    s1 += `<circle cx="${xF.toFixed(2)}" cy="${yH.toFixed(2)}" r="${(hr * 0.75).toFixed(2)}" fill="var(--surface)" stroke="var(--wheel)" stroke-width="1.4" ${NS}/>` +
-          line(xF - hr * 0.5, yH - hr * 0.5, xF + hr * 0.5, yH + hr * 0.5, 'stroke="var(--wheel)" stroke-width="1.4"') +
-          line(xF - hr * 0.5, yH + hr * 0.5, xF + hr * 0.5, yH - hr * 0.5, 'stroke="var(--wheel)" stroke-width="1.4"');
     s1 += text(xe, yH + hr + 1.35 * fs, `F<tspan baseline-shift="sub" font-size="${(fs * 0.7).toFixed(2)}">р</tspan> = ${g(val("aFh"))} Н`, fs * 0.95, 'fill="var(--wheel)" text-anchor="end" font-weight="700"');
     s1 += text(xe, yH + hr + 2.45 * fs, `l<tspan baseline-shift="sub" font-size="${(fs * 0.7).toFixed(2)}">р</tspan> = ${G.l_hand} мм`, fs * 0.8, 'fill="var(--muted)" text-anchor="end"');
     /* вантаж */
@@ -824,7 +877,10 @@ if (typeof document !== "undefined") (function () {
     $("aTurns").value = String(aT); frameA();
     aRaf = requestAnimationFrame(tickA);
   }
-  function stopA() { aPlaying = false; cancelAnimationFrame(aRaf); aLast = 0; $("aPlay").setAttribute("aria-pressed", "false"); $("aPlay").textContent = "▶ Крутити рукоятку"; }
+  function stopA() {
+    aPlaying = false; cancelAnimationFrame(aRaf); aLast = 0; $("aPlay").setAttribute("aria-pressed", "false"); $("aPlay").textContent = "▶ Крутити рукоятку";
+    bPlaying = false; cancelAnimationFrame(bRaf); bLast = 0; if ($("bPlay")) { $("bPlay").setAttribute("aria-pressed", "false"); $("bPlay").textContent = "▶ Обертати вал"; }
+  }
   $("aPlay").addEventListener("click", () => {
     aPlaying = !aPlaying; $("aPlay").setAttribute("aria-pressed", String(aPlaying));
     $("aPlay").textContent = aPlaying ? "❚❚ Пауза" : "▶ Крутити рукоятку";
@@ -886,7 +942,7 @@ ${around.map(o => `   Tr ${String(o.r.d + "×" + o.r.p).padEnd(7)} q = ${String(
   }
 
   /* ======================= Б. СТУПІНЧАСТИЙ ВАЛ ======================= */
-  let B = null, BG = null;
+  let B = null, BG = null, bPlaying = false, bRaf = 0, bLast = 0, bAngle = 0;
 
   /* ---------- що студент рахує сам у варіанті Б ---------- */
   const bCand = () => {
@@ -955,9 +1011,21 @@ ${around.map(o => `   Tr ${String(o.r.d + "×" + o.r.p).padEnd(7)} q = ${String(
     s += poly(outline, 'fill="var(--pin-fill)" stroke="var(--pin)" stroke-width="1.4"');
     x = 0;
     for (const [dd, L] of segs.slice(0, -1)) { x += L; s += line(x, -Math.min(dd, 999) / 2, x, Math.min(dd, 999) / 2, 'stroke="var(--pin)" stroke-width="0.8" opacity=".6"'); }
-    /* шпонковий паз на ділянці 1 */
-    const kx = (G.L1 - G.kl) / 2;
-    s += `<rect x="${kx.toFixed(2)}" y="${(-S.d1 / 2).toFixed(2)}" width="${G.kl.toFixed(2)}" height="${G.kt.toFixed(2)}" rx="${(G.kt / 2).toFixed(2)}" fill="var(--ink)" opacity=".75"/>`;
+    /* шпонковий паз та твірні обертання вала */
+    const phiB = bAngle * Math.PI / 180;
+    let xxRot = 0;
+    for (const [dd, L] of segs) {
+      for (let k = 0; k < 4; k++) {
+        const a = phiB + k * Math.PI / 2, sy = Math.sin(a), cy = Math.cos(a);
+        if (cy > 0) s += line(xxRot + 1, sy * (dd / 2 - 1), xxRot + L - 1, sy * (dd / 2 - 1), `stroke="var(--pin)" stroke-width="1.1" opacity="${(0.18 + 0.35 * cy).toFixed(2)}"`);
+      }
+      xxRot += L;
+    }
+    const kx = (G.L1 - G.kl) / 2, ky = Math.sin(phiB) * (S.d1 / 2 - G.kt / 2), kVis = Math.cos(phiB);
+    if (kVis > -0.2) {
+      const khVis = Math.max(G.kt * 0.45, BG.kb * 0.45 * Math.max(kVis, 0.15));
+      s += `<rect x="${kx.toFixed(2)}" y="${(ky - khVis / 2).toFixed(2)}" width="${G.kl.toFixed(2)}" height="${khVis.toFixed(2)}" rx="${(khVis / 2).toFixed(2)}" fill="var(--ink)" opacity="${(0.35 + 0.5 * Math.max(kVis, 0)).toFixed(2)}"/>`;
+    }
     s += line(xL + 0.02 * Lt, 0, xR - 0.02 * Lt, 0, 'stroke="var(--ink)" stroke-width="0.8" stroke-dasharray="7 3 1.5 3" opacity=".55"');
     /* опори */
     const tri = (xc, nm) => poly([[xc, S.d3 * 0.95 + 0.2 * fs], [xc - fs * 0.9, S.d3 * 0.95 + 1.6 * fs], [xc + fs * 0.9, S.d3 * 0.95 + 1.6 * fs]],
@@ -1057,6 +1125,24 @@ ${around.map(o => `   Tr ${String(o.r.d + "×" + o.r.p).padEnd(7)} q = ${String(
     $(id).addEventListener("input", () => { solReset("b"); if (B) B.tried = null; calcB(); }));
   solBind("b", specB);
   ["bShowL", "bShowParts"].forEach(id => $(id).addEventListener("input", () => drawShaft(B, BG)));
+  function tickB(t) {
+    if (!bPlaying) return;
+    if (!bLast) bLast = t;
+    const dt = Math.min(t - bLast, 80); bLast = t;
+    bAngle += dt * 0.08;
+    $("bPhi").value = ((bAngle % 360) + 360) % 360;
+    drawShaft(B, BG); bRaf = requestAnimationFrame(tickB);
+  }
+  $("bPlay").addEventListener("click", () => {
+    bPlaying = !bPlaying; $("bPlay").setAttribute("aria-pressed", String(bPlaying));
+    $("bPlay").textContent = bPlaying ? "❚❚ Пауза" : "▶ Обертати вал";
+    if (bPlaying) { bLast = 0; bRaf = requestAnimationFrame(tickB); } else stopA();
+  });
+  $("bPhi").addEventListener("input", () => {
+    const cur = ((bAngle % 360) + 360) % 360;
+    bAngle += val("bPhi") - cur;
+    drawShaft(B, BG);
+  });
   copy($("bCopy"), $("bFp"));
 
   function protoB() {
@@ -1134,6 +1220,23 @@ ${$("bFp").textContent.split("\n").map(l => "   " + l).join("\n")}
   });
   $("vNo").addEventListener("keydown", e => { if (e.key === "Enter") $("vGo").click(); });
 
+  $("unlockBtn").addEventListener("click", () => {
+    const pwd = prompt("Введіть пароль викладача для відкриття розв'язку:");
+    if (pwd === null) return;
+    const s = pwd.trim() + "dm_unum_salt";
+    let h = 0x811c9dc5;
+    for (let i = 0; i < s.length; i++) {
+      h ^= s.charCodeAt(i);
+      h = Math.imul(h, 0x01000193) >>> 0;
+    }
+    if (h !== 3102783417) {
+      alert("Невірний пароль!");
+      return;
+    }
+    specA().forEach(q => { const st = sv("a", q.id); st.done = true; });
+    specB().forEach(q => { const st = sv("b", q.id); st.done = true; });
+    calcA(); calcB();
+  });
   calcA(); calcB();
 })();
 

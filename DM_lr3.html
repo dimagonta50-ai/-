@@ -66,6 +66,7 @@ input[type=number]:focus,select:focus{outline:none;border-color:var(--pin);box-s
 input[type=range]{width:100%;accent-color:var(--pin);cursor:pointer}
 button.btn{font:inherit;font-size:.88rem;font-weight:600;padding:8px 14px;border:1px solid var(--line);border-radius:8px;background:var(--field);color:var(--ink);cursor:pointer;transition:all .15s ease}
 button.btn:hover{border-color:var(--pin);background:var(--surface-2)}
+.variant .go:hover{background:var(--pin);border-color:var(--pin);color:#fff;filter:brightness(1.12)}
 button.btn[aria-pressed="true"]{background:var(--pin);border-color:var(--pin);color:#ffffff}
 :focus-visible{outline:2px solid var(--pin);outline-offset:2px}
 .hint{margin:0;font-size:.82rem;color:var(--muted);line-height:1.45}
@@ -102,6 +103,26 @@ td.num,th.num{text-align:right;white-space:nowrap;font-weight:600;font-family:va
 .checks .bad{color:var(--bad);background:var(--bad-bg)}
 pre{margin:0;padding:13px 15px;background:var(--code);color:var(--code-ink);border-radius:9px;font:.84rem/1.55 var(--mono);overflow-x:auto;border:1px solid var(--line)}
 .chips{display:flex;flex-wrap:wrap;gap:7px}
+.solve{list-style:none;margin:0;padding:0;display:grid;gap:9px;counter-reset:st}
+.solve li{counter-increment:st;border:1px solid var(--line);border-radius:11px;padding:9px 11px;background:var(--surface-2)}
+.solve li.locked{opacity:.5}
+.solve li.done{border-color:var(--ok);background:var(--ok-bg)}
+.solve .slab{font-weight:700;font-size:.9rem;color:var(--ink)}
+.solve .slab::before{content:counter(st) ". "}
+.solve .sform{display:block;font-weight:400;color:var(--muted);font-size:.8rem;margin-top:2px;font-variant-numeric:tabular-nums}
+.solve .srow{display:flex;gap:6px;align-items:center;margin-top:7px}
+.solve .srow input{flex:1 1 80px;min-width:0;padding:6px 9px}
+.solve .srow .btn{padding:6px 12px;font-size:.84rem;white-space:nowrap}
+.solve .chips{margin-top:7px}
+.solve .sv{margin:6px 0 0;font-size:.84rem;font-weight:600}
+.solve .sv.ok{color:var(--ok)}
+.solve .sv.bad{color:var(--bad)}
+.solve .sv.note{color:var(--muted);font-weight:400}
+.solve .shelp{display:block;margin-top:6px;background:none;border:0;padding:0;color:var(--muted);font:inherit;font-size:.8rem;text-decoration:underline;cursor:pointer}
+.solve .shelp:hover{color:var(--bad)}
+.lock{border-style:dashed;align-items:flex-start}
+.lock h2{color:var(--muted)}
+b.q{color:var(--bad);font-weight:800}
 .chips button{font:inherit;font-size:.82rem;line-height:1.3;padding:7px 10px;border:1px solid var(--line);border-radius:8px;background:var(--field);color:var(--ink);cursor:pointer;text-align:center;font-variant-numeric:tabular-nums;transition:all .15s ease}
 .chips button:hover{border-color:var(--pin)}
 .chips button small{display:block;color:var(--muted);font-size:.74rem;margin-top:2px}
@@ -111,6 +132,51 @@ pre{margin:0;padding:13px 15px;background:var(--code);color:var(--code-ink);bord
 footer{font-size:.82rem;color:var(--muted);background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:13px 16px;line-height:1.5}
 .svg-ink{fill:var(--ink)} .svg-muted{fill:var(--muted)}
 .svg-halo{paint-order:stroke;stroke:var(--field);stroke-width:3px;stroke-linejoin:round}
+
+/* === Покращення візуальної складової (v2) === */
+.stage-wrap, .card.stage > svg, .card > svg {
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: radial-gradient(circle at 50% 42%, var(--surface), var(--field) 90%);
+  box-shadow: inset 0 1px 4px rgba(15, 23, 42, 0.06);
+}
+.card {
+  transition: transform 0.16s ease, box-shadow 0.16s ease;
+}
+.kpi {
+  position: relative;
+  overflow: hidden;
+  border-left: 3.5px solid var(--pin);
+  background: linear-gradient(135deg, var(--surface-2), var(--surface));
+}
+button.btn[aria-pressed="true"] {
+  background: var(--pin);
+  border-color: var(--pin);
+  color: #ffffff;
+  box-shadow: 0 2px 10px rgba(29, 78, 216, 0.32);
+}
+.stage svg text {
+  user-select: none;
+  font-family: var(--font);
+}
+.teacher-unlock {
+  font: inherit;
+  font-size: .82rem;
+  font-weight: 600;
+  padding: 7px 12px;
+  border: 1px dashed var(--pin);
+  border-radius: 8px;
+  background: var(--pin-fill);
+  color: var(--pin);
+  cursor: pointer;
+  transition: all .15s ease;
+}
+.teacher-unlock:hover {
+  background: var(--pin);
+  color: #fff;
+  border-style: solid;
+}
+
 </style>
 </head>
 <body>
@@ -121,7 +187,7 @@ footer{font-size:.82rem;color:var(--muted);background:var(--surface);border:1px 
       <p class="eyebrow">Деталі машин та ПТМ · лабораторна робота № 3</p>
       <h1>Симулятор черв'ячної та ланцюгової передач</h1>
     </div>
-    <button type="button" class="theme-btn" id="themeBtn" title="Перемкнути тему">◐ Тема</button>
+    <div class="row" style="gap:8px"><button type="button" class="teacher-unlock" id="unlockBtn" title="Розблокувати всі розрахунки та креслення (лише для викладача)">🔒 Викладач</button><button type="button" class="theme-btn" id="themeBtn" title="Перемкнути тему">◐ Тема</button></div>
   </div>
   <p class="lead">Введіть свій номер у списку — симулятор відкриє ваш варіант, порахує всі числа роботи й збере їх у «Протокол для звіту». Ці самі числа ви перевіряєте в Excel-шаблоні й уводите в параметри Fusion. Зараз показано приклад із методичних вказівок.</p>
   <div class="variant">
@@ -153,13 +219,17 @@ footer{font-size:.82rem;color:var(--muted);background:var(--surface);border:1px 
       <p class="hint" id="aHint"></p>
     </div>
     <div class="card">
-      <h2>Дослід: коефіцієнт діаметра q</h2>
-      <p class="hint">Шаблон бере найменший q ≥ 0,25·z₂. Натисніть інший, щоб побачити, як змінюються a<sub>w</sub>, m, ККД і швидкість ковзання:</p>
-      <div class="chips" id="aChips"></div>
-      <button type="button" class="btn" id="aQreset">Повернути автоматичний q</button>
+      <h2>Ваш розрахунок</h2>
+      <p class="hint">Ці числа симулятор не показує: ви рахуєте їх самі за формулами таблиці 3.2 методички — калькулятором або в Excel. Правильна відповідь відкриває наступний пункт, а добір q — креслення, результати, параметри Fusion і протокол.</p>
+      <ol class="solve" id="aSolve"></ol>
     </div>
       </div>
   <div class="col">
+    <div class="card lock" id="aLock" hidden>
+      <h2>Відкриється після добору q</h2>
+      <p class="hint">Осьовий переріз передачі, таблиця результатів, параметри для Fusion і протокол з'являться, щойно ви виконаєте пункти 1 і 2 ліворуч: порахуєте z₂ і доберете коефіцієнт діаметра q.</p>
+    </div>
+    <div id="aStage" class="col">
     <div class="card stage">
       <div class="kpis" id="aKpis"></div>
       <div class="stage-wrap">
@@ -174,7 +244,7 @@ footer{font-size:.82rem;color:var(--muted);background:var(--surface);border:1px 
       </div>
       <div class="row">
         <button type="button" class="btn" id="aPlay" aria-pressed="false">▶ Обертати</button>
-        <label class="grow">Кут повороту черв'яка<input id="aPhi" type="range" min="0" max="360" step="0.5" value="0"></label>
+        <label class="grow">Кут повороту черв'яка<input id="aPhi" type="range" min="0" max="360" step="any" value="0"></label>
       </div>
       <div class="row">
         <div class="seg" role="group" aria-label="Масштаб">
@@ -201,6 +271,7 @@ footer{font-size:.82rem;color:var(--muted);background:var(--surface);border:1px 
       <p class="hint">Усі числа цієї роботи в одному блоці: перенесіть їх у звіт і в Excel-шаблон для самоперевірки.</p>
       <pre class="proto" id="aPr"></pre>
     </div>
+    </div>
   </div>
 </section>
 
@@ -222,13 +293,17 @@ footer{font-size:.82rem;color:var(--muted);background:var(--surface);border:1px 
       <p class="hint" id="bHint"></p>
     </div>
     <div class="card">
-      <h2>Вибір кроку: тиск у шарнірі</h2>
-      <p class="hint">Те саме, що таблиця праворуч на аркуші «Б_Ланцюгова». Зеленим — кроки, які проходять за тиском і за p ≥ p<sub>min</sub>:</p>
-      <div class="chips" id="bChips"></div>
-      <button type="button" class="btn" id="bPreset">Повернути автоматичний крок</button>
+      <h2>Ваш розрахунок</h2>
+      <p class="hint">Ці числа симулятор не показує: ви рахуєте їх самі за формулами таблиці 3.3 методички — калькулятором або в Excel. Правильна відповідь відкриває наступний пункт, а вибір кроку — креслення, результати, параметри Fusion і протокол.</p>
+      <ol class="solve" id="bSolve"></ol>
     </div>
       </div>
   <div class="col">
+    <div class="card lock" id="bLock" hidden>
+      <h2>Відкриється після вибору кроку</h2>
+      <p class="hint">Креслення передачі, графік багатокутникового ефекту, таблиця результатів, параметри для Fusion і протокол з'являться, щойно ви виконаєте пункти 1–3 ліворуч: порахуєте z₁, p<sub>min</sub> і виберете крок ланцюга p.</p>
+    </div>
+    <div id="bStage" class="col">
     <div class="card stage">
       <div class="kpis" id="bKpis"></div>
       <div class="stage-wrap">
@@ -241,7 +316,7 @@ footer{font-size:.82rem;color:var(--muted);background:var(--surface);border:1px 
       </div>
       <div class="row">
         <button type="button" class="btn" id="bPlay" aria-pressed="false">▶ Обертати</button>
-        <label class="grow">Кут повороту меншої зірочки<input id="bPhi" type="range" min="0" max="360" step="0.5" value="0"></label>
+        <label class="grow">Кут повороту меншої зірочки<input id="bPhi" type="range" min="0" max="360" step="any" value="0"></label>
       </div>
       <label>Дослід: міжосьова відстань <b id="bAval"></b><input id="bA" type="range" min="25" max="55" step="1" value="40"></label>
       <p class="status" id="bStatus"></p>
@@ -268,6 +343,7 @@ footer{font-size:.82rem;color:var(--muted);background:var(--surface);border:1px 
         <button type="button" class="btn" id="bPrSave">Зберегти .txt</button></div>
       <p class="hint">Усі числа цієї роботи в одному блоці: перенесіть їх у звіт і в Excel-шаблон для самоперевірки.</p>
       <pre class="proto" id="bPr"></pre>
+    </div>
     </div>
   </div>
 </section>
@@ -400,6 +476,10 @@ var SIM = (function () {
     const r1 = c.d1 / 2, r2 = c.d2 / 2, a = c.aFact;
     const beta = Math.asin(Math.min((r2 - r1) / a, 1)), lim = Math.PI / 2 + beta;
     const th1 = -psi, th2 = -psi / c.ud;
+    const step1 = 2 * Math.PI / c.z1;
+    const phase = (((psi / step1) % 1) + 1) % 1;
+    const T1t = [r1 * Math.cos(-lim), r1 * Math.sin(-lim)], T2t = [a + r2 * Math.cos(-lim), r2 * Math.sin(-lim)];
+    const T1b = [r1 * Math.cos(lim), r1 * Math.sin(lim)],   T2b = [a + r2 * Math.cos(lim), r2 * Math.sin(lim)];
     const arc = (cx, rr, z, th, start, span) => {
       const out = [], step = 2 * Math.PI / z;
       const k0 = Math.ceil((start - th - span) / step), k1 = Math.floor((start - th) / step);
@@ -408,16 +488,17 @@ var SIM = (function () {
     };
     const A1 = arc(0, r1, c.z1, th1, -lim, Math.PI - 2 * beta);
     const A2 = arc(a, r2, c.z2, th2, lim, Math.PI + 2 * beta);
-    const straight = (P, Q) => {
-      const d = Math.hypot(Q[0] - P[0], Q[1] - P[1]), n = Math.max(Math.round(d / c.p) - 1, 0), out = [];
-      for (let k = 1; k <= n; k++) out.push([P[0] + (Q[0] - P[0]) * k / (n + 1), P[1] + (Q[1] - P[1]) * k / (n + 1), null]);
+    const spanRollers = (P, Q, shift) => {
+      const dx = Q[0] - P[0], dy = Q[1] - P[1], L = Math.hypot(dx, dy);
+      const ux = dx / L, uy = dy / L, out = [];
+      for (let s = shift * c.p; s < L - 0.15 * c.p; s += c.p) {
+        if (s > 0.15 * c.p) out.push([P[0] + ux * s, P[1] + uy * s, null]);
+      }
       return out;
     };
-    let pts = [];
-    if (A1.length && A2.length) {
-      pts = A1.concat(straight(A1[A1.length - 1], A2[0]), A2, straight(A2[A2.length - 1], A1[0]));
-    }
-    return { pts: pts, th1: th1, th2: th2, r1: r1, r2: r2, a: a, beta: beta };
+    const bot = spanRollers(T1b, T2b, phase);
+    const top = spanRollers(T2t, T1t, (1 - phase) % 1);
+    return { pts: A1.concat(bot, A2, top), th1: th1, th2: th2, r1: r1, r2: r2, a: a, beta: beta };
   }
 
   function gearPoly(z, m, backlash) {
@@ -479,6 +560,82 @@ if (typeof document !== "undefined") (function () {
   });
 
   /* ---------- вкладки ---------- */
+  /* ================= самостійний розрахунок ================= */
+  const SOL = { a: {}, b: {} };
+  const sv = (v, id) => SOL[v][id] || (SOL[v][id] = { done: false, shown: false, tries: 0, msg: "", cls: "" });
+  const done = (v, id) => !!(SOL[v][id] && SOL[v][id].done);
+  const mk = (v, id, x) => done(v, id) ? x : '<b class="q">?</b>';     /* у таблиці й KPI */
+  const mkt = (v, id, x) => done(v, id) ? String(x) : "?";             /* у протоколі */
+  const mk2 = (v, i1, i2, x) => done(v, i1) && done(v, i2) ? x : '<b class="q">?</b>';
+  const mkt2 = (v, i1, i2, x) => done(v, i1) && done(v, i2) ? String(x) : "?";
+  const solReset = v => { SOL[v] = {}; };
+  function solHow(v, id) {
+    const st = SOL[v][id];
+    return !st || !st.done ? "НЕ ПОРАХОВАНО" :
+      st.shown ? `з підказкою після ${st.tries} спроб` :
+        `ваша відповідь${st.tries > 1 ? ` з ${st.tries} спроб` : " з першої спроби"}`;
+  }
+
+  function drawSolve(v, spec) {
+    let open = true, h = "";
+    spec.forEach(q => {
+      const st = sv(v, q.id);
+      h += `<li class="${st.done ? "done" : open ? "now" : "locked"}"><div class="slab">${q.lbl}` +
+           `<span class="sform">${q.form}</span></div>`;
+      if (st.done) h += `<p class="sv ok">${q.show()} — ${solHow(v, q.id)}</p>`;
+      else if (!open) h += `<p class="sv note">спершу виконайте пункт вище</p>`;
+      else {
+        h += q.chips ? `<div class="chips" data-q="${q.id}">${q.chips()}</div>`
+          : `<div class="srow"><input type="number" step="any" inputmode="decimal" data-q="${q.id}" placeholder="ваше число">` +
+            `<button type="button" class="btn" data-go="${q.id}">Перевірити</button></div>`;
+        if (st.msg) h += `<p class="sv ${st.cls}">${st.msg}</p>`;
+        if (st.tries >= 3 && !q.chips) h += `<button type="button" class="shelp" data-show="${q.id}">не виходить — показати відповідь</button>`;
+      }
+      h += "</li>";
+      if (!st.done) open = false;
+    });
+    $(v + "Solve").innerHTML = h;
+  }
+
+  function solAnswer(v, q, x) {
+    const st = sv(v, q.id), ref = q.ref();
+    st.tries++;
+    if (!isFinite(x)) { st.cls = "bad"; st.msg = "Уведіть число."; return; }
+    if (Math.abs(x - ref) <= Math.max(0.01 * Math.abs(ref), 0.01)) { st.done = true; st.cls = "ok"; st.msg = ""; return; }
+    st.cls = "bad";
+    const k = Math.abs(ref) > 1e-9 ? x / ref : 0;
+    st.msg = (k > 900 && k < 1100) || (k > 0.0009 && k < 0.0011)
+      ? "Не збігається рівно в 1000 разів — перевірте одиниці (Н·м і Н·мм)."
+      : k > 1.8 || (k < 0.55 && k > 0) ? "Не збігається, і дуже сильно. Перевірте формулу й порядок дій."
+        : "Не збігається. Перевірте, які саме числа ви підставили.";
+  }
+
+  function solBind(v, spec) {
+    $(v + "Solve").addEventListener("click", e => {
+      const go = e.target.closest("[data-go]"), sh = e.target.closest("[data-show]"),
+            ch = e.target.closest(".chips button");
+      if (go) {
+        const q = spec().find(x => x.id === go.dataset.go);
+        solAnswer(v, q, parseFloat($(v + "Solve").querySelector(`input[data-q="${q.id}"]`).value.replace(",", ".")));
+      } else if (sh) {
+        const st = sv(v, sh.dataset.show); st.done = true; st.shown = true;
+      } else if (ch) {
+        const q = spec().find(x => x.id === ch.closest(".chips").dataset.q);
+        q.pick(+ch.dataset.k, sv(v, q.id));
+      } else return;
+      v === "a" ? calcA() : calcB();
+    });
+    $(v + "Solve").addEventListener("keydown", e => {
+      if (e.key === "Enter" && e.target.dataset.q) {
+        e.preventDefault();
+        $(v + "Solve").querySelector(`[data-go="${e.target.dataset.q}"]`).click();
+      }
+    });
+  }
+
+  function gate(v, ok) { $(v + "Lock").hidden = ok; $(v + "Stage").hidden = !ok; }
+
+
   const tabs = { a: [$("tabA"), $("paneA")], b: [$("tabB"), $("paneB")] };
   function show(k) { for (const key in tabs) { tabs[key][0].setAttribute("aria-selected", key === k); tabs[key][1].hidden = key !== k; } stopA(); stopB(); }
   $("tabA").addEventListener("click", () => show("a")); $("tabB").addEventListener("click", () => show("b"));
@@ -489,8 +646,10 @@ if (typeof document !== "undefined") (function () {
     if (!(n >= 1 && n <= 40)) { $("vBadge").className = "vbadge"; $("vBadge").textContent = "Введіть номер у списку від 1 до 40."; return; }
     stuNo = n;
     const odd = n % 2 === 1;
-    if (odd) { $("aM").value = 150 + 10 * n; $("aU").value = 12.5; $("aN1").value = 1430; aQ = 0; calcA(); show("a"); }
-    else { $("bM").value = 80 + 5 * n; $("bU").value = 2.5; $("bN1").value = 200; bP = 0; calcB(); show("b"); }
+    if (odd) { $("aM").value = 150 + 10 * n; $("aU").value = 12.5; $("aN1").value = 1430;
+      solReset("a"); aTried = null; calcA(); show("a"); }
+    else { $("bM").value = 80 + 5 * n; $("bU").value = 2.5; $("bN1").value = 200;
+      solReset("b"); bTried = null; calcB(); show("b"); }
     $("vBadge").className = "vbadge set";
     $("vBadge").innerHTML = odd
       ? `№ ${n} — непарний → <b>варіант А: черв'ячна передача</b>. Підставлено M₂ = ${150 + 10 * n} Н·м, u = 12,5, n₁ = 1430 об/хв.`
@@ -513,62 +672,102 @@ if (typeof document !== "undefined") (function () {
   }
 
   /* ================= А. ЧЕРВ'ЯЧНА ================= */
-  let A = null, aQ = 0, aView = "all", aPlaying = false, aRaf = 0, aLast = 0;
+  let A = null, aTried = null, aView = "all", aPlaying = false, aRaf = 0, aLast = 0, aAngle = 0;
+
+  /* ---------- що студент рахує сам у варіанті А ---------- */
+  const aIn = () => ({ M2: val("aM"), u: val("aU"), n1: val("aN1"), sH: val("aS"), K: val("aK"), f: val("aF"), q: 0 });
+  const specA = () => [
+    { id: "z2", short: "z₂", lbl: "Число зубців колеса z₂",
+      form: "z₂ = u · z₁ до цілого;  z₁ = 4 при u ≤ 14, 2 при u ≤ 30, інакше 1",
+      ref: () => A.z2, show: () => `z₁ = ${A.z1}, z₂ = ${A.z2}` },
+    { id: "q", short: "добір q", lbl: "Який коефіцієнт діаметра q беремо?",
+      form: "найменший стандартний q ≥ 0,25 · z₂ (табл. А3.4): менший — черв'як прогинається, більший — падає ККД. Натискайте — симулятор скаже, чи годиться",
+      ref: () => A.qAuto, show: () => `q = ${g(A.qAuto)}`,
+      chips: () => SIM.QW.map(q =>
+        `<button type="button" data-k="${q}"${aTried && aTried.has(q) ? ` class="${q === A.qAuto ? "" : "fail"}"` : ""}>${g(q)}</button>`).join(""),
+      pick: (q, st) => {
+        st.tries++; aTried = aTried || new Set(); aTried.add(q);
+        const lim = 0.25 * A.z2;
+        if (q < lim - 1e-9) { st.cls = "bad"; st.msg = `q = ${g(q)} менший за 0,25 · z₂ = ${f(lim, 2)} — черв'як вийде тонким і прогнеться під навантаженням.`; }
+        else if (q > A.qAuto) { st.cls = "bad"; st.msg = `q = ${g(q)} годиться за жорсткістю, але в ряду є менший, що теж не менший за 0,25 · z₂. Більший q — товстіший черв'як, менший кут підйому й нижчий ККД.`; }
+        else { st.done = true; st.cls = "ok"; st.msg = ""; }
+      } },
+    { id: "awmin", short: "a_w,min, мм", lbl: "Найменша міжосьова відстань a_w,min, мм",
+      form: "a_w,min = (z₂/q + 1) · ∛( (170 / ([σ_H] · z₂/q))² · M₂ · 10³ · K )",
+      ref: () => A.awmin, show: () => `a_w,min = ${f(A.awmin, 2)} мм` },
+    { id: "m", short: "m, мм", lbl: "Осьовий модуль m, мм",
+      form: "m_min = 2 · a_w,min / (q + z₂), далі — найближчий більший стандартний (табл. А3.3)",
+      ref: () => A.m, show: () => `m_min = ${f(A.mMin, 3)} → m = ${g(A.m)} мм` },
+    { id: "eta", short: "ККД η", lbl: "ККД передачі η",
+      form: "η = tg γ / tg(γ + ρ),   tg γ = z₁ / q,   tg ρ = f",
+      ref: () => A.eta, show: () => `η = ${f(A.eta, 3)} (γ = ${f(A.gammaDeg, 2)}°, ρ = ${f(A.rho, 2)}°)` },
+  ];
+  const aAll = () => done("a", "awmin") && done("a", "m") && done("a", "eta");
 
   function calcA() {
-    const i = { M2: val("aM"), u: val("aU"), n1: val("aN1"), sH: val("aS"), K: val("aK"), f: val("aF"), q: aQ };
+    const i = aIn();
     if (!(i.M2 > 0 && i.u >= 5 && i.n1 > 0 && i.sH > 0 && i.K > 0 && i.f > 0)) return;
     A = SIM.worm(i);
-    $("aHint").innerHTML = `z₁ = ${A.z1}, z₂ = ${A.z2}; автоматичний q = ${g(A.qAuto)}` + (A.q === A.qAuto ? "." : `, зараз вибрано ${g(A.q)}.`);
+    drawSolve("a", specA());
+    gate("a", done("a", "q"));
+    $("aHint").innerHTML = done("a", "z2")
+      ? `z₁ = ${A.z1}, z₂ = ${A.z2}; ` + (done("a", "q") ? `прийнято q = ${g(A.q)}.` : "тепер доберіть q — пункт 2 нижче.")
+      : "Порахуйте z₂ — пункт 1 нижче. Поки симулятор його не показує.";
+    if (!done("a", "q")) return;
+    const qm = x => mk("a", "m", x), qe = x => mk("a", "eta", x);
     $("aKpis").innerHTML =
-      kpi("Міжосьова a_w", g(A.a) + " мм") +
-      kpi("Модуль m / q", g(A.m) + " мм / " + g(A.q)) +
-      kpi("ККД передачі η", f(A.eta, 3)) +
-      kpi("Ковзання v_s", f(A.vs, 2) + " м/с");
+      kpi("Міжосьова a_w", qm(g(A.a) + " мм")) +
+      kpi("Модуль m / q", qm(g(A.m)) + " мм / " + g(A.q)) +
+      kpi("ККД передачі η", qe(f(A.eta, 3))) +
+      kpi("Ковзання v_s", qm(f(A.vs, 2) + " м/с"));
     $("aOut").innerHTML =
       row("z₁ / z₂", A.z1 + " / " + A.z2) + row("Дійсне u; відхилення", f(A.ud, 3) + "; " + f(A.du, 2) + " %") +
-      row("q", g(A.q)) + row("a<sub>w,min</sub> / a<sub>w</sub>, мм", f(A.awmin) + " / " + g(A.a)) +
-      row("m<sub>min</sub> / m, мм", f(A.mMin, 3) + " / " + g(A.m)) +
-      row("d₁ / d<sub>a1</sub> / d<sub>f1</sub>, мм", g(A.d1) + " / " + g(A.da1) + " / " + g(A.df1)) +
-      row("d₂ / d<sub>a2</sub> / d<sub>f2</sub>, мм", g(A.d2) + " / " + g(A.da2) + " / " + g(A.df2)) +
-      row("b₁ / b₂, мм", A.b1 + " / " + A.b2) +
-      row("p<sub>x</sub> / p<sub>z</sub>, мм", f(A.px, 3) + " / " + f(A.pz, 3)) +
-      row("γ; ρ, град", f(A.gammaDeg, 3) + "; " + f(A.rho, 3)) + row("ККД η", f(A.eta, 3)) +
-      row("M₁ / M₂, Н·м", f(A.M1, 2) + " / " + f(val("aM"), 2)) +
-      row("F<sub>t2</sub> = F<sub>a1</sub>, Н", f(A.Ft2, 0)) + row("F<sub>t1</sub> = F<sub>a2</sub>, Н", f(A.Ft1, 0)) + row("F<sub>r</sub>, Н", f(A.Fr, 0)) +
-      row("v₁ / v<sub>s</sub>, м/с", f(A.v1, 3) + " / " + f(A.vs, 3)) +
-      row("Отвори d<sub>в1</sub> / d<sub>в2</sub>, мм", A.dv1 + " / " + A.dv2);
+      row("q", g(A.q)) + row("a<sub>w,min</sub> / a<sub>w</sub>, мм", mk("a", "awmin", f(A.awmin)) + " / " + qm(g(A.a))) +
+      row("m<sub>min</sub> / m, мм", mk("a", "awmin", f(A.mMin, 3)) + " / " + qm(g(A.m))) +
+      row("d₁ / d<sub>a1</sub> / d<sub>f1</sub>, мм", qm(g(A.d1) + " / " + g(A.da1) + " / " + g(A.df1))) +
+      row("d₂ / d<sub>a2</sub> / d<sub>f2</sub>, мм", qm(g(A.d2) + " / " + g(A.da2) + " / " + g(A.df2))) +
+      row("b₁ / b₂, мм", qm(A.b1 + " / " + A.b2)) +
+      row("p<sub>x</sub> / p<sub>z</sub>, мм", qm(f(A.px, 3) + " / " + f(A.pz, 3))) +
+      row("γ; ρ, град", f(A.gammaDeg, 3) + "; " + f(A.rho, 3)) + row("ККД η", qe(f(A.eta, 3))) +
+      row("M₁ / M₂, Н·м", qe(f(A.M1, 2)) + " / " + f(val("aM"), 2)) +
+      row("F<sub>t2</sub> = F<sub>a1</sub>, Н", qm(f(A.Ft2, 0))) + row("F<sub>t1</sub> = F<sub>a2</sub>, Н", mk2("a", "m", "eta", f(A.Ft1, 0))) + row("F<sub>r</sub>, Н", qm(f(A.Fr, 0))) +
+      row("v₁ / v<sub>s</sub>, м/с", qm(f(A.v1, 3) + " / " + f(A.vs, 3))) +
+      row("Отвори d<sub>в1</sub> / d<sub>в2</sub>, мм", qe(A.dv1) + " / " + A.dv2);
     $("aChk").innerHTML = chk(A.checks);
     $("aFp").textContent =
-      `m_w   = ${d(A.m, 2)} mm\nz_1   = ${A.z1}\nz_2   = ${A.z2}\na_w   = ${d(A.a, 2)} mm\n` +
-      `d_f1  = ${d(A.df1, 2)} mm\nd_a1  = ${d(A.da1, 2)} mm\nb_1   = ${A.b1} mm\np_z   = ${d(A.pz, 2)} mm\n` +
-      `s_sec = ${d(A.sSec, 2)} mm\nn_rev = ${d(A.revW, 3)}\nb_2   = ${A.b2} mm\nd_thr = ${d(A.dThr, 2)} mm\n` +
-      `dv_1  = ${A.dv1} mm\ndv_2  = ${A.dv2} mm`;
+      `m_w   = ${mkt("a", "m", d(A.m, 2))} mm\nz_1   = ${A.z1}\nz_2   = ${A.z2}\na_w   = ${mkt("a", "m", d(A.a, 2))} mm\n` +
+      `d_f1  = ${mkt("a", "m", d(A.df1, 2))} mm\nd_a1  = ${mkt("a", "m", d(A.da1, 2))} mm\nb_1   = ${mkt("a", "m", A.b1)} mm\np_z   = ${mkt("a", "m", d(A.pz, 2))} mm\n` +
+      `s_sec = ${mkt("a", "m", d(A.sSec, 2))} mm\nn_rev = ${mkt("a", "m", d(A.revW, 3))}\nb_2   = ${mkt("a", "m", A.b2)} mm\nd_thr = ${mkt("a", "m", d(A.dThr, 2))} mm\n` +
+      `dv_1  = ${mkt("a", "eta", A.dv1)} mm\ndv_2  = ${A.dv2} mm`;
+    const tm = x => mkt("a", "m", x), te = x => mkt("a", "eta", x);
     $("aPr").textContent = head("А (черв'ячна передача)") +
 `
+0. ЩО СТУДЕНТ ПОРАХУВАВ САМ
+${specA().map(q => `   ${q.short.padEnd(14)} — ${solHow("a", q.id)}`).join("\n")}
+
 1. ВХІДНІ ДАНІ
    M2 = ${f(val("aM"), 1)} Н·м      u = ${g(val("aU"))}      n1 = ${g(val("aN1"))} об/хв
    [sH] = ${g(val("aS"))} МПа     K = ${g(val("aK"))}     f = ${g(val("aF"))}
 
 2. ЧИСЛА ЗУБЦІВ І КОЕФІЦІЄНТ ДІАМЕТРА
    z1 = ${A.z1}      z2 = ${A.z2}      u_д = ${f(A.ud, 3)}   (відхилення ${f(A.du, 2)} %)
-   q = ${g(A.q)}  (автоматичний ${g(A.qAuto)})
+   q = ${g(A.q)}  (найменший стандартний, не менший за 0,25·z2)
 
 3. РОЗМІРИ, мм
-   a_w,min = ${f(A.awmin, 1)}      a_w = ${g(A.a)}
-   m_min = ${f(A.mMin, 3)}        m = ${g(A.m)}
-   черв'як:  d1 = ${g(A.d1)}   d_a1 = ${g(A.da1)}   d_f1 = ${g(A.df1)}   b1 = ${A.b1}
-   колесо:   d2 = ${g(A.d2)}   d_a2 = ${g(A.da2)}   d_f2 = ${g(A.df2)}   b2 = ${A.b2}
-   крок p_x = ${f(A.px, 3)}      хід p_z = ${f(A.pz, 3)}
-   отвори: d_в1 = ${A.dv1}   d_в2 = ${A.dv2}
+   a_w,min = ${mkt("a", "awmin", f(A.awmin, 1))}      a_w = ${tm(g(A.a))}
+   m_min = ${mkt("a", "awmin", f(A.mMin, 3))}        m = ${tm(g(A.m))}
+   черв'як:  d1 = ${tm(g(A.d1))}   d_a1 = ${tm(g(A.da1))}   d_f1 = ${tm(g(A.df1))}   b1 = ${tm(A.b1)}
+   колесо:   d2 = ${tm(g(A.d2))}   d_a2 = ${tm(g(A.da2))}   d_f2 = ${tm(g(A.df2))}   b2 = ${tm(A.b2)}
+   крок p_x = ${tm(f(A.px, 3))}      хід p_z = ${tm(f(A.pz, 3))}
+   отвори: d_в1 = ${te(A.dv1)}   d_в2 = ${A.dv2}
 
 4. КІНЕМАТИКА Й ККД
-   gamma = ${f(A.gammaDeg, 3)}°     rho = ${f(A.rho, 3)}°     ККД = ${f(A.eta, 3)}
-   v1 = ${f(A.v1, 3)} м/с      v_s = ${f(A.vs, 3)} м/с
+   gamma = ${f(A.gammaDeg, 3)}°     rho = ${f(A.rho, 3)}°     ККД = ${te(f(A.eta, 3))}
+   v1 = ${tm(f(A.v1, 3))} м/с      v_s = ${tm(f(A.vs, 3))} м/с
 
 5. МОМЕНТИ Й СИЛИ
-   M1 = ${f(A.M1, 2)} Н·м      M2 = ${f(val("aM"), 2)} Н·м
-   F_t2 = F_a1 = ${f(A.Ft2, 0)} Н     F_t1 = F_a2 = ${f(A.Ft1, 0)} Н     F_r = ${f(A.Fr, 0)} Н
+   M1 = ${te(f(A.M1, 2))} Н·м      M2 = ${f(val("aM"), 2)} Н·м
+   F_t2 = F_a1 = ${tm(f(A.Ft2, 0))} Н     F_t1 = F_a2 = ${mkt2("a", "m", "eta", f(A.Ft1, 0))} Н     F_r = ${tm(f(A.Fr, 0))} Н
 
 6. ПЕРЕВІРКИ
 ${A.checks.map(c => "   " + (c[0] ? "+" : "-") + " " + c[1].replace(/<[^>]+>/g, "") + " — " + ok(c[0])).join("\n")}
@@ -577,21 +776,13 @@ ${A.checks.map(c => "   " + (c[0] ? "+" : "-") + " " + c[1].replace(/<[^>]+>/g, 
 ${$("aFp").textContent.split("\n").map(l => "   " + l).join("\n")}
 
 8. ДОСЛІД: ЯК ВПЛИВАЄ q
-${SIM.QW.map(q => { const w = SIM.worm({ M2: val("aM"), u: val("aU"), n1: val("aN1"), sH: val("aS"), K: val("aK"), f: val("aF"), q: q });
-  return `   q = ${String(g(q)).padEnd(5)} a_w = ${String(f(w.a, 0)).padStart(4)} мм   m = ${String(g(w.m)).padStart(4)}   ККД = ${f(w.eta, 3)}   v_s = ${f(w.vs, 2)} м/с`; }).join("\n")}
+${aAll() ? SIM.QW.map(q => { const w = SIM.worm(Object.assign(aIn(), { q: q }));
+  return `   q = ${String(g(q)).padEnd(5)} a_w = ${String(f(w.a, 0)).padStart(4)} мм   m = ${String(g(w.m)).padStart(4)}   ККД = ${f(w.eta, 3)}   v_s = ${f(w.vs, 2)} м/с`; }).join("\n")
+  : "   (з'явиться, коли ви порахуєте a_w,min, m і ККД — пункти 3–5)"}
 
 ВИСНОВОК (написати самому): ________________________________________
 `;
-    chipsA(); buildA();
-  }
-
-  function chipsA() {
-    const i0 = { M2: val("aM"), u: val("aU"), n1: val("aN1"), sH: val("aS"), K: val("aK"), f: val("aF") };
-    $("aChips").innerHTML = SIM.QW.map(q => {
-      const w = SIM.worm(Object.assign({}, i0, { q: q })), ok = w.checks.every(c => c[0]);
-      return `<button type="button" data-q="${q}" aria-pressed="${q === A.q}" class="${ok ? "" : "fail"}${q === A.qAuto ? " best" : ""}">q = ${g(q)}
-        <small>a<sub>w</sub> ${f(w.a, 0)} · m ${g(w.m)} · η ${f(w.eta, 3)} · v<sub>s</sub> ${f(w.vs, 1)}</small></button>`;
-    }).join("");
+    buildA();
   }
 
   function buildA() {
@@ -620,7 +811,7 @@ ${SIM.QW.map(q => { const w = SIM.worm({ M2: val("aM"), u: val("aU"), n1: val("a
 
   function frameA() {
     if (!A) return;
-    const phi = val("aPhi") * Math.PI / 180, shift = A.pz * phi / (2 * Math.PI);
+    const phi = aAngle * Math.PI / 180, shift = ((A.pz * (phi / (2 * Math.PI))) % A.px + A.px) % A.px;
     const th2 = (-Math.PI / 2 + Math.PI / A.z2 + phi / A.ud) * 180 / Math.PI;
     $("aWh").setAttribute("transform", `rotate(${th2})`);
     if (aView === "mesh") {
@@ -698,7 +889,8 @@ ${SIM.QW.map(q => { const w = SIM.worm({ M2: val("aM"), u: val("aU"), n1: val("a
     if (!aPlaying) return;
     if (!aLast) aLast = t;
     const d = Math.min(t - aLast, 80); aLast = t;
-    $("aPhi").value = ((val("aPhi") + d * 0.045) % 360).toFixed(2);
+    aAngle += d * 0.045;
+    $("aPhi").value = ((aAngle % 360) + 360) % 360;
     frameA(); aRaf = requestAnimationFrame(tickA);
   }
   function stopA() { aPlaying = false; cancelAnimationFrame(aRaf); aLast = 0; $("aPlay").setAttribute("aria-pressed", "false"); $("aPlay").textContent = "▶ Обертати"; }
@@ -709,36 +901,76 @@ ${SIM.QW.map(q => { const w = SIM.worm({ M2: val("aM"), u: val("aU"), n1: val("a
   });
   const setViewA = v => { aView = v; $("aViewAll").setAttribute("aria-pressed", String(v === "all")); $("aViewMesh").setAttribute("aria-pressed", String(v === "mesh")); frameA(); };
   $("aViewAll").addEventListener("click", () => setViewA("all")); $("aViewMesh").addEventListener("click", () => setViewA("mesh"));
-  $("aPhi").addEventListener("input", frameA); $("aForces").addEventListener("input", frameA);
-  ["aM", "aU", "aN1", "aS", "aK", "aF"].forEach(id => $(id).addEventListener("input", () => { aQ = 0; calcA(); }));
-  $("aChips").addEventListener("click", e => { const b = e.target.closest("button"); if (b) { aQ = parseFloat(b.dataset.q); calcA(); } });
-  $("aQreset").addEventListener("click", () => { aQ = 0; calcA(); });
+  $("aPhi").addEventListener("input", () => {
+    const cur = ((aAngle % 360) + 360) % 360;
+    aAngle += val("aPhi") - cur;
+    frameA();
+  }); $("aForces").addEventListener("input", frameA);
+  ["aM", "aU", "aN1", "aS", "aK", "aF"].forEach(id =>
+    $(id).addEventListener("input", () => { solReset("a"); aTried = null; calcA(); }));
+  solBind("a", specA);
   copy($("aCopy"), $("aFp"));
 
   /* ================= Б. ЛАНЦЮГОВА ================= */
-  let B = null, bP = 0, bPlaying = false, bRaf = 0, bLast = 0;
+  let B = null, bTried = null, bPlaying = false, bRaf = 0, bLast = 0, bAngle = 0;
+
+  /* ---------- що студент рахує сам у варіанті Б ---------- */
+  const specB = () => [
+    { id: "z1", short: "z₁", lbl: "Число зубців меншої зірочки z₁",
+      form: "z₁ = 29 − 2 · u, заокруглити до цілого й до непарного, але не менше 17",
+      ref: () => B.z1, show: () => `z₁ = ${B.z1}, z₂ = ${B.z2}` },
+    { id: "pMin", short: "p_min, мм", lbl: "Найменший крок ланцюга p_min, мм",
+      form: "p_min = 2,8 · ∛( M₁ · 10³ · K_е / (z₁ · [p]) ),   K_е = K_д · K_зм",
+      ref: () => B.pMin, show: () => `K_е = ${f(B.Ke, 3)};  p_min = ${f(B.pMin, 2)} мм` },
+    { id: "p", short: "вибір кроку p", lbl: "Який крок ланцюга беремо?",
+      form: "найменший крок ряду ISO 606, не менший за p_min і такий, щоб тиск у шарнірі p_ц = F_t · K_е / A не перевищував [p]. Натискайте — симулятор скаже, чи годиться",
+      ref: () => B.pAuto, show: () => `p = ${f(B.pAuto, 2)} мм`,
+      chips: () => B.table.map(t =>
+        `<button type="button" data-k="${t.p}"${bTried && bTried.has(t.p) ? ` class="${t.p === B.pAuto ? "" : "fail"}"` : ""}>${f(t.p, 2)}</button>`).join(""),
+      pick: (p, st) => {
+        st.tries++; bTried = bTried || new Set(); bTried.add(p);
+        const t = B.table.find(x => x.p === p);
+        if (p < B.pMin - 1e-9) { st.cls = "bad"; st.msg = `p = ${f(p, 2)} мм менший за p_min = ${f(B.pMin, 2)} мм — ланцюг не витримає.`; }
+        else if (!t.ok) { st.cls = "bad"; st.msg = `p = ${f(p, 2)} мм: тиск у шарнірі p_ц = ${f(t.pc, 1)} МПа більший за [p] — шарніри швидко зносяться.`; }
+        else if (p > B.pAuto) { st.cls = "bad"; st.msg = `p = ${f(p, 2)} мм проходить, але в ряду є менший крок, який теж проходить. Більший крок — важчий ланцюг і сильніший багатокутниковий ефект.`; }
+        else { st.done = true; st.cls = "ok"; st.msg = ""; }
+      } },
+    { id: "Lp", short: "L_p (ланок)", lbl: "Число ланок ланцюга L_p",
+      form: "L_p = 2a/p + (z₁ + z₂)/2 + ((z₂ − z₁)/(2π))² · p/a, заокруглити до парного (a = 40·p)",
+      ref: () => B.Lp, show: () => `L_p = ${B.Lp} ланок (a_ф = ${f(B.aFact, 2)} мм)` },
+    { id: "Ft", short: "F_t, Н", lbl: "Колова сила F_t, Н",
+      form: "F_t = 2000 · M₁ / d₁,   d₁ = p / sin(180° / z₁)",
+      ref: () => B.Ft, show: () => `d₁ = ${f(B.d1, 2)} мм;  F_t = ${f(B.Ft, 1)} Н` },
+  ];
 
   function calcB() {
-    const i = { M1: val("bM"), u: val("bU"), n1: val("bN1"), pAll: val("bP"), Kd: val("bKd"), Kzm: val("bKz"), p: bP, aK: val("bA") };
+    const i = { M1: val("bM"), u: val("bU"), n1: val("bN1"), pAll: val("bP"), Kd: val("bKd"), Kzm: val("bKz"), p: 0, aK: val("bA") };
     if (!(i.M1 > 0 && i.u >= 1 && i.n1 > 0 && i.pAll > 0)) return;
     B = SIM.chain(i);
+    drawSolve("b", specB());
+    gate("b", done("b", "p"));
+    $("bHint").innerHTML = done("b", "pMin")
+      ? `K<sub>е</sub> = ${f(B.Ke, 3)}; p<sub>min</sub> = ${f(B.pMin, 2)} мм; ` +
+        (done("b", "p") ? `прийнято p = ${f(B.p, 2)} мм.` : "тепер виберіть крок — пункт 3 нижче.")
+      : "Порахуйте z₁ і p_min — пункти 1 і 2 нижче. Поки симулятор їх не показує.";
+    if (!done("b", "p")) return;
     $("bAval").textContent = `a = ${val("bA")}·p = ${f(B.a, 0)} мм`;
-    $("bHint").innerHTML = `K<sub>е</sub> = ${f(B.Ke, 3)}; p<sub>min</sub> = ${f(B.pMin, 2)} мм; автоматичний крок ${f(B.pAuto, 3)} мм` + (B.p === B.pAuto ? "." : `, зараз вибрано ${f(B.p, 3)} мм.`);
+    const qz = x => mk("b", "z1", x), ql = x => mk("b", "Lp", x);
     $("bKpis").innerHTML =
       kpi("Крок ланцюга p", f(B.p, 2) + " мм") +
       kpi("Зірочки z₁ / z₂", B.z1 + " / " + B.z2) +
       kpi("Тиск p_ц / [p]", f(B.pc, 1) + " / " + f(val("bP"), 0) + " МПа") +
-      kpi("Міжосьова a_ф", f(B.aFact, 1) + " мм (" + B.Lp + " л.)");
+      kpi("Міжосьова a_ф", ql(f(B.aFact, 1) + " мм (" + B.Lp + " л.)"));
     $("bOut").innerHTML =
       row("z₁ / z₂", B.z1 + " / " + B.z2) + row("Дійсне u; відхилення", f(B.ud, 3) + "; " + f(B.du, 2) + " %") +
       row("K<sub>е</sub> = K<sub>д</sub>·K<sub>зм</sub>", f(B.Ke, 3)) + row("p<sub>min</sub> / p, мм", f(B.pMin, 2) + " / " + f(B.p, 3)) +
       row("Ланцюг: d<sub>р</sub> / b<sub>л</sub> / A", f(B.dRoll, 2) + " / " + f(B.bRoll, 2) + " мм / " + B.A + " мм²") +
       row("d₁ / d₂, мм", f(B.d1, 2) + " / " + f(B.d2, 2)) + row("d<sub>a1</sub> / d<sub>a2</sub>, мм", f(B.da1, 2) + " / " + f(B.da2, 2)) +
-      row("a попередня / a<sub>ф</sub>, мм", f(B.a, 0) + " / " + f(B.aFact, 2)) + row("Число ланок L<sub>p</sub>", B.Lp) +
+      row("a попередня / a<sub>ф</sub>, мм", f(B.a, 0) + " / " + ql(f(B.aFact, 2))) + row("Число ланок L<sub>p</sub>", ql(B.Lp)) +
       row("Швидкість v (середня), м/с", f(B.v, 3)) +
       row("v<sub>max</sub> / v<sub>min</sub>, м/с", f(B.vMax, 3) + " / " + f(B.vMin, 3)) +
       row("Нерівномірність δ<sub>к</sub>, %", f(B.delta, 2)) +
-      row("F<sub>t</sub> / F<sub>в</sub>, Н", f(B.Ft, 0) + " / " + f(B.Fv, 0)) +
+      row("F<sub>t</sub> / F<sub>в</sub>, Н", mk("b", "Ft", f(B.Ft, 0) + " / " + f(B.Fv, 0))) +
       row("Тиск у шарнірі p<sub>ц</sub>, МПа", f(B.pc, 2) + " (допустимо " + f(val("bP"), 0) + ")") +
       row("M₁ / M₂, Н·м", f(val("bM"), 2) + " / " + f(B.M2, 2)) +
       row("Отвори d<sub>в1</sub> / d<sub>в2</sub>, мм", B.dv1 + " / " + B.dv2);
@@ -746,11 +978,15 @@ ${SIM.QW.map(q => { const w = SIM.worm({ M2: val("aM"), u: val("aU"), n1: val("a
     $("bFp").textContent =
       `p_c    = ${d(B.p, 2)} mm\nzc_1   = ${B.z1}\nzc_2   = ${B.z2}\nd_1c   = ${d(B.d1, 2)} mm\nd_2c   = ${d(B.d2, 2)} mm\n` +
       `da_1c  = ${d(B.da1, 2)} mm\nda_2c  = ${d(B.da2, 2)} mm\nd_seat = ${d(B.dSeat, 2)} mm\nb_f    = ${d(B.bF, 2)} mm\n` +
-      `a_c    = ${d(B.aFact, 2)} mm\nd_roll = ${d(B.dRoll, 2)} mm\nb_roll = ${d(B.bRoll, 2)} mm\n` +
+      `a_c    = ${mkt("b", "Lp", d(B.aFact, 2))} mm\nd_roll = ${d(B.dRoll, 2)} mm\nb_roll = ${d(B.bRoll, 2)} mm\n` +
       `h_pl   = ${d(B.hPl, 2)} mm\nt_pl   = ${d(B.tPl, 2)} mm\nd_pin  = ${d(B.dPin, 2)} mm\n` +
       `dvc_1  = ${B.dv1} mm\ndvc_2  = ${B.dv2} mm`;
+    const tl = x => mkt("b", "Lp", x), tf = x => mkt("b", "Ft", x);
     $("bPr").textContent = head("Б (ланцюгова передача)") +
 `
+0. ЩО СТУДЕНТ ПОРАХУВАВ САМ
+${specB().map(q => `   ${q.short.padEnd(16)} — ${solHow("b", q.id)}`).join("\n")}
+
 1. ВХІДНІ ДАНІ
    M1 = ${f(val("bM"), 1)} Н·м      u = ${g(val("bU"))}      n1 = ${g(val("bN1"))} об/хв
    [p] = ${g(val("bP"))} МПа      K_д = ${g(val("bKd"))}      K_зм = ${g(val("bKz"))}      K_е = ${f(B.Ke, 3)}
@@ -766,13 +1002,13 @@ ${SIM.QW.map(q => { const w = SIM.worm({ M2: val("aM"), u: val("aU"), n1: val("a
 4. РОЗМІРИ, мм
    d1 = ${f(B.d1, 2)}      d2 = ${f(B.d2, 2)}
    d_a1 = ${f(B.da1, 2)}    d_a2 = ${f(B.da2, 2)}
-   a попередня = ${f(B.a, 0)}   число ланок L_p = ${B.Lp}   a фактична = ${f(B.aFact, 2)}
+   a попередня = ${f(B.a, 0)}   число ланок L_p = ${tl(B.Lp)}   a фактична = ${tl(f(B.aFact, 2))}
    отвори: d_в1 = ${B.dv1}   d_в2 = ${B.dv2}
 
 5. ШВИДКІСТЬ І СИЛИ
    v середня = ${f(B.v, 3)} м/с      v_max = ${f(B.vMax, 3)}   v_min = ${f(B.vMin, 3)} м/с
    нерівномірність δ_к = ${f(B.delta, 2)} %
-   F_t = ${f(B.Ft, 0)} Н      F_в = ${f(B.Fv, 0)} Н
+   F_t = ${tf(f(B.Ft, 0))} Н      F_в = ${tf(f(B.Fv, 0))} Н
    M1 = ${f(val("bM"), 2)} Н·м      M2 = ${f(B.M2, 2)} Н·м
 
 6. ПЕРЕВІРКИ
@@ -786,13 +1022,7 @@ ${B.table.map(t => `   p = ${String(f(t.p, 2)).padStart(5)} мм   p_ц = ${Stri
 
 ВИСНОВОК (написати самому): ________________________________________
 `;
-    chipsB(); frameB();
-  }
-
-  function chipsB() {
-    $("bChips").innerHTML = B.table.map(t =>
-      `<button type="button" data-p="${t.p}" aria-pressed="${t.p === B.p}" class="${t.ok ? "" : "fail"}${t.p === B.pAuto ? " best" : ""}">p = ${f(t.p, 2)}
-        <small>p<sub>ц</sub> ${f(t.pc, 1)} МПа ${t.ok ? "✔" : "✘"}</small></button>`).join("");
+    frameB();
   }
 
   function polyB(psi) {
@@ -827,7 +1057,7 @@ ${B.table.map(t => `   p = ${String(f(t.p, 2)).padStart(5)} мм   p_ц = ${Stri
 
   function frameB() {
     if (!B) return;
-    const psi = val("bPhi") * Math.PI / 180, G = SIM.chainRollers(B, psi);
+    const psi = bAngle * Math.PI / 180, G = SIM.chainRollers(B, psi);
     const gs = (B.p * 2.5).toFixed(2);
     const notch = (cx, rr, z, th, ra, lbl) =>
       `<circle cx="${cx}" cy="0" r="${ra}" fill="var(--wheel-fill)" stroke="var(--wheel)" vector-effect="non-scaling-stroke" stroke-width="1.35"/>` +
@@ -860,7 +1090,8 @@ ${B.table.map(t => `   p = ${String(f(t.p, 2)).padStart(5)} мм   p_ц = ${Stri
     if (!bPlaying) return;
     if (!bLast) bLast = t;
     const d = Math.min(t - bLast, 80); bLast = t;
-    $("bPhi").value = ((val("bPhi") + d * 0.03) % 360).toFixed(2);
+    bAngle += d * 0.03;
+    $("bPhi").value = ((bAngle % 360) + 360) % 360;
     frameB(); bRaf = requestAnimationFrame(tickB);
   }
   function stopB() { bPlaying = false; cancelAnimationFrame(bRaf); bLast = 0; $("bPlay").setAttribute("aria-pressed", "false"); $("bPlay").textContent = "▶ Обертати"; }
@@ -869,13 +1100,34 @@ ${B.table.map(t => `   p = ${String(f(t.p, 2)).padStart(5)} мм   p_ц = ${Stri
     $("bPlay").setAttribute("aria-pressed", String(bPlaying)); $("bPlay").textContent = bPlaying ? "❙❙ Пауза" : "▶ Обертати";
     if (bPlaying) { bLast = 0; bRaf = requestAnimationFrame(tickB); } else stopB();
   });
-  $("bPhi").addEventListener("input", frameB);
-  ["bM", "bU", "bN1", "bP", "bKd", "bKz"].forEach(id => $(id).addEventListener("input", () => { bP = 0; calcB(); }));
+  $("bPhi").addEventListener("input", () => {
+    const cur = ((bAngle % 360) + 360) % 360;
+    bAngle += val("bPhi") - cur;
+    frameB();
+  });
+  ["bM", "bU", "bN1", "bP", "bKd", "bKz"].forEach(id =>
+    $(id).addEventListener("input", () => { solReset("b"); bTried = null; calcB(); }));
   $("bA").addEventListener("input", calcB);
-  $("bChips").addEventListener("click", e => { const b = e.target.closest("button"); if (b) { bP = parseFloat(b.dataset.p); calcB(); } });
-  $("bPreset").addEventListener("click", () => { bP = 0; calcB(); });
+  solBind("b", specB);
   copy($("bCopy"), $("bFp"));
 
+  $("unlockBtn").addEventListener("click", () => {
+    const pwd = prompt("Введіть пароль викладача для відкриття розв'язку:");
+    if (pwd === null) return;
+    const s = pwd.trim() + "dm_unum_salt";
+    let h = 0x811c9dc5;
+    for (let i = 0; i < s.length; i++) {
+      h ^= s.charCodeAt(i);
+      h = Math.imul(h, 0x01000193) >>> 0;
+    }
+    if (h !== 3102783417) {
+      alert("Невірний пароль!");
+      return;
+    }
+    specA().forEach(q => { const st = sv("a", q.id); st.done = true; });
+    specB().forEach(q => { const st = sv("b", q.id); st.done = true; });
+    calcA(); calcB();
+  });
   calcA(); calcB();
 })();
 </script>

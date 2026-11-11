@@ -61,11 +61,12 @@ sub{font-size:.72em;line-height:0}
 .fields .wide{grid-column:1/-1}
 label{display:block;font-size:.82rem;font-weight:600;color:var(--muted)}
 label>input,label>select{display:block;margin-top:4px;font-weight:500}
-input[type=number],select{width:100%;padding:8px 10px;border:1px solid var(--line);border-radius:8px;background:var(--field);color:var(--ink);font:inherit;font-variant-numeric:tabular-nums;transition:border-color .15s,box-shadow .15s}
+input[type=number],select{width:100%;padding:8px 7px;font-size:.9rem;border:1px solid var(--line);border-radius:8px;background:var(--field);color:var(--ink);font:inherit;font-variant-numeric:tabular-nums;transition:border-color .15s,box-shadow .15s}
 input[type=number]:focus,select:focus{outline:none;border-color:var(--pin);box-shadow:0 0 0 3px rgba(59,130,246,.2)}
 input[type=range]{width:100%;accent-color:var(--pin);cursor:pointer}
 button.btn{font:inherit;font-size:.88rem;font-weight:600;padding:8px 14px;border:1px solid var(--line);border-radius:8px;background:var(--field);color:var(--ink);cursor:pointer;transition:all .15s ease}
 button.btn:hover{border-color:var(--pin);background:var(--surface-2)}
+.variant .go:hover{background:var(--pin);border-color:var(--pin);color:#fff;filter:brightness(1.12)}
 button.btn[aria-pressed="true"]{background:var(--pin);border-color:var(--pin);color:#ffffff}
 :focus-visible{outline:2px solid var(--pin);outline-offset:2px}
 .hint{margin:0;font-size:.82rem;color:var(--muted);line-height:1.45}
@@ -102,6 +103,26 @@ td.num,th.num{text-align:right;white-space:nowrap;font-weight:600;font-family:va
 .checks .bad{color:var(--bad);background:var(--bad-bg)}
 pre{margin:0;padding:13px 15px;background:var(--code);color:var(--code-ink);border-radius:9px;font:.84rem/1.55 var(--mono);overflow-x:auto;border:1px solid var(--line)}
 .chips{display:flex;flex-wrap:wrap;gap:7px}
+.solve{list-style:none;margin:0;padding:0;display:grid;gap:9px;counter-reset:st}
+.solve li{counter-increment:st;border:1px solid var(--line);border-radius:11px;padding:9px 11px;background:var(--surface-2)}
+.solve li.locked{opacity:.5}
+.solve li.done{border-color:var(--ok);background:var(--ok-bg)}
+.solve .slab{font-weight:700;font-size:.9rem;color:var(--ink)}
+.solve .slab::before{content:counter(st) ". "}
+.solve .sform{display:block;font-weight:400;color:var(--muted);font-size:.8rem;margin-top:2px;font-variant-numeric:tabular-nums}
+.solve .srow{display:flex;gap:6px;align-items:center;margin-top:7px}
+.solve .srow input{flex:1 1 80px;min-width:0;padding:6px 9px}
+.solve .srow .btn{padding:6px 12px;font-size:.84rem;white-space:nowrap}
+.solve .chips{margin-top:7px}
+.solve .sv{margin:6px 0 0;font-size:.84rem;font-weight:600}
+.solve .sv.ok{color:var(--ok)}
+.solve .sv.bad{color:var(--bad)}
+.solve .sv.note{color:var(--muted);font-weight:400}
+.solve .shelp{display:block;margin-top:6px;background:none;border:0;padding:0;color:var(--muted);font:inherit;font-size:.8rem;text-decoration:underline;cursor:pointer}
+.solve .shelp:hover{color:var(--bad)}
+.lock{border-style:dashed;align-items:flex-start}
+.lock h2{color:var(--muted)}
+b.q{color:var(--bad);font-weight:800}
 .chips button{font:inherit;font-size:.82rem;line-height:1.3;padding:7px 10px;border:1px solid var(--line);border-radius:8px;background:var(--field);color:var(--ink);cursor:pointer;text-align:center;font-variant-numeric:tabular-nums;transition:all .15s ease}
 .chips button:hover{border-color:var(--pin)}
 .chips button small{display:block;color:var(--muted);font-size:.74rem;margin-top:2px}
@@ -115,6 +136,51 @@ footer{font-size:.82rem;color:var(--muted);background:var(--surface);border:1px 
 /* сумісність із розміткою ЛР 4: svg лежать прямо в картці */
 .card.stage > svg{border:1px solid var(--line);border-radius:11px;background:var(--field)}
 .card > svg{border:1px solid var(--line);border-radius:11px;background:var(--field)}
+
+/* === Покращення візуальної складової (v2) === */
+.stage-wrap, .card.stage > svg, .card > svg {
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: radial-gradient(circle at 50% 42%, var(--surface), var(--field) 90%);
+  box-shadow: inset 0 1px 4px rgba(15, 23, 42, 0.06);
+}
+.card {
+  transition: transform 0.16s ease, box-shadow 0.16s ease;
+}
+.kpi {
+  position: relative;
+  overflow: hidden;
+  border-left: 3.5px solid var(--pin);
+  background: linear-gradient(135deg, var(--surface-2), var(--surface));
+}
+button.btn[aria-pressed="true"] {
+  background: var(--pin);
+  border-color: var(--pin);
+  color: #ffffff;
+  box-shadow: 0 2px 10px rgba(29, 78, 216, 0.32);
+}
+.stage svg text {
+  user-select: none;
+  font-family: var(--font);
+}
+.teacher-unlock {
+  font: inherit;
+  font-size: .82rem;
+  font-weight: 600;
+  padding: 7px 12px;
+  border: 1px dashed var(--pin);
+  border-radius: 8px;
+  background: var(--pin-fill);
+  color: var(--pin);
+  cursor: pointer;
+  transition: all .15s ease;
+}
+.teacher-unlock:hover {
+  background: var(--pin);
+  color: #fff;
+  border-style: solid;
+}
+
 </style>
 <style>
 #aEp,#aCv,#bCv{display:block;width:100%;height:auto;background:var(--field);border-radius:8px}
@@ -128,7 +194,7 @@ footer{font-size:.82rem;color:var(--muted);background:var(--surface);border:1px 
       <p class="eyebrow">Деталі машин та ПТМ · лабораторна робота № 4</p>
       <h1>Симулятор клинопасової та фрикційної передач</h1>
     </div>
-    <button type="button" class="theme-btn" id="themeBtn" title="Перемкнути тему">◐ Тема</button>
+    <div class="row" style="gap:8px"><button type="button" class="teacher-unlock" id="unlockBtn" title="Розблокувати всі розрахунки та креслення (лише для викладача)">🔒 Викладач</button><button type="button" class="theme-btn" id="themeBtn" title="Перемкнути тему">◐ Тема</button></div>
   </div>
   <p class="lead">Введіть свій номер у списку — симулятор відкриє ваш варіант, порахує всі числа роботи
     й збере їх у «Протокол для звіту». Ці самі числа ви перевіряєте в Excel-шаблоні й уводите
@@ -161,18 +227,35 @@ footer{font-size:.82rem;color:var(--muted);background:var(--surface);border:1px 
       <p class="hint" id="aHint"></p>
     </div>
     <div class="card">
+      <h2>Ваш розрахунок</h2>
+      <p class="hint">Ці числа симулятор не показує: ви рахуєте їх самі за формулами таблиці 4.3 методички — калькулятором або в Excel. Правильна відповідь відкриває наступний пункт, а добір діаметра меншого шківа — креслення, результати, параметри Fusion і протокол.</p>
+      <ol class="solve" id="aSolve"></ol>
+    </div>
+    <div class="card">
       <h2>Навантаження передачі</h2>
       <label>Передавана потужність <b id="aLoadVal"></b><input id="aLoad" type="range" min="10" max="300" step="1" value="100"></label>
       <p class="hint" id="aSlipHint"></p>
     </div>
       </div>
   <div class="col">
+    <div class="card lock" id="aLock" hidden>
+      <h2>Відкриється після добору d₁</h2>
+      <p class="hint">Передача в русі, епюра натягу, крива ковзання, таблиця результатів, параметри для Fusion і протокол з'являться, щойно ви виконаєте пункти 1 і 2 ліворуч: порахуєте M₁ і доберете діаметр меншого шківа d₁.</p>
+    </div>
+    <div id="aStage" class="col">
     <div class="card stage">
       <div class="kpis" id="aKpis"></div>
-      <svg id="aSvg" role="img" aria-label="Клинопасова передача"></svg>
+      <div class="stage-wrap">
+        <svg id="aSvg" role="img" aria-label="Клинопасова передача"></svg>
+        <div class="legend-bar">
+          <span class="legend-item"><i class="swatch" style="background:var(--pin-fill);border-color:var(--pin)"></i>Ведучий шків (d₁)</span>
+          <span class="legend-item"><i class="swatch" style="background:var(--wheel-fill);border-color:var(--wheel)"></i>Ведений шків (d₂)</span>
+          <span class="legend-item"><i class="swatch" style="background:var(--bad);border-color:var(--bad)"></i>Дуга пружного ковзання</span>
+        </div>
+      </div>
       <div class="row">
         <button type="button" class="btn" id="aPlay" aria-pressed="false">▶ Обертати</button>
-        <label class="grow">Кут повороту ведучого шківа<input id="aPhi" type="range" min="0" max="360" step="0.5" value="0"></label>
+        <label class="grow">Кут повороту ведучого шківа<input id="aPhi" type="range" min="0" max="360" step="any" value="0"></label>
       </div>
       <p class="status" id="aStatus"></p>
     </div>
@@ -202,6 +285,7 @@ footer{font-size:.82rem;color:var(--muted);background:var(--surface);border:1px 
       <p class="hint">Усі числа цієї роботи в одному блоці: перенесіть їх у звіт і в Excel-шаблон для самоперевірки.</p>
       <pre class="proto" id="aPr"></pre>
     </div>
+    </div>
   </div>
 </section>
 
@@ -221,18 +305,35 @@ footer{font-size:.82rem;color:var(--muted);background:var(--surface);border:1px 
       <p class="hint" id="bHint"></p>
     </div>
     <div class="card">
+      <h2>Ваш розрахунок</h2>
+      <p class="hint">Ці числа симулятор не показує: ви рахуєте їх самі за формулами таблиці 4.4 методички. Правильна відповідь відкриває наступний пункт, а добір діаметра ролика — креслення, результати, параметри Fusion і протокол.</p>
+      <ol class="solve" id="bSolve"></ol>
+    </div>
+    <div class="card">
       <h2>Положення ролика</h2>
       <label>Радіус контакту <b id="bRval"></b><input id="bR" type="range" min="0" max="100" step="0.5" value="50"></label>
       <p class="hint">Пересуньте ролик уздовж радіуса диска — передаточне число змінюється плавно. Це і є варіатор.</p>
     </div>
       </div>
   <div class="col">
+    <div class="card lock" id="bLock" hidden>
+      <h2>Відкриється після добору D₁</h2>
+      <p class="hint">Варіатор у русі, графік регулювання, таблиця результатів, параметри для Fusion і протокол з'являться, щойно ви виконаєте пункти 1 і 2 ліворуч: порахуєте розрахунковий діаметр ролика й доберете D₁ зі стандартного ряду.</p>
+    </div>
+    <div id="bStage" class="col">
     <div class="card stage">
       <div class="kpis" id="bKpis"></div>
-      <svg id="bSvg" role="img" aria-label="Лобовий фрикційний варіатор"></svg>
+      <div class="stage-wrap">
+        <svg id="bSvg" role="img" aria-label="Лобовий фрикційний варіатор"></svg>
+        <div class="legend-bar">
+          <span class="legend-item"><i class="swatch" style="background:var(--pin-fill);border-color:var(--pin)"></i>Ведучий ролик (D₁, b)</span>
+          <span class="legend-item"><i class="swatch" style="background:var(--wheel-fill);border-color:var(--wheel)"></i>Ведений диск (D₂)</span>
+          <span class="legend-item"><i class="swatch" style="background:var(--bad);border-color:var(--bad)"></i>Поточний радіус контакту R</span>
+        </div>
+      </div>
       <div class="row">
         <button type="button" class="btn" id="bPlay" aria-pressed="false">▶ Обертати</button>
-        <label class="grow">Кут повороту ролика<input id="bPhi" type="range" min="0" max="360" step="0.5" value="0"></label>
+        <label class="grow">Кут повороту ролика<input id="bPhi" type="range" min="0" max="360" step="any" value="0"></label>
       </div>
       <p class="status" id="bStatus"></p>
     </div>
@@ -256,6 +357,7 @@ footer{font-size:.82rem;color:var(--muted);background:var(--surface);border:1px 
         <button type="button" class="btn" id="bPrSave">Зберегти .txt</button></div>
       <p class="hint">Усі числа цієї роботи в одному блоці: перенесіть їх у звіт і в Excel-шаблон для самоперевірки.</p>
       <pre class="proto" id="bPr"></pre>
+    </div>
     </div>
   </div>
 </section>
@@ -293,7 +395,7 @@ var SIM = (function () {
     const col = i.n1 >= 1000 ? 0 : 1;
     const s = r.sect = SECT.find(x => r.Np <= PLIM[x][col]) || "C";
     const [b0, h0, y0, A, d1min, e, f, ha, hf, bd] = BELT[s];
-    Object.assign(r, { b0: b0, h0: h0, y0: y0, A: A, e: e, f: f, ha: ha, hf: hf, bd: bd });
+    Object.assign(r, { b0: b0, h0: h0, y0: y0, A: A, e: e, f: f, ha: ha, hf: hf, bd: bd, d1min: d1min });
     r.M1 = 9550 * i.N1 / i.n1;
     r.d1calc = KD1 * Math.cbrt(r.M1);
     const d1 = r.d1 = Math.max(nextUp(r.d1calc, DD), nextUp(d1min, DD));
@@ -407,6 +509,81 @@ if (typeof document !== "undefined") (function () {
 
   const tabs = { a: [$("tabA"), $("paneA")], b: [$("tabB"), $("paneB")] };
   function show(k) { for (const x in tabs) { tabs[x][0].setAttribute("aria-selected", x === k); tabs[x][1].hidden = x !== k; } stopA(); stopB(); }
+  /* ================= самостійний розрахунок ================= */
+  const SOL = { a: {}, b: {} };
+  const sv = (v, id) => SOL[v][id] || (SOL[v][id] = { done: false, shown: false, tries: 0, msg: "", cls: "" });
+  const done = (v, id) => !!(SOL[v][id] && SOL[v][id].done);
+  const mk = (v, id, x) => done(v, id) ? x : '<b class="q">?</b>';     /* у таблиці й KPI */
+  const mkt = (v, id, x) => done(v, id) ? String(x) : "?";             /* у протоколі */
+  const mk2 = (v, i1, i2, x) => done(v, i1) && done(v, i2) ? x : '<b class="q">?</b>';
+  const mkt2 = (v, i1, i2, x) => done(v, i1) && done(v, i2) ? String(x) : "?";
+  const solReset = v => { SOL[v] = {}; };
+  function solHow(v, id) {
+    const st = SOL[v][id];
+    return !st || !st.done ? "НЕ ПОРАХОВАНО" :
+      st.shown ? `з підказкою після ${st.tries} спроб` :
+        `ваша відповідь${st.tries > 1 ? ` з ${st.tries} спроб` : " з першої спроби"}`;
+  }
+
+  function drawSolve(v, spec) {
+    let open = true, h = "";
+    spec.forEach(q => {
+      const st = sv(v, q.id);
+      h += `<li class="${st.done ? "done" : open ? "now" : "locked"}"><div class="slab">${q.lbl}` +
+           `<span class="sform">${q.form}</span></div>`;
+      if (st.done) h += `<p class="sv ok">${q.show()} — ${solHow(v, q.id)}</p>`;
+      else if (!open) h += `<p class="sv note">спершу виконайте пункт вище</p>`;
+      else {
+        h += q.chips ? `<div class="chips" data-q="${q.id}">${q.chips()}</div>`
+          : `<div class="srow"><input type="number" step="any" inputmode="decimal" data-q="${q.id}" placeholder="ваше число">` +
+            `<button type="button" class="btn" data-go="${q.id}">Перевірити</button></div>`;
+        if (st.msg) h += `<p class="sv ${st.cls}">${st.msg}</p>`;
+        if (st.tries >= 3 && !q.chips) h += `<button type="button" class="shelp" data-show="${q.id}">не виходить — показати відповідь</button>`;
+      }
+      h += "</li>";
+      if (!st.done) open = false;
+    });
+    $(v + "Solve").innerHTML = h;
+  }
+
+  function solAnswer(v, q, x) {
+    const st = sv(v, q.id), ref = q.ref();
+    st.tries++;
+    if (!isFinite(x)) { st.cls = "bad"; st.msg = "Уведіть число."; return; }
+    if (Math.abs(x - ref) <= Math.max(0.01 * Math.abs(ref), 0.01)) { st.done = true; st.cls = "ok"; st.msg = ""; return; }
+    st.cls = "bad";
+    const k = Math.abs(ref) > 1e-9 ? x / ref : 0;
+    st.msg = (k > 900 && k < 1100) || (k > 0.0009 && k < 0.0011)
+      ? "Не збігається рівно в 1000 разів — перевірте одиниці (Н·м і Н·мм)."
+      : k > 1.8 || (k < 0.55 && k > 0) ? "Не збігається, і дуже сильно. Перевірте формулу й порядок дій."
+        : "Не збігається. Перевірте, які саме числа ви підставили.";
+  }
+
+  function solBind(v, spec) {
+    $(v + "Solve").addEventListener("click", e => {
+      const go = e.target.closest("[data-go]"), sh = e.target.closest("[data-show]"),
+            ch = e.target.closest(".chips button");
+      if (go) {
+        const q = spec().find(x => x.id === go.dataset.go);
+        solAnswer(v, q, parseFloat($(v + "Solve").querySelector(`input[data-q="${q.id}"]`).value.replace(",", ".")));
+      } else if (sh) {
+        const st = sv(v, sh.dataset.show); st.done = true; st.shown = true;
+      } else if (ch) {
+        const q = spec().find(x => x.id === ch.closest(".chips").dataset.q);
+        q.pick(+ch.dataset.k, sv(v, q.id));
+      } else return;
+      v === "a" ? calcA() : calcB();
+    });
+    $(v + "Solve").addEventListener("keydown", e => {
+      if (e.key === "Enter" && e.target.dataset.q) {
+        e.preventDefault();
+        $(v + "Solve").querySelector(`[data-go="${e.target.dataset.q}"]`).click();
+      }
+    });
+  }
+
+  function gate(v, ok) { $(v + "Lock").hidden = ok; $(v + "Stage").hidden = !ok; }
+
   $("tabA").addEventListener("click", () => show("a")); $("tabB").addEventListener("click", () => show("b"));
 
   /* ---------- варіант за номером у списку ---------- */
@@ -415,8 +592,8 @@ if (typeof document !== "undefined") (function () {
     if (!(n >= 1 && n <= 40)) { $("vBadge").className = "vbadge"; $("vBadge").textContent = "Введіть номер у списку від 1 до 40."; return; }
     stuNo = n;
     const odd = n % 2 === 1;
-    if (odd) { $("aN").value = +(1.0 + 0.25 * n).toFixed(2); $("aU").value = 2.5; $("aNn").value = 1430; calcA(); show("a"); }
-    else { $("bM").value = 20 + n; $("bNn").value = 500; calcB(); show("b"); }
+    if (odd) { $("aN").value = +(1.0 + 0.25 * n).toFixed(2); $("aU").value = 2.5; $("aNn").value = 1430; solReset("a"); aTried = null; calcA(); show("a"); }
+    else { $("bM").value = 20 + n; $("bNn").value = 500; solReset("b"); bTried = null; calcB(); show("b"); }
     $("vBadge").className = "vbadge set";
     $("vBadge").innerHTML = odd
       ? `№ ${n} — непарний → <b>варіант А: клинопасова передача</b>. Підставлено N₁ = ${(1.0 + 0.25 * n).toFixed(2).replace(".", ",")} кВт, u = 2,5, n₁ = 1430 об/хв.`
@@ -428,7 +605,36 @@ if (typeof document !== "undefined") (function () {
   $("bPrSave").addEventListener("click", () => saveTxt(`ЛР4_варіант_Б_№${stuNo || "__"}.txt`, $("bPr").textContent));
 
   /* ================= А. КЛИНОПАСОВА ================= */
-  let A = null, aPlaying = false, aRaf = 0, aLast = 0;
+  let A = null, aTried = null, aPlaying = false, aRaf = 0, aLast = 0, aAngle = 0;
+
+  /* ---------- що студент рахує сам у варіанті А ---------- */
+  const aCand = () => SIM.DD.filter(v => v >= 0.5 * A.d1 && v <= 1.9 * A.d1);
+  const specA = () => [
+    { id: "M1", short: "M₁, Н·м", lbl: "Момент на меншому шківі M₁, Н·м",
+      form: "N_р = N₁ · K_д;   M₁ = 9550 · N₁ / n₁",
+      ref: () => A.M1, show: () => `M₁ = ${f(A.M1, 2)} Н·м (N_р = ${f(A.Np, 3)} кВт, переріз ${A.sect})` },
+    { id: "d1", short: "добір d₁", lbl: "Який діаметр меншого шківа d₁ беремо?",
+      form: "найменший діаметр ряду R40, що задовольняє обидві умови: d₁ ≥ 70 · ∛M₁ і d₁ ≥ d₁,min перерізу (табл. А5.3). Натискайте: симулятор скаже, чи годиться",
+      ref: () => A.d1, show: () => `d₁ = ${A.d1} мм (70·∛M₁ = ${f(A.d1calc, 1)} мм, d₁,min = ${A.d1min} мм), тоді d₂ = ${A.d2} мм`,
+      chips: () => aCand().map(v =>
+        `<button type="button" data-k="${v}"${aTried && aTried.has(v) ? ` class="${v === A.d1 ? "" : "fail"}"` : ""}>${v}</button>`).join(""),
+      pick: (v, st) => {
+        st.tries++; aTried = aTried || new Set(); aTried.add(v);
+        if (v < A.d1calc - 1e-9) { st.cls = "bad"; st.msg = `${v} мм замалий: за міцністю потрібно d₁ ≥ 70 · ∛M₁ = ${f(A.d1calc, 1)} мм.`; }
+        else if (v < A.d1min - 1e-9) { st.cls = "bad"; st.msg = `${v} мм менший за d₁,min = ${A.d1min} мм для перерізу ${A.sect}: на такому шківі пас перегинається надто круто і швидко руйнується.`; }
+        else if (v > A.d1) { st.cls = "bad"; st.msg = `${v} мм проходить, але в ряду R40 є менший діаметр, який теж задовольняє обидві умови. Більший шків — більші габарити, маса й вартість.`; }
+        else { st.done = true; st.cls = "ok"; st.msg = ""; }
+      } },
+    { id: "L", short: "L, мм", lbl: "Розрахункова довжина паса L, мм",
+      form: "a′ = 1,5 · (d₁ + d₂);   L′ = 2a′ + π(d₁ + d₂)/2 + (d₂ − d₁)² / (4a′);   далі — найближча більша зі стандартного ряду",
+      ref: () => A.L, show: () => `L = ${A.L} мм (L′ = ${f(A.Lcalc, 1)} мм)` },
+    { id: "a", short: "a, мм", lbl: "Міжосьова відстань a, мм",
+      form: "w = 2L − π(d₁ + d₂);   a = 0,125 · ( w + √( w² − 8 · (d₂ − d₁)² ) )",
+      ref: () => A.a, show: () => `a = ${f(A.a, 1)} мм` },
+    { id: "alpha", short: "α₁, град", lbl: "Кут обхвату меншого шківа α₁, град",
+      form: "α₁ = 180 − 57 · (d₂ − d₁) / a ≥ 120°",
+      ref: () => A.alpha, show: () => `α₁ = ${f(A.alpha, 1)}° (число пробігів ν = ${f(A.nu, 2)} с⁻¹, пасів z = ${A.z})` },
+  ];
 
   function loadState() {
     const kN = val("aLoad") / 100;
@@ -441,36 +647,47 @@ if (typeof document !== "undefined") (function () {
     const i = { N1: val("aN"), n1: val("aNn"), u: val("aU"), Kd: val("aKd") };
     if (!(i.N1 > 0 && i.n1 > 0 && i.u >= 1)) return;
     A = SIM.belt(i);
-    $("aHint").innerHTML = `Переріз <b>${A.sect}</b>; M₁ = ${f(A.M1, 2)} Н·м; розрахунковий d₁ = ${f(A.d1calc, 0)} мм → ${A.d1} мм.`;
+    drawSolve("a", specA());
+    gate("a", done("a", "d1"));
+    $("aHint").innerHTML = done("a", "M1")
+      ? `Переріз <b>${A.sect}</b>; N_р = ${f(A.Np, 3)} кВт; M₁ = ${f(A.M1, 2)} Н·м` +
+        (done("a", "d1") ? `; прийнято d₁ = ${A.d1} мм.` : "; тепер доберіть d₁ — пункт 2 нижче.")
+      : `Переріз <b>${A.sect}</b> (за N_р і n₁). Момент M₁ порахуйте самі — пункт 1 нижче.`;
+    if (!done("a", "d1")) return;
+    const qL = x => mk("a", "L", x), qa = x => mk("a", "a", x), qA = x => mk("a", "alpha", x);
+    const tL = x => mkt("a", "L", x), ta = x => mkt("a", "a", x), tA = x => mkt("a", "alpha", x);
     $("aOut").innerHTML =
       row("Переріз паса", A.sect) + row("N<sub>р</sub> = N₁·K<sub>д</sub>, кВт", f(A.Np, 3)) +
       row("d₁ / d₂, мм", A.d1 + " / " + A.d2) + row("Дійсне u; відхилення", f(A.ud, 3) + "; " + f(A.du, 2) + " %") +
-      row("v, м/с", f(A.v, 2)) + row("L, мм", A.L) + row("a, мм", f(A.a, 1)) +
-      row("α₁, град", f(A.alpha, 1)) + row("ν, с⁻¹", f(A.nu, 2)) +
+      row("v, м/с", f(A.v, 2)) + row("L, мм", qL(A.L)) + row("a, мм", qa(f(A.a, 1))) +
+      row("α₁, град", qA(f(A.alpha, 1))) + row("ν, с⁻¹", qL(f(A.nu, 2))) +
       row("φ канавки, град", A.phi) + row("f′ зведений", f(A.fRed, 3)) +
-      row("F<sub>t,гр</sub> одного паса, Н", f(A.FtLim, 0)) + row("[N₁] одного паса, кВт", f(A.Nbelt, 3)) +
-      row("Число пасів z", A.z) +
-      row("F<sub>t</sub> / F₀, Н", f(A.Ft, 0) + " / " + f(A.F0, 0)) +
-      row("F₁ / F₂, Н", f(A.F1, 0) + " / " + f(A.F2, 0)) +
-      row("ψ / ψ<sub>max</sub>", f(A.psi, 3) + " / " + f(A.psiMax, 3)) +
-      row("F<sub>в</sub>, Н", f(A.Fv, 0)) +
-      row("σ<sub>t</sub> / σ<sub>v</sub> / σ<sub>зг</sub>, МПа", f(A.sigt, 2) + " / " + f(A.sigv, 2) + " / " + f(A.sigb, 2)) +
-      row("σ<sub>max</sub>, МПа", f(A.sigmax, 2)) + row("Ресурс L<sub>h</sub>, год", f(A.Lh, 0)) +
-      row("B обода, мм", f(A.Bw, 1)) + row("Отвори d<sub>в1</sub> / d<sub>в2</sub>, мм", A.dv1 + " / " + A.dv2);
+      row("F<sub>t,гр</sub> одного паса, Н", qA(f(A.FtLim, 0))) + row("[N₁] одного паса, кВт", qA(f(A.Nbelt, 3))) +
+      row("Число пасів z", qA(A.z)) +
+      row("F<sub>t</sub> / F₀, Н", f(A.Ft, 0) + " / " + qA(f(A.F0, 0))) +
+      row("F₁ / F₂, Н", qA(f(A.F1, 0) + " / " + f(A.F2, 0))) +
+      row("ψ / ψ<sub>max</sub>", qA(f(A.psi, 3) + " / " + f(A.psiMax, 3))) +
+      row("F<sub>в</sub>, Н", qA(f(A.Fv, 0))) +
+      row("σ<sub>t</sub> / σ<sub>v</sub> / σ<sub>зг</sub>, МПа", qA(f(A.sigt, 2)) + " / " + f(A.sigv, 2) + " / " + f(A.sigb, 2)) +
+      row("σ<sub>max</sub>, МПа", qA(f(A.sigmax, 2))) + row("Ресурс L<sub>h</sub>, год", qA(f(A.Lh, 0))) +
+      row("B обода, мм", qA(f(A.Bw, 1))) + row("Отвори d<sub>в1</sub> / d<sub>в2</sub>, мм", A.dv1 + " / " + A.dv2);
     $("aChk").innerHTML = chk(A.checks);
     $("aKpis").innerHTML =
-      kpi("Переріз / число пасів", A.sect + " / " + A.z) +
+      kpi("Переріз / число пасів", A.sect + " / " + qA(A.z)) +
       kpi("Шківи d₁ / d₂", A.d1 + " / " + A.d2 + " мм") +
-      kpi("Міжосьова a", f(A.a, 0) + " мм") +
-      kpi("Ресурс L_h", f(A.Lh, 0) + " год");
+      kpi("Міжосьова a", qa(f(A.a, 0) + " мм")) +
+      kpi("Ресурс L_h", qA(f(A.Lh, 0) + " год"));
     $("aFp").textContent =
       `d_1   = ${A.d1} mm\nd_2   = ${A.d2} mm\nd_a1  = ${d(A.da1, 2)} mm\nd_a2  = ${d(A.da2, 2)} mm\n` +
       `b_d   = ${d(A.bd, 2)} mm\ne_g   = ${d(A.e, 2)} mm\nf_g   = ${d(A.f, 2)} mm\nh_a   = ${d(A.ha, 2)} mm\n` +
-      `h_f   = ${d(A.hf, 2)} mm\nphi_g = ${A.phi} deg\nz_b   = ${A.z}\nB_w   = ${d(A.Bw, 2)} mm\n` +
-      `a_c   = ${d(A.a, 2)} mm\nL_b   = ${A.L} mm\nb_0   = ${d(A.b0, 2)} mm\nh_0   = ${d(A.h0, 2)} mm\n` +
+      `h_f   = ${d(A.hf, 2)} mm\nphi_g = ${A.phi} deg\nz_b   = ${tA(A.z)}\nB_w   = ${tA(d(A.Bw, 2))} mm\n` +
+      `a_c   = ${ta(d(A.a, 2))} mm\nL_b   = ${tL(A.L)} mm\nb_0   = ${d(A.b0, 2)} mm\nh_0   = ${d(A.h0, 2)} mm\n` +
       `dv_1  = ${A.dv1} mm\ndv_2  = ${A.dv2} mm\ndM_1  = ${A.dM1} mm\nlM_1  = ${A.lM1} mm`;
     $("aPr").textContent = head("А (клинопасова передача)") +
 `
+0. ЩО СТУДЕНТ ПОРАХУВАВ САМ
+${specA().map(q => `   ${q.short.padEnd(14)} — ${solHow("a", q.id)}`).join("\n")}
+
 1. ВХІДНІ ДАНІ
    N1 = ${g(val("aN"))} кВт      n1 = ${g(val("aNn"))} об/хв      u = ${g(val("aU"))}      K_д = ${g(val("aKd"))}
 
@@ -481,22 +698,22 @@ if (typeof document !== "undefined") (function () {
    d_a1 = ${d(A.da1, 1)} мм   d_a2 = ${d(A.da2, 1)} мм
 
 3. ГЕОМЕТРІЯ ПЕРЕДАЧІ
-   v = ${f(A.v, 2)} м/с      L = ${A.L} мм      a = ${f(A.a, 1)} мм
-   кут обхвату alpha_1 = ${f(A.alpha, 1)}°      число пробігів nu = ${f(A.nu, 2)} 1/с
+   v = ${f(A.v, 2)} м/с      L = ${tL(A.L)} мм      a = ${ta(f(A.a, 1))} мм
+   кут обхвату alpha_1 = ${tA(f(A.alpha, 1))}°      число пробігів nu = ${tL(f(A.nu, 2))} 1/с
    канавка: phi = ${A.phi}°   b_d = ${d(A.bd, 2)}   e = ${d(A.e, 2)}   f = ${d(A.f, 2)}   h_a = ${d(A.ha, 2)}   h_f = ${d(A.hf, 2)} мм
-   ширина обода B = ${f(A.Bw, 1)} мм      отвори: d_в1 = ${A.dv1}   d_в2 = ${A.dv2} мм
+   ширина обода B = ${tA(f(A.Bw, 1))} мм      отвори: d_в1 = ${A.dv1}   d_в2 = ${A.dv2} мм
 
 4. СИЛИ Й ЧИСЛО ПАСІВ
    зведений коефіцієнт тертя f' = ${f(A.fRed, 3)}
-   гранична колова сила одного паса F_t,гр = ${f(A.FtLim, 0)} Н   ->   [N1] = ${f(A.Nbelt, 3)} кВт
-   число пасів z = ${A.z}
-   F_t = ${f(A.Ft, 0)} Н      F_0 = ${f(A.F0, 0)} Н      F1 = ${f(A.F1, 0)} Н      F2 = ${f(A.F2, 0)} Н
-   коефіцієнт тяги psi = ${f(A.psi, 3)} при граничному ${f(A.psiMax, 3)}
-   сила на вали F_в = ${f(A.Fv, 0)} Н
+   гранична колова сила одного паса F_t,гр = ${tA(f(A.FtLim, 0))} Н   ->   [N1] = ${tA(f(A.Nbelt, 3))} кВт
+   число пасів z = ${tA(A.z)}
+   F_t = ${f(A.Ft, 0)} Н      F_0 = ${tA(f(A.F0, 0))} Н      F1 = ${tA(f(A.F1, 0))} Н      F2 = ${tA(f(A.F2, 0))} Н
+   коефіцієнт тяги psi = ${tA(f(A.psi, 3))} при граничному ${tA(f(A.psiMax, 3))}
+   сила на вали F_в = ${tA(f(A.Fv, 0))} Н
 
 5. НАПРУЖЕННЯ Й РЕСУРС
-   sigma_t = ${f(A.sigt, 2)}   sigma_v = ${f(A.sigv, 2)}   sigma_зг = ${f(A.sigb, 2)}   sigma_max = ${f(A.sigmax, 2)} МПа
-   ресурс L_h = ${f(A.Lh, 0)} год
+   sigma_t = ${tA(f(A.sigt, 2))}   sigma_v = ${f(A.sigv, 2)}   sigma_зг = ${f(A.sigb, 2)}   sigma_max = ${tA(f(A.sigmax, 2))} МПа
+   ресурс L_h = ${tA(f(A.Lh, 0))} год
 
 6. ПЕРЕВІРКИ
 ${A.checks.map(c => "   " + (c[0] ? "+" : "-") + " " + c[1].replace(/<[^>]+>/g, "") + " — " + ok(c[0])).join("\n")}
@@ -506,7 +723,7 @@ ${$("aFp").textContent.split("\n").map(l => "   " + l).join("\n")}
 
 8. ДОСЛІД: ЩО ДАЄ ЗМІНА НАВАНТАЖЕННЯ
 ${[50, 100, 150, 200].map(pc => { const k = pc / 100, ps = A.psi * k, sl = SIM.slip(ps, A.psiMax);
-  return `   ${String(pc).padStart(3)} % потужності:  psi = ${f(ps, 3)}   ковзання = ${f(sl.eps, 2)} %   ККД = ${f(sl.eta, 3)}`; }).join("\n")}
+  return `   ${String(pc).padStart(3)} % потужності:  psi = ${tA(f(ps, 3))}   ковзання = ${tA(f(sl.eps, 2))} %   ККД = ${tA(f(sl.eta, 3))}`; }).join("\n")}
 
 ВИСНОВОК (написати самому): ________________________________________
 `;
@@ -521,39 +738,58 @@ ${[50, 100, 150, 200].map(pc => { const k = pc / 100, ps = A.psi * k, sl = SIM.s
   }
 
   function frameA() {
-    if (!A) return;
-    const s = loadState(), phi = val("aPhi") * Math.PI / 180;
+    if (!A || !$("aSvg")) return;
+    const s = loadState(), phi = aAngle * Math.PI / 180;
     const r1 = A.d1 / 2, r2 = A.d2 / 2, a = A.a, H = hull(r1, r2, a);
-    const th1 = phi, th2 = -phi * (A.d1 / A.d2) * (1 - s.eps / 100) * -1;
-    const spoke = (cx, r, th, col) => {
-      let o = "";
-      for (let k = 0; k < 4; k++) { const t = th + k * Math.PI / 2;
-        o += `<path d="M${cx} 0L${(cx + r * 0.8 * Math.cos(t)).toFixed(2)} ${(r * 0.8 * Math.sin(t)).toFixed(2)}" stroke="${col}" stroke-width="${(r * 0.07).toFixed(2)}" stroke-linecap="round"/>`; }
+    const th1 = phi, th2 = phi * (A.d1 / A.d2) * (1 - s.eps / 100);
+    const spoke = (cx, r, rHub, th, col) => {
+      let o = `<circle cx="${cx}" cy="0" r="${(r * 0.84).toFixed(2)}" fill="none" stroke="${col}" vector-effect="non-scaling-stroke" stroke-width="1" opacity=".4"/>` +
+              `<circle cx="${cx}" cy="0" r="${r.toFixed(2)}" fill="none" stroke="${col}" stroke-dasharray="5 3" vector-effect="non-scaling-stroke" stroke-width="0.9" opacity=".65"/>`;
+      for (let k = 0; k < 4; k++) {
+        const t = th + k * Math.PI / 2;
+        const x1 = cx + rHub * Math.cos(t), y1 = rHub * Math.sin(t);
+        const x2 = cx + r * 0.84 * Math.cos(t), y2 = r * 0.84 * Math.sin(t);
+        o += `<line x1="${x1.toFixed(2)}" y1="${y1.toFixed(2)}" x2="${x2.toFixed(2)}" y2="${y2.toFixed(2)}" stroke="${col}" vector-effect="non-scaling-stroke" stroke-width="${k === 0 ? 3 : 2}" opacity="${k === 0 ? 0.95 : 0.55}" stroke-linecap="round"/>`;
+      }
+      o += `<circle cx="${cx}" cy="0" r="${rHub.toFixed(2)}" fill="var(--surface-2)" stroke="${col}" vector-effect="non-scaling-stroke" stroke-width="1.2"/>`;
       return o;
     };
-    const belt = `<path d="M${H.p1t[0].toFixed(2)} ${H.p1t[1].toFixed(2)}L${H.p2t[0].toFixed(2)} ${H.p2t[1].toFixed(2)}` +
+    /* На меншому шківі кут обхвату α₁ = 180° − 2β < 180°, тому прапорець великої дуги обов'язково 0 (A r1 r1 0 0 1) */
+    const beltPath = `M${H.p1t[0].toFixed(2)} ${H.p1t[1].toFixed(2)}L${H.p2t[0].toFixed(2)} ${H.p2t[1].toFixed(2)}` +
       `A${r2} ${r2} 0 1 1 ${H.p2b[0].toFixed(2)} ${H.p2b[1].toFixed(2)}L${H.p1b[0].toFixed(2)} ${H.p1b[1].toFixed(2)}` +
-      `A${r1} ${r1} 0 1 1 ${H.p1t[0].toFixed(2)} ${H.p1t[1].toFixed(2)}Z" fill="none" stroke="var(--ink)" stroke-width="${A.h0}" opacity=".55"/>`;
-    const pad = A.h0 * 2 + A.d1 * 0.12;
-    const xmin = -r1 - A.ha - pad, xmax = a + r2 + A.ha + pad, ymax = r2 + A.ha + pad;
-    $("aSvg").setAttribute("viewBox", `${xmin.toFixed(1)} ${(-ymax).toFixed(1)} ${(xmax - xmin).toFixed(1)} ${(2 * ymax).toFixed(1)}`);
+      `A${r1} ${r1} 0 0 1 ${H.p1t[0].toFixed(2)} ${H.p1t[1].toFixed(2)}Z`;
+    const beltShift = (phi * r1).toFixed(2);
+    const belt = `<path d="${beltPath}" fill="none" stroke="var(--ink)" stroke-width="${A.h0}" stroke-linejoin="round" opacity=".68"/>` +
+      `<path d="${beltPath}" fill="none" stroke="var(--surface)" stroke-width="${(A.h0 * 0.32).toFixed(2)}" stroke-dasharray="${(A.h0 * 1.6).toFixed(1)} ${(A.h0 * 1.6).toFixed(1)}" stroke-dashoffset="${-beltShift}" opacity=".9"/>`;
+    const padX = Math.max(A.h0 * 3 + A.d1 * 0.22, 42), padY = Math.max(A.h0 * 3 + A.d2 * 0.16, 42);
+    const xmin = -r1 - A.ha - padX, xmax = a + r2 + A.ha + padX, ymax = r2 + A.ha + padY;
+    const vw = xmax - xmin, fs = Math.max(A.d1 * 0.12, vw * 0.021);
+    $("aSvg").setAttribute("viewBox", `${xmin.toFixed(1)} ${(-ymax).toFixed(1)} ${vw.toFixed(1)} ${(2 * ymax).toFixed(1)}`);
     const slipArc = (cx, r, th0, span, col) => {
+      if (Math.abs(span) < 1e-4) return "";
       const a0 = th0, a1 = th0 + span;
       const big = Math.abs(span) > Math.PI ? 1 : 0, sw = span > 0 ? 1 : 0;
-      return `<path d="M${(cx + r * Math.cos(a0)).toFixed(2)} ${(r * Math.sin(a0)).toFixed(2)}A${r} ${r} 0 ${big} ${sw} ${(cx + r * Math.cos(a1)).toFixed(2)} ${(r * Math.sin(a1)).toFixed(2)}" fill="none" stroke="${col}" stroke-width="${(A.h0 * 1.5).toFixed(1)}" opacity=".75"/>`;
+      return `<path d="M${(cx + r * Math.cos(a0)).toFixed(2)} ${(r * Math.sin(a0)).toFixed(2)}A${r} ${r} 0 ${big} ${sw} ${(cx + r * Math.cos(a1)).toFixed(2)} ${(r * Math.sin(a1)).toFixed(2)}" fill="none" stroke="${col}" stroke-width="${(A.h0 * 1.45).toFixed(1)}" stroke-linecap="round" opacity=".82"/>`;
     };
     const phiS = Math.min(Math.log(Math.max(s.F1 / Math.max(s.F2, 1e-6), 1.0001)) / A.fRed, A.alpha * Math.PI / 180);
+    const rHub1 = Math.max(A.dv1 * 0.85, r1 * 0.2), rHub2 = Math.max(A.dv2 * 0.85, r2 * 0.15);
+    const gs = (Math.max(A.d1 * 0.4, vw * 0.04)).toFixed(1);
     $("aSvg").innerHTML =
-      `<circle cx="0" cy="0" r="${r1 + A.ha}" fill="var(--pin-fill)" stroke="var(--pin)" vector-effect="non-scaling-stroke" stroke-width="1.2"/>` +
-      `<circle cx="${a}" cy="0" r="${r2 + A.ha}" fill="var(--wheel-fill)" stroke="var(--wheel)" vector-effect="non-scaling-stroke" stroke-width="1.2"/>` +
-      `<g>${spoke(0, r1, th1, "var(--pin)")}</g><g>${spoke(a, r2, th2, "var(--wheel)")}</g>` +
-      `<circle cx="0" cy="0" r="${A.dv1 / 2}" fill="var(--surface)" stroke="var(--muted)" vector-effect="non-scaling-stroke" stroke-width="1"/>` +
-      `<circle cx="${a}" cy="0" r="${A.dv2 / 2}" fill="var(--surface)" stroke="var(--muted)" vector-effect="non-scaling-stroke" stroke-width="1"/>` +
-      belt + slipArc(0, r1, -H.lim, phiS, "var(--bad)") +
-      `<path d="M0 0H${a}" stroke="var(--ink)" stroke-dasharray="${A.d1 * 0.06} ${A.d1 * 0.03}" vector-effect="non-scaling-stroke" stroke-width="1" opacity=".45"/>` +
-      `<text x="${(a / 2).toFixed(1)}" y="${(-r2 * 0.25).toFixed(1)}" text-anchor="middle" font-size="${(A.d1 * 0.11).toFixed(1)}" class="svg-muted">a = ${f(A.a, 0)} мм</text>` +
-      `<text x="0" y="${(r1 + A.ha + A.d1 * 0.17).toFixed(1)}" text-anchor="middle" font-size="${(A.d1 * 0.1).toFixed(1)}" class="svg-muted">α₁ = ${f(A.alpha, 0)}°</text>` +
-      `<text x="${(-r1 - A.ha).toFixed(1)}" y="${(-r1 - A.ha - A.d1 * 0.13).toFixed(1)}" text-anchor="start" font-size="${(A.d1 * 0.1).toFixed(1)}" fill="var(--bad)">дуга ковзання ${f(phiS * 180 / Math.PI, 0)}°</text>`;
+      `<defs><pattern id="aGrid" width="${gs}" height="${gs}" patternUnits="userSpaceOnUse"><path d="M ${gs} 0 L 0 0 0 ${gs}" fill="none" stroke="var(--line)" stroke-width="0.6" vector-effect="non-scaling-stroke" opacity="0.5"/></pattern></defs>` +
+      `<rect x="${(xmin - 100).toFixed(0)}" y="${(-ymax - 100).toFixed(0)}" width="${(vw + 200).toFixed(0)}" height="${(2 * ymax + 200).toFixed(0)}" fill="url(#aGrid)"/>` +
+      `<circle cx="0" cy="0" r="${r1 + A.ha}" fill="var(--pin-fill)" stroke="var(--pin)" vector-effect="non-scaling-stroke" stroke-width="1.4"/>` +
+      `<circle cx="${a}" cy="0" r="${r2 + A.ha}" fill="var(--wheel-fill)" stroke="var(--wheel)" vector-effect="non-scaling-stroke" stroke-width="1.4"/>` +
+      `<g>${spoke(0, r1, rHub1, th1, "var(--pin)")}</g><g>${spoke(a, r2, rHub2, th2, "var(--wheel)")}</g>` +
+      `<circle cx="0" cy="0" r="${A.dv1 / 2}" fill="var(--surface)" stroke="var(--ink)" vector-effect="non-scaling-stroke" stroke-width="1.2"/>` +
+      `<circle cx="${a}" cy="0" r="${A.dv2 / 2}" fill="var(--surface)" stroke="var(--ink)" vector-effect="non-scaling-stroke" stroke-width="1.2"/>` +
+      belt +
+      /* Дуга ковзання лежить на робочій (лівій) частині дуги обхвату ведучого шківа перед точкою збігання p1t (-H.lim) */
+      slipArc(0, r1, -H.lim - phiS, phiS, "var(--bad)") +
+      `<path d="M${(-r1 - A.ha - fs * 0.6).toFixed(1)} 0H${(a + r2 + A.ha + fs * 0.6).toFixed(1)}" stroke="var(--ink)" stroke-dasharray="8 4 2 4" vector-effect="non-scaling-stroke" stroke-width="1" opacity=".5"/>` +
+      `<text x="${(a * 0.46).toFixed(1)}" y="${(-fs * 0.55).toFixed(1)}" text-anchor="middle" font-size="${fs.toFixed(1)}" font-weight="600" class="svg-ink svg-halo">a = ${f(A.a, 0)} мм</text>` +
+      `<text x="0" y="${(r1 + A.ha + fs * 1.35).toFixed(1)}" text-anchor="middle" font-size="${fs.toFixed(1)}" font-weight="600" class="svg-ink svg-halo">d₁ = ${A.d1} мм (α₁ = ${f(A.alpha, 0)}°)</text>` +
+      `<text x="${a}" y="${(r2 + A.ha + fs * 1.35).toFixed(1)}" text-anchor="middle" font-size="${fs.toFixed(1)}" font-weight="600" class="svg-ink svg-halo">d₂ = ${A.d2} мм</text>` +
+      `<text x="${(-r1 - A.ha).toFixed(1)}" y="${(-r1 - A.ha - fs * 0.7).toFixed(1)}" text-anchor="start" font-size="${fs.toFixed(1)}" font-weight="700" fill="var(--bad)" class="svg-halo">дуга ковзання ${f(phiS * 180 / Math.PI, 0)}°</text>`;
     const bad = A.checks.filter(c => !c[0]).length;
     const buks = s.psi > A.psiMax;
     $("aStatus").className = "status" + (bad || buks ? " bad" : "");
@@ -566,6 +802,7 @@ ${[50, 100, 150, 200].map(pc => { const k = pc / 100, ps = A.psi * k, sl = SIM.s
   }
 
   function epureA() {
+    if (!A || !$("aEp")) return;
     if (!A) return;
     const s = loadState();
     const W = 100, H = 46, L = 13, R = 3, T = 5, Bm = 11;
@@ -613,6 +850,7 @@ ${[50, 100, 150, 200].map(pc => { const k = pc / 100, ps = A.psi * k, sl = SIM.s
   }
 
   function curveA() {
+    if (!A || !$("aCv")) return;
     if (!A) return;
     const s = loadState();
     const W = 100, H = 44, L = 12, R = 12, T = 5, Bm = 10;
@@ -644,7 +882,8 @@ ${[50, 100, 150, 200].map(pc => { const k = pc / 100, ps = A.psi * k, sl = SIM.s
     if (!aPlaying) return;
     if (!aLast) aLast = t;
     const dt = Math.min(t - aLast, 80); aLast = t;
-    $("aPhi").value = ((val("aPhi") + dt * 0.05) % 360).toFixed(2);
+    aAngle += dt * 0.05;
+    $("aPhi").value = ((aAngle % 360) + 360) % 360;
     frameA(); aRaf = requestAnimationFrame(tickA);
   }
   function stopA() { aPlaying = false; cancelAnimationFrame(aRaf); aLast = 0; $("aPlay").setAttribute("aria-pressed", "false"); $("aPlay").textContent = "▶ Обертати"; }
@@ -653,13 +892,47 @@ ${[50, 100, 150, 200].map(pc => { const k = pc / 100, ps = A.psi * k, sl = SIM.s
     $("aPlay").setAttribute("aria-pressed", String(aPlaying)); $("aPlay").textContent = aPlaying ? "❙❙ Пауза" : "▶ Обертати";
     if (aPlaying) { aLast = 0; aRaf = requestAnimationFrame(tickA); } else stopA();
   });
-  $("aPhi").addEventListener("input", frameA);
+  $("aPhi").addEventListener("input", () => {
+    const cur = ((aAngle % 360) + 360) % 360;
+    aAngle += val("aPhi") - cur;
+    frameA();
+  });
   $("aLoad").addEventListener("input", () => { frameA(); epureA(); curveA(); });
-  ["aN", "aNn", "aU", "aKd"].forEach(id => $(id).addEventListener("input", calcA));
+  ["aN", "aNn", "aU", "aKd"].forEach(id =>
+    $(id).addEventListener("input", () => { solReset("a"); aTried = null; calcA(); }));
+  solBind("a", specA);
   copy($("aCopy"), $("aFp"));
 
   /* ================= Б. ФРИКЦІЙНА ================= */
-  let B = null, bPlaying = false, bRaf = 0, bLast = 0;
+  let B = null, bTried = null, bPlaying = false, bRaf = 0, bLast = 0, bAngle = 0;
+
+  /* ---------- що студент рахує сам у варіанті Б ---------- */
+  const bCand = () => SIM.DD.filter(v => v >= 0.5 * B.D1 && v <= 1.9 * B.D1);
+  const specB = () => [
+    { id: "D1calc", short: "D₁ розрахунк., мм", lbl: "Розрахунковий діаметр ролика, мм",
+      form: "D₁ ≥ 35 · ∛M₁",
+      ref: () => B.D1calc, show: () => `35 · ∛M₁ = ${f(B.D1calc, 2)} мм` },
+    { id: "D1", short: "добір D₁", lbl: "Який діаметр ролика D₁ беремо?",
+      form: "найменший діаметр ряду R40 (табл. А2.3), не менший за розрахунковий. Натискайте: симулятор скаже, чи годиться",
+      ref: () => B.D1, show: () => `D₁ = ${B.D1} мм, тоді R_min = ${f(B.Rmin, 1)} мм, R_max = ${f(B.Rmax, 1)} мм`,
+      chips: () => bCand().map(v =>
+        `<button type="button" data-k="${v}"${bTried && bTried.has(v) ? ` class="${v === B.D1 ? "" : "fail"}"` : ""}>${v}</button>`).join(""),
+      pick: (v, st) => {
+        st.tries++; bTried = bTried || new Set(); bTried.add(v);
+        if (v < B.D1calc - 1e-9) { st.cls = "bad"; st.msg = `${v} мм замалий: потрібно D₁ ≥ 35 · ∛M₁ = ${f(B.D1calc, 2)} мм, інакше колова сила завелика.`; }
+        else if (v > B.D1) { st.cls = "bad"; st.msg = `${v} мм проходить, але в ряду R40 є менший діаметр, який теж не менший за розрахунковий. Більший ролик тягне за собою більший диск D₂.`; }
+        else { st.done = true; st.cls = "ok"; st.msg = ""; }
+      } },
+    { id: "D2", short: "D₂, мм", lbl: "Діаметр диска D₂, мм",
+      form: "D₂ ≥ 2 · R_max + 0,2 · D₁, заокруглити вгору до ряду R40;   R_max = u_max · D₁ / 2",
+      ref: () => B.D2, show: () => `D₂ = ${B.D2} мм (розрахунковий ${f(B.D2calc, 1)} мм)` },
+    { id: "Fn", short: "F_n, Н", lbl: "Сила притискання F_n, Н",
+      form: "F_t = 2000 · M₁ / D₁;   F_n = K_з · F_t / f,   K_з = 1,25",
+      ref: () => B.Fn, show: () => `F_n = ${f(B.Fn, 1)} Н (F_t = ${f(B.Ft, 1)} Н)` },
+    { id: "b", short: "b ролика, мм", lbl: "Ширина ролика b, мм",
+      form: "b_min = 0,1747 · 2 · F_n · E_зв / (D₁ · [σ_H]²), E_зв = 13550 МПа; заокруглити вгору до цілого, але не менше 8 мм",
+      ref: () => B.b, show: () => `b = ${B.b} мм (b_min = ${f(B.bmin, 2)} мм), тоді σ_H = ${f(B.sigH, 1)} МПа` },
+  ];
 
   function Rnow() { return B.Rmin + (B.Rmax - B.Rmin) * val("bR") / 100; }
 
@@ -667,43 +940,53 @@ ${[50, 100, 150, 200].map(pc => { const k = pc / 100, ps = A.psi * k, sl = SIM.s
     const i = { M1: val("bM"), n1: val("bNn"), umin: val("bUmin"), umax: val("bUmax"), f: val("bF"), sH: val("bS") };
     if (!(i.M1 > 0 && i.n1 > 0 && i.umax > i.umin)) return;
     B = SIM.friction(i);
-    $("bHint").innerHTML = `D₁ = ${B.D1} мм (розрахунковий ${f(B.D1calc, 1)}); D₂ = ${B.D2} мм; діапазон регулювання Д = ${f(B.Draw, 2)}.`;
+    drawSolve("b", specB());
+    gate("b", done("b", "D1"));
+    $("bHint").innerHTML = done("b", "D1")
+      ? `D₁ = ${B.D1} мм; діапазон регулювання Д = ${f(B.Draw, 2)}.`
+      : "Діаметр ролика D₁ порахуйте й доберіть самі — пункти 1 і 2 нижче.";
+    if (!done("b", "D1")) return;
+    const q2 = x => mk("b", "D2", x), qn_ = x => mk("b", "Fn", x), qb = x => mk("b", "b", x);
+    const t2 = x => mkt("b", "D2", x), tn = x => mkt("b", "Fn", x), tb = x => mkt("b", "b", x);
     $("bOut").innerHTML =
-      row("D₁ / D₂, мм", B.D1 + " / " + B.D2) + row("R<sub>min</sub> / R<sub>max</sub>, мм", f(B.Rmin, 1) + " / " + f(B.Rmax, 1)) +
+      row("D₁ / D₂, мм", B.D1 + " / " + q2(B.D2)) + row("R<sub>min</sub> / R<sub>max</sub>, мм", f(B.Rmin, 1) + " / " + f(B.Rmax, 1)) +
       row("Діапазон регулювання Д", f(B.Draw, 2)) +
-      row("F<sub>t</sub> / F<sub>n</sub>, Н", f(B.Ft, 0) + " / " + f(B.Fn, 0)) +
-      row("E<sub>зв</sub>, МПа", f(B.Ezv, 0)) + row("b<sub>min</sub> / b, мм", f(B.bmin, 2) + " / " + B.b) +
-      row("σ<sub>H</sub>, МПа", f(B.sigH, 1)) +
+      row("F<sub>t</sub> / F<sub>n</sub>, Н", f(B.Ft, 0) + " / " + qn_(f(B.Fn, 0))) +
+      row("E<sub>зв</sub>, МПа", f(B.Ezv, 0)) + row("b<sub>min</sub> / b, мм", qb(f(B.bmin, 2) + " / " + B.b)) +
+      row("σ<sub>H</sub>, МПа", qb(f(B.sigH, 1))) +
       row("v₁ / v<sub>max</sub>, м/с", f(B.v1, 3) + " / " + f(B.vmax, 3)) +
       row("n₂ від / до, об/хв", f(B.n2min, 0) + " … " + f(B.n2max, 0)) +
       row("M₂ від / до, Н·м", f(B.M2min, 2) + " … " + f(B.M2max, 2)) +
       row("Отвори d<sub>в1</sub> / d<sub>в2</sub>, мм", B.dv1 + " / " + B.dv2);
     $("bChk").innerHTML = chk(B.checks);
     $("bKpis").innerHTML =
-      kpi("Ролик / диск", B.D1 + " / " + B.D2 + " мм") +
+      kpi("Ролик / диск", B.D1 + " / " + q2(B.D2 + " мм")) +
       kpi("Діапазон Д", f(B.Draw, 2)) +
       kpi("Радіуси R_min / R_max", f(B.Rmin, 0) + " / " + f(B.Rmax, 0) + " мм") +
       kpi("n₂ від / до", f(B.n2min, 0) + " … " + f(B.n2max, 0) + " об/хв");
     $("bFp").textContent =
-      `D_1   = ${B.D1} mm\nD_2   = ${B.D2} mm\nb_r   = ${B.b} mm\nR_min = ${d(B.Rmin, 2)} mm\n` +
+      `D_1   = ${B.D1} mm\nD_2   = ${t2(B.D2)} mm\nb_r   = ${tb(B.b)} mm\nR_min = ${d(B.Rmin, 2)} mm\n` +
       `R_max = ${d(B.Rmax, 2)} mm\nR_c   = ${d(B.Rmin, 2)} mm\ndvf_1 = ${B.dv1} mm\ndvf_2 = ${B.dv2} mm`;
     $("bPr").textContent = head("Б (лобовий фрикційний варіатор)") +
 `
+0. ЩО СТУДЕНТ ПОРАХУВАВ САМ
+${specB().map(q => `   ${q.short.padEnd(18)} — ${solHow("b", q.id)}`).join("\n")}
+
 1. ВХІДНІ ДАНІ
    M1 = ${g(val("bM"))} Н·м      n1 = ${g(val("bNn"))} об/хв
    u_min = ${g(val("bUmin"))}      u_max = ${g(val("bUmax"))}      f = ${g(val("bF"))}      [sH] = ${g(val("bS"))} МПа
 
 2. РОЗМІРИ
    D1 розрахунковий = ${f(B.D1calc, 1)} мм  ->  D1 = ${B.D1} мм (ряд R40)
-   D2 = ${B.D2} мм      R_min = ${f(B.Rmin, 1)} мм      R_max = ${f(B.Rmax, 1)} мм
+   D2 = ${t2(B.D2)} мм      R_min = ${f(B.Rmin, 1)} мм      R_max = ${f(B.Rmax, 1)} мм
    діапазон регулювання Д = ${f(B.Draw, 2)}
-   ширина ролика: b_min = ${f(B.bmin, 2)} мм  ->  b = ${B.b} мм
+   ширина ролика: b_min = ${tb(f(B.bmin, 2))} мм  ->  b = ${tb(B.b)} мм
    отвори: d_в1 = ${B.dv1}   d_в2 = ${B.dv2} мм
 
 3. СИЛИ Й КОНТАКТНЕ НАПРУЖЕННЯ
-   колова сила F_t = ${f(B.Ft, 0)} Н      сила притискання F_n = ${f(B.Fn, 0)} Н
+   колова сила F_t = ${f(B.Ft, 0)} Н      сила притискання F_n = ${tn(f(B.Fn, 0))} Н
    зведений модуль E_зв = ${f(B.Ezv, 0)} МПа
-   контактне напруження sigma_H = ${f(B.sigH, 1)} МПа при [sH] = ${g(val("bS"))} МПа
+   контактне напруження sigma_H = ${tb(f(B.sigH, 1))} МПа при [sH] = ${g(val("bS"))} МПа
 
 4. КІНЕМАТИКА
    v1 = ${f(B.v1, 3)} м/с      v_max у контакті = ${f(B.vmax, 3)} м/с
@@ -727,29 +1010,39 @@ ${[["R_min", B.Rmin], ["середина", (B.Rmin + B.Rmax) / 2], ["R_max", B.R
   }
 
   function frameB() {
-    if (!B) return;
-    const R = Rnow(), u = 2 * R / B.D1, phi = val("bPhi") * Math.PI / 180;
+    if (!B || !$("bSvg")) return;
+    const R = Rnow(), u = 2 * R / B.D1, phi = bAngle * Math.PI / 180;
     const r1 = B.D1 / 2, r2 = B.D2 / 2, th2 = phi / u;
     const tDisc = Math.max(B.D2 * 0.04, 6), gap = B.D2 * 0.55;
-    const mark = (cx, cy, r, th, col) => `<path d="M${cx} ${cy}L${(cx + r * 0.78 * Math.cos(th)).toFixed(2)} ${(cy + r * 0.78 * Math.sin(th)).toFixed(2)}" stroke="${col}" stroke-width="${(r * 0.08).toFixed(2)}" stroke-linecap="round"/>`;
+    const mark = (cx, cy, r, rHub, th, col) => [0, 1, 2, 3].map(k => {
+      const a = th + k * Math.PI / 2;
+      const x1 = cx + rHub * Math.cos(a), y1 = cy + rHub * Math.sin(a);
+      const x2 = cx + r * 0.85 * Math.cos(a), y2 = cy + r * 0.85 * Math.sin(a);
+      return `<line x1="${x1.toFixed(2)}" y1="${y1.toFixed(2)}" x2="${x2.toFixed(2)}" y2="${y2.toFixed(2)}" stroke="${col}" vector-effect="non-scaling-stroke" stroke-width="${k === 0 ? 3 : 1.8}" opacity="${k === 0 ? 0.95 : 0.45}" stroke-linecap="round"/>`;
+    }).join("") + `<circle cx="${cx}" cy="${cy}" r="${rHub.toFixed(2)}" fill="var(--surface-2)" stroke="${col}" vector-effect="non-scaling-stroke" stroke-width="1.2"/>`;
+    const rHub1 = Math.max(B.dv1 * 0.82, r1 * 0.22), rHub2 = Math.max(B.dv2 * 0.82, r2 * 0.14);
     /* вид збоку: диск із торця (вузький прямокутник), ролик — коло, що торкається його площини */
     const x0 = 0, yC = 0;
-    const roll = `<circle cx="${(x0 - tDisc / 2 - r1).toFixed(2)}" cy="${(-R).toFixed(2)}" r="${r1}" fill="var(--pin-fill)" stroke="var(--pin)" vector-effect="non-scaling-stroke" stroke-width="1.2"/>` +
-      mark(x0 - tDisc / 2 - r1, -R, r1, phi, "var(--pin)") +
-      `<circle cx="${(x0 - tDisc / 2 - r1).toFixed(2)}" cy="${(-R).toFixed(2)}" r="${B.dv1 / 2}" fill="var(--surface)" stroke="var(--muted)" vector-effect="non-scaling-stroke" stroke-width="1"/>`;
-    const disc = `<rect x="${(x0 - tDisc / 2).toFixed(2)}" y="${(-r2).toFixed(2)}" width="${tDisc}" height="${2 * r2}" fill="var(--wheel-fill)" stroke="var(--wheel)" vector-effect="non-scaling-stroke" stroke-width="1.2"/>`;
+    const roll = `<circle cx="${(x0 - tDisc / 2 - r1).toFixed(2)}" cy="${(-R).toFixed(2)}" r="${r1}" fill="var(--pin-fill)" stroke="var(--pin)" vector-effect="non-scaling-stroke" stroke-width="1.4"/>` +
+      mark(x0 - tDisc / 2 - r1, -R, r1, rHub1, phi, "var(--pin)") +
+      `<circle cx="${(x0 - tDisc / 2 - r1).toFixed(2)}" cy="${(-R).toFixed(2)}" r="${B.dv1 / 2}" fill="var(--surface)" stroke="var(--ink)" vector-effect="non-scaling-stroke" stroke-width="1.2"/>`;
+    const disc = `<rect x="${(x0 - tDisc / 2).toFixed(2)}" y="${(-r2).toFixed(2)}" width="${tDisc}" height="${2 * r2}" fill="var(--wheel-fill)" stroke="var(--wheel)" vector-effect="non-scaling-stroke" stroke-width="1.4"/>`;
     /* вид з торця: диск — велике коло, ролик — прямокутник на радіусі R */
     const cx2 = gap + r2 + r2 * 0.25;
-    const face = `<circle cx="${cx2.toFixed(2)}" cy="0" r="${r2}" fill="var(--wheel-fill)" stroke="var(--wheel)" vector-effect="non-scaling-stroke" stroke-width="1.2"/>` +
-      mark(cx2, 0, r2, th2, "var(--wheel)") +
-      `<circle cx="${cx2.toFixed(2)}" cy="0" r="${R.toFixed(2)}" fill="none" stroke="var(--bad)" stroke-dasharray="${(r2 * 0.05).toFixed(1)} ${(r2 * 0.03).toFixed(1)}" vector-effect="non-scaling-stroke" stroke-width="1"/>` +
-      `<rect x="${(cx2 - B.b / 2).toFixed(2)}" y="${(-R - r1).toFixed(2)}" width="${B.b}" height="${2 * r1}" fill="var(--pin-fill)" stroke="var(--pin)" vector-effect="non-scaling-stroke" stroke-width="1.2"/>` +
-      `<circle cx="${cx2.toFixed(2)}" cy="0" r="${B.dv2 / 2}" fill="var(--surface)" stroke="var(--muted)" vector-effect="non-scaling-stroke" stroke-width="1"/>`;
+    const face = `<circle cx="${cx2.toFixed(2)}" cy="0" r="${r2}" fill="var(--wheel-fill)" stroke="var(--wheel)" vector-effect="non-scaling-stroke" stroke-width="1.4"/>` +
+      mark(cx2, 0, r2, rHub2, th2, "var(--wheel)") +
+      `<circle cx="${cx2.toFixed(2)}" cy="0" r="${R.toFixed(2)}" fill="none" stroke="var(--bad)" stroke-dasharray="6 4" vector-effect="non-scaling-stroke" stroke-width="1.4"/>` +
+      `<rect x="${(cx2 - B.b / 2).toFixed(2)}" y="${(-R - r1).toFixed(2)}" width="${B.b}" height="${2 * r1}" fill="var(--pin-fill)" stroke="var(--pin)" vector-effect="non-scaling-stroke" stroke-width="1.4"/>` +
+      `<circle cx="${cx2.toFixed(2)}" cy="0" r="${B.dv2 / 2}" fill="var(--surface)" stroke="var(--ink)" vector-effect="non-scaling-stroke" stroke-width="1.2"/>`;
     const pad = r2 * 0.18;
     const xmin = x0 - tDisc / 2 - 2 * r1 - pad, xmax = cx2 + r2 + pad, ymax = r2 + pad + r2 * 0.12;
+    const gs = (r2 * 0.25).toFixed(1);
     $("bSvg").setAttribute("viewBox", `${xmin.toFixed(1)} ${(-ymax).toFixed(1)} ${(xmax - xmin).toFixed(1)} ${(2 * ymax).toFixed(1)}`);
     const fs = r2 * 0.09;
-    $("bSvg").innerHTML = disc + roll + face +
+    $("bSvg").innerHTML =
+      `<defs><pattern id="bGrid" width="${gs}" height="${gs}" patternUnits="userSpaceOnUse"><path d="M ${gs} 0 L 0 0 0 ${gs}" fill="none" stroke="var(--line)" stroke-width="0.6" vector-effect="non-scaling-stroke" opacity="0.5"/></pattern></defs>` +
+      `<rect x="${(xmin - 100).toFixed(0)}" y="${(-ymax - 100).toFixed(0)}" width="${(xmax - xmin + 200).toFixed(0)}" height="${(2 * ymax + 200).toFixed(0)}" fill="url(#bGrid)"/>` +
+      disc + roll + face +
       `<path d="M${(x0 - tDisc / 2 - 2 * r1 - pad * 0.5).toFixed(2)} 0H${(x0 + tDisc).toFixed(2)}" stroke="var(--ink)" stroke-dasharray="${(r2 * 0.05).toFixed(1)} ${(r2 * 0.03).toFixed(1)}" vector-effect="non-scaling-stroke" stroke-width="1" opacity=".45"/>` +
       `<path d="M${(x0 - tDisc).toFixed(2)} ${(-R).toFixed(2)}H${(x0 + tDisc * 1.6).toFixed(2)}" stroke="var(--bad)" vector-effect="non-scaling-stroke" stroke-width="1" opacity=".7"/>` +
       `<text x="${(x0 + tDisc * 1.8).toFixed(2)}" y="${(-R + fs * 0.35).toFixed(2)}" font-size="${fs.toFixed(1)}" fill="var(--bad)">R = ${f(R, 0)}</text>` +
@@ -765,6 +1058,7 @@ ${[["R_min", B.Rmin], ["середина", (B.Rmin + B.Rmax) / 2], ["R_max", B.R
   }
 
   function curveB() {
+    if (!B || !$("bCv")) return;
     if (!B) return;
     const W = 100, H = 44, L = 13, R = 12, T = 5, Bm = 10;
     const n1 = val("bNn"), M1 = val("bM");
@@ -797,7 +1091,8 @@ ${[["R_min", B.Rmin], ["середина", (B.Rmin + B.Rmax) / 2], ["R_max", B.R
     if (!bPlaying) return;
     if (!bLast) bLast = t;
     const dt = Math.min(t - bLast, 80); bLast = t;
-    $("bPhi").value = ((val("bPhi") + dt * 0.06) % 360).toFixed(2);
+    bAngle += dt * 0.06;
+    $("bPhi").value = ((bAngle % 360) + 360) % 360;
     frameB(); bRaf = requestAnimationFrame(tickB);
   }
   function stopB() { bPlaying = false; cancelAnimationFrame(bRaf); bLast = 0; $("bPlay").setAttribute("aria-pressed", "false"); $("bPlay").textContent = "▶ Обертати"; }
@@ -806,11 +1101,34 @@ ${[["R_min", B.Rmin], ["середина", (B.Rmin + B.Rmax) / 2], ["R_max", B.R
     $("bPlay").setAttribute("aria-pressed", String(bPlaying)); $("bPlay").textContent = bPlaying ? "❙❙ Пауза" : "▶ Обертати";
     if (bPlaying) { bLast = 0; bRaf = requestAnimationFrame(tickB); } else stopB();
   });
-  $("bPhi").addEventListener("input", frameB);
+  $("bPhi").addEventListener("input", () => {
+    const cur = ((bAngle % 360) + 360) % 360;
+    bAngle += val("bPhi") - cur;
+    frameB();
+  });
   $("bR").addEventListener("input", () => { frameB(); curveB(); });
-  ["bM", "bNn", "bUmin", "bUmax", "bF", "bS"].forEach(id => $(id).addEventListener("input", calcB));
+  ["bM", "bNn", "bUmin", "bUmax", "bF", "bS"].forEach(id =>
+    $(id).addEventListener("input", () => { solReset("b"); bTried = null; calcB(); }));
+  solBind("b", specB);
   copy($("bCopy"), $("bFp"));
 
+  $("unlockBtn").addEventListener("click", () => {
+    const pwd = prompt("Введіть пароль викладача для відкриття розв'язку:");
+    if (pwd === null) return;
+    const s = pwd.trim() + "dm_unum_salt";
+    let h = 0x811c9dc5;
+    for (let i = 0; i < s.length; i++) {
+      h ^= s.charCodeAt(i);
+      h = Math.imul(h, 0x01000193) >>> 0;
+    }
+    if (h !== 3102783417) {
+      alert("Невірний пароль!");
+      return;
+    }
+    specA().forEach(q => { const st = sv("a", q.id); st.done = true; });
+    specB().forEach(q => { const st = sv("b", q.id); st.done = true; });
+    calcA(); calcB();
+  });
   calcA(); calcB();
 })();
 </script>
