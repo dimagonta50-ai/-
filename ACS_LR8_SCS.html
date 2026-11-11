@@ -1,0 +1,1550 @@
+<!DOCTYPE html>
+<html lang="uk"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Симулятор системи керування обприскувачем — ЛР №8</title>
+<style>
+:root{--bg:#ECEFE8;--pn:#FFFFFF;--pn2:#F5F7F2;--ink:#1C231D;--sub:#56635A;--ln:#D3DBD0;--ac:#2F6B3A;--aci:#FFFFFF;--wn:#B4412C;--am:#A66A00;--sky:#DDEAF0;--trk:#3F7D49;--trk2:#2C5B34;--stl:#59646B;--tyre:#22262A;--rim:#C9CFC6;--gls:#A9C9D6;--db:#14180F;--df:#FFB000;--dd:#8A6300;
+ --soil:#A98763;--soil2:#8A6A4C;--liq:#2F7FA8;--liq2:#1B5A7A;--liql:#CBE3EF;--boom:#5A646B;--spray:#7FB8D4;--drop:#2F7FA8;--leaf:#5E8A3F;--hose:#3B4147;--sown:#7FA86A;--hot:#C94A2E;--warn2:#8E44AD;--done:#6F9C58;--over:#C07C2A;--idle:#CFD6CA;--tank:#9FC4D8;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#12150F;--pn:#1C2118;--pn2:#161A12;--ink:#ECEFE7;--sub:#A5AF9F;--ln:#343D2D;--ac:#77B76B;--aci:#0E130B;--wn:#E3705A;--am:#E2A93B;--sky:#18222A;--trk:#5E9E62;--trk2:#3F7446;--stl:#8C979D;--tyre:#0B0D0E;--rim:#7E877C;--gls:#3C5B68;--db:#0B0D08;--df:#FFC233;--dd:#6E4E00;
+ --soil:#5C4733;--soil2:#44341F;--liq:#5FA8CC;--liq2:#8CC6E0;--liql:#1D3240;--boom:#8C979D;--spray:#4E88A6;--drop:#6FB5D6;--leaf:#6E9A4F;--hose:#7A848C;--sown:#5E8A4A;--hot:#E3705A;--warn2:#B573D0;--done:#5E8A4A;--over:#D8A24C;--idle:#3A4237;--tank:#2A4A5C}}
+:root[data-theme="dark"]{--bg:#12150F;--pn:#1C2118;--pn2:#161A12;--ink:#ECEFE7;--sub:#A5AF9F;--ln:#343D2D;--ac:#77B76B;--aci:#0E130B;--wn:#E3705A;--am:#E2A93B;--sky:#18222A;--trk:#5E9E62;--trk2:#3F7446;--stl:#8C979D;--tyre:#0B0D0E;--rim:#7E877C;--gls:#3C5B68;--db:#0B0D08;--df:#FFC233;--dd:#6E4E00;--soil:#5C4733;--soil2:#44341F;--liq:#5FA8CC;--liq2:#8CC6E0;--liql:#1D3240;--boom:#8C979D;--spray:#4E88A6;--drop:#6FB5D6;--leaf:#6E9A4F;--hose:#7A848C;--sown:#5E8A4A;--hot:#E3705A;--warn2:#B573D0;--done:#5E8A4A;--over:#D8A24C;--idle:#3A4237;--tank:#2A4A5C}
+html{scroll-padding-top:env(safe-area-inset-top,0px);height:100%}*{box-sizing:border-box}
+body{margin:0;min-height:100%;background:var(--bg);color:var(--ink);font:15px/1.5 -apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;-webkit-text-size-adjust:100%}
+.w{max-width:1240px;margin:0 auto;padding:14px 14px 48px}
+.top{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:10px}
+.top h1{font-size:1.12rem;line-height:1.25;margin:0;font-weight:700;letter-spacing:-.01em}.top h1 small{display:block;font-weight:400;font-size:.8rem;color:var(--sub);letter-spacing:0}
+.tools{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.chip{font-size:.78rem;border:1px solid var(--ln);border-radius:99px;padding:3px 10px;color:var(--sub);background:var(--pn)}
+.bn{border:1px solid var(--am);background:color-mix(in srgb,var(--am) 12%,var(--pn));border-radius:10px;padding:10px 14px;margin-bottom:12px;font-size:.9rem;display:flex;gap:10px 16px;align-items:center;justify-content:space-between;flex-wrap:wrap}
+.lay{display:grid;grid-template-columns:218px minmax(0,1fr) 232px;gap:14px;align-items:start}
+@media(max-width:1020px){.lay{grid-template-columns:206px minmax(0,1fr)}aside{grid-column:1/-1;position:static!important}}
+@media(max-width:760px){.lay{grid-template-columns:minmax(0,1fr)}}
+nav{display:flex;flex-direction:column;gap:4px;position:sticky;top:10px}
+@media(max-width:760px){nav{flex-direction:row;overflow-x:auto;position:static;padding-bottom:4px}}
+nav button{border:1px solid var(--ln);background:var(--pn);color:var(--sub);padding:7px 9px;border-radius:8px;font:inherit;font-size:.8rem;text-align:left;cursor:pointer;white-space:nowrap;display:flex;gap:7px;align-items:center}
+nav button i{flex:none;width:9px;height:9px;border-radius:50%;border:1.5px solid var(--sub);display:block}
+nav button i.ok{background:var(--ac);border-color:var(--ac)}nav button i.pt{background:linear-gradient(90deg,var(--am) 50%,transparent 50%);border-color:var(--am)}
+nav button.on{border-color:var(--ac);color:var(--ink);font-weight:700;box-shadow:inset 3px 0 0 var(--ac)}nav button:disabled{opacity:.4;cursor:not-allowed}
+nav button.lab{margin-top:8px;border-style:dashed}
+main{background:var(--pn);border:1px solid var(--ln);border-radius:12px;padding:18px 20px;min-height:340px;min-width:0}
+@media(max-width:760px){main{padding:14px 12px}}
+main h2{margin:0 0 4px;font-size:1.1rem;line-height:1.3}main h3{font-size:.98rem;margin:20px 0 6px}
+.hint,.note{color:var(--sub);font-size:.86rem;margin:4px 0 12px}.note{margin:6px 0}
+label{display:block;font-size:.84rem;margin:11px 0 3px;color:var(--sub)}
+input[type=text],input[type=number],select{width:100%;padding:8px 10px;border:1px solid var(--ln);border-radius:8px;background:var(--pn2);color:var(--ink);font:inherit;font-size:.95rem}
+input[type=range]{width:100%;accent-color:var(--ac);margin:2px 0}
+input[type=checkbox]{accent-color:var(--ac);width:16px;height:16px}
+:focus-visible{outline:2px solid var(--ac);outline-offset:2px}
+.r2{display:grid;grid-template-columns:1fr 1fr;gap:12px}.r3{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+@media(max-width:560px){.r3{grid-template-columns:1fr 1fr}.r2{grid-template-columns:minmax(0,1fr)}}
+@media(max-width:420px){.r3{grid-template-columns:minmax(0,1fr)}}
+button.p,button.g{border:1px solid var(--ac);border-radius:8px;padding:8px 14px;font:inherit;font-size:.9rem;cursor:pointer;margin:4px 4px 4px 0}
+button.p{background:var(--ac);color:var(--aci);font-weight:600}button.g{background:none;color:var(--ac)}button:disabled{opacity:.4;cursor:not-allowed}
+button.sm{padding:4px 10px;font-size:.8rem;margin:0}button.g.on{background:color-mix(in srgb,var(--ac) 16%,transparent);font-weight:600}
+.nb{display:flex;justify-content:space-between;margin-top:20px}
+aside{background:var(--db);border-radius:12px;padding:13px 15px;font:.8rem/1.6 ui-monospace,SFMono-Regular,Consolas,monospace;color:var(--df);position:sticky;top:10px}
+aside .d{display:flex;justify-content:space-between;gap:8px;border-bottom:1px dashed var(--dd);padding:2px 0}aside .t{color:var(--dd);font-size:.7rem;margin-bottom:6px;letter-spacing:.04em}
+aside .d span:last-child{text-align:right}aside .al{color:#FF7A5C}
+.t2{width:100%;border-collapse:collapse;font-size:.86rem;margin:8px 0}.t2 th,.t2 td{border:1px solid var(--ln);padding:6px 8px;text-align:left;vertical-align:top}.t2 th{width:32%;background:var(--pn2);font-weight:600}
+.t2.c td,.t2.c th{text-align:center;width:auto}.tw{overflow-x:auto}
+.rb{border:1px dashed var(--ac);border-radius:8px;padding:9px 12px;margin-top:14px;font-size:.86rem}
+.bd{display:inline-block;padding:2px 9px;border-radius:99px;font-size:.78rem;font-weight:600;background:color-mix(in srgb,var(--ac) 18%,transparent);color:var(--ac)}.bd.w{background:color-mix(in srgb,var(--wn) 18%,transparent);color:var(--wn)}.bd.a{background:color-mix(in srgb,var(--am) 20%,transparent);color:var(--am)}
+.big{font-size:1.5rem;font-weight:700;color:var(--ac);font-variant-numeric:tabular-nums}
+.sx{overflow-x:auto}.fig .sx>svg,.sx>svg{min-width:540px}
+.fig{background:var(--pn2);border:1px solid var(--ln);border-radius:10px;margin:8px 0;overflow:hidden}.fig svg{display:block;width:100%;height:auto}
+.cap{font-size:.78rem;color:var(--sub);padding:5px 10px 7px;border-top:1px solid var(--ln)}
+.ch{position:relative;margin:8px 0;background:var(--pn2);border:1px solid var(--ln);border-radius:10px;touch-action:pan-y}.ch svg{display:block;width:100%;cursor:crosshair}
+.ch text,.fig text{font-family:inherit}
+.tip{position:absolute;top:6px;pointer-events:none;background:var(--pn);border:1px solid var(--ln);border-radius:6px;padding:4px 8px;font-size:.74rem;line-height:1.35;white-space:nowrap;box-shadow:0 2px 8px rgba(0,0,0,.15);display:none;z-index:2}
+.gs{display:grid;grid-template-columns:repeat(auto-fit,minmax(144px,1fr));gap:8px;margin:0 0 8px}@media(max-width:420px){.gs{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.gt{border:1px solid var(--ln);border-radius:8px;padding:6px 8px;background:var(--pn2);min-width:0}.gt b{display:block;font-size:1.05rem;font-variant-numeric:tabular-nums;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.gt span{display:block;font-size:.7rem;color:var(--sub);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mt{position:relative;height:7px;background:var(--ln);border-radius:4px;margin-top:4px;overflow:hidden}.mt i{position:absolute;top:0;bottom:0;left:0;background:var(--ac);border-radius:4px}.mt u{position:absolute;top:0;bottom:0;width:2px;background:var(--ink)}.mt s{position:absolute;top:0;bottom:0;background:color-mix(in srgb,var(--ac) 35%,transparent)}
+.pvw{display:grid;grid-template-columns:320px minmax(0,1fr);gap:10px;align-items:start}.pvw .fig{margin:0}@media(max-width:760px){.pvw{grid-template-columns:minmax(0,1fr)}.pvw .fig.lp{max-width:360px}}
+.pc{display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin:6px 0}.pc input[type=range]{flex:1;min-width:120px}.pc select{width:auto;padding:4px 8px;font-size:.82rem}
+.bar{display:flex;align-items:center;gap:8px;font-size:.84rem;margin:3px 0}.bar i{display:block;height:9px;background:var(--ac);border-radius:5px}.bar span{width:186px;flex:none}@media(max-width:560px){.bar span{width:120px}}
+details{margin-bottom:10px;font-size:.86rem}summary{cursor:pointer;color:var(--ac)}
+.inf{border-left:3px solid var(--ac);background:var(--pn2);border-radius:0 8px 8px 0;padding:6px 14px;margin:10px 0 14px;font-size:.87rem}.inf summary{font-weight:700;color:var(--ac);margin-bottom:4px}.inf p,.inf ul{margin:6px 0}.inf ul{padding-left:20px}
+.gg{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin:10px 0}@media(max-width:700px){.gg{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.gc{border:1px solid var(--ln);border-radius:10px;padding:8px;background:var(--pn2);text-align:center}.gc svg{width:100%;height:auto;display:block}.gc b{font-size:.84rem;display:block;margin:2px 0}.gc small{color:var(--sub);display:block;font-size:.74rem;margin-bottom:6px}.gc select{font-size:.84rem;padding:5px 6px}
+.lab-g{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:4px 18px}@media(max-width:620px){.lab-g{grid-template-columns:minmax(0,1fr)}}
+.lab-g label{margin:6px 0 0}.kv{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin:10px 0}@media(max-width:620px){.kv{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.kv div{border:1px solid var(--ln);border-radius:8px;padding:6px 8px;background:var(--pn2)}.kv b{display:block;font-size:1.05rem;font-variant-numeric:tabular-nums}.kv span{font-size:.72rem;color:var(--sub)}.kv em{font-style:normal;font-size:.74rem;display:block}.up{color:var(--wn)}.dn{color:var(--ac)}
+.concl{border-radius:8px;padding:9px 12px;background:color-mix(in srgb,var(--ac) 10%,var(--pn));border:1px solid color-mix(in srgb,var(--ac) 40%,var(--ln));font-size:.9rem;margin:8px 0}.concl ul{margin:4px 0;padding-left:18px}
+.ok{color:var(--ac);font-weight:700}.no{color:var(--wn);font-weight:700}
+.sta{display:inline-block;min-width:118px;text-align:center;padding:2px 8px;border-radius:6px;font-weight:700;font-size:.82rem;color:#fff}
+.hs{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(0,1fr);gap:10px;align-items:start}@media(max-width:700px){.hs{grid-template-columns:minmax(0,1fr)}}
+.sen{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:8px 0}@media(max-width:560px){.sen{grid-template-columns:minmax(0,1fr)}}
+.sen button{border:1.5px solid var(--ln);border-radius:10px;background:var(--pn2);color:var(--ink);font:inherit;font-size:.8rem;padding:6px;cursor:pointer;text-align:center}.sen button.on{border-color:var(--ac);box-shadow:inset 0 0 0 1.5px var(--ac)}.sen button svg{display:block;width:100%;height:auto;max-width:210px;margin:0 auto}.sen button b{display:block;font-size:.88rem}.sen button small{color:var(--sub);display:block}
+.tlg{display:flex;flex-wrap:wrap;gap:4px 14px;font-size:.78rem;color:var(--sub);padding:4px 10px 8px}.tlg i{display:inline-block;width:11px;height:11px;border-radius:2px;margin-right:4px;vertical-align:-1px}
+.rows{display:grid;grid-template-columns:repeat(auto-fit,minmax(104px,1fr));gap:6px;margin:8px 0}
+.rw{border:1px solid var(--ln);border-radius:8px;padding:5px 7px;background:var(--pn2);font-size:.78rem;cursor:pointer;text-align:left}
+.rw.al{border-color:var(--wn);background:color-mix(in srgb,var(--wn) 12%,var(--pn2))}.rw.se{outline:2px solid var(--ink);outline-offset:1px}
+.rw b{display:block;font-size:.84rem}.rw span{color:var(--sub);font-size:.72rem;display:block}
+.sg{display:flex;gap:4px;flex-wrap:wrap;margin:6px 0}.sg button{flex:1 1 56px;border:1px solid var(--ln);border-radius:6px;background:var(--pn2);color:var(--ink);font:inherit;font-size:.76rem;padding:4px 2px;cursor:pointer}
+.sg button.on{border-color:var(--ac);background:color-mix(in srgb,var(--ac) 18%,var(--pn2));font-weight:700}.sg button.off{border-color:var(--wn);background:color-mix(in srgb,var(--wn) 18%,var(--pn2))}
+.wm{display:none}
+@media print{nav,.nb,aside,.np,.top .tools,.bn{display:none!important}.tw,.sx{overflow:visible}.tw svg,.sx>svg,.fig .sx>svg{min-width:0!important}.lay{display:block}main{border:0;padding:0}body{background:#fff;color:#000}.wm{display:block;font-size:1.3rem;font-weight:700;color:#B4412C;border:2px solid #B4412C;padding:6px 12px;margin:0 0 10px;text-align:center}.ch,.fig,.tw,.bar,tr{break-inside:avoid}h2,h3{break-after:avoid}*{-webkit-print-color-adjust:exact;print-color-adjust:exact}details>summary{list-style:none}}
+@media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important}}
+</style></head><body><div class="w">
+<header class="top"><h1>Симулятор системи керування обприскувачем<small>Пульт керування, дозування, секційні клапани, штанга і знесення. Лабораторна робота №8</small></h1>
+<div class="tools"><span class="chip" id="chip"></span><button class="g sm" id="thb" onclick="theme()" title="Перемкнути тему">Тема: авто</button></div></header>
+<div id="bn"></div>
+<div class="lay"><nav id="nv" aria-label="Кроки роботи"></nav><main id="mn"></main><aside id="ds" aria-label="Термінал обприскувача в кабіні"></aside></div></div>
+
+<script>
+/* Симулятор до лабораторної роботи №8.
+   Автоматичні системи керування машинами для захисту рослин:
+   пульт керування штангового обприскувача, дозування, секції, штанга й знесення.
+   Один файл, без зовнішніх бібліотек і шрифтів; працює без мережі. */
+const KEY='lr8v1',TKEY='lr8theme';
+/* ===== Модель системи керування обприскувачем (ЛР №8) =====
+   Основа — два співвідношення, які виводяться в методичці:
+     q(p) = q_ном · √(p / 3)             витрата розпилювача, л/хв (p у барах)
+     Q    = 600 · q / (v · a)            норма внесення, л/га
+   Решта (знесення, поперечний розподіл, компенсація тиску) побудована на них. */
+const cl=(x,a,b)=>Math.max(a,Math.min(b,x)),f1=x=>Math.round(x*10)/10,f2=x=>Math.round(x*100)/100,
+      n=x=>{const v=parseFloat(String(x).replace(',','.'));return isNaN(v)?null:v};
+function hash(s){let h=2166136261;for(const c of s){h^=c.charCodeAt(0);h=Math.imul(h,16777619)}return h>>>0}
+function rng(a){return()=>{a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
+const gs=r=>(r()+r()+r()-1.5)*2;            /* нормальний розподіл, одинична дисперсія */
+
+/* --- Розпилювачі за ISO 10625: код типорозміру, колір, номінальна витрата при 3 бар --- */
+const TIP=[{c:'01',col:'помаранчевий',q:0.40,hex:'#E8762C'},
+           {c:'015',col:'зелений',    q:0.60,hex:'#3C9A48'},
+           {c:'02', col:'жовтий',     q:0.80,hex:'#E3B617'},
+           {c:'025',col:'бузковий',   q:1.00,hex:'#9B6FBF'},
+           {c:'03', col:'синій',      q:1.20,hex:'#2B6CB0'},
+           {c:'04', col:'червоний',   q:1.60,hex:'#C0392B'},
+           {c:'05', col:'коричневий', q:2.00,hex:'#8A5A2B'},
+           {c:'06', col:'сірий',      q:2.40,hex:'#7F8C8D'}];
+/* --- Типи розпилювачів: kd — у скільки разів крупніша крапля за щілинний стандартний --- */
+const NOZ=[{t:'Щілинний стандартний',  ab:'ST', kd:1.00,pmin:1.5,pmax:5.0},
+           {t:'Щілинний антизносний',  ab:'AD', kd:1.28,pmin:1.5,pmax:5.0},
+           {t:'Інжекторний компактний',ab:'IDK',kd:1.72,pmin:2.0,pmax:8.0},
+           {t:'Інжекторний подовжений',ab:'ID', kd:2.05,pmin:2.0,pmax:8.0}];
+/* --- Категорії крапель за ASABE S572.1 (межі за медіанним діаметром, мкм) --- */
+const DCAT=[[0,145,'дуже дрібна','VF','#C0392B'],[145,225,'дрібна','F','#E8762C'],
+            [225,325,'середня','M','#E3B617'],[325,400,'груба','C','#2B6CB0'],
+            [400,500,'дуже груба','VC','#3C9A48'],[500,650,'надгруба','XC','#7F8C8D'],
+            [650,1e4,'ультрагруба','UC','#2C3E50']];
+const dcat=d=>DCAT.find(x=>d>=x[0]&&d<x[1])||DCAT[DCAT.length-1];
+
+/* --- Обприскувачі --- */
+/* Кількість секцій підібрано так, щоб на кожну припадала ціла кількість
+   розпилювачів: B / a має ділитися на N без остачі. */
+const SPR=[{p:'Amazone UX 4200 Super',B:24,N:6,tank:4200,pump:260,ang:110},
+           {p:'Hardi Navigator 4000',  B:24,N:4,tank:4000,pump:180,ang:110},
+           {p:'John Deere R4040i',     B:30,N:5,tank:4000,pump:380,ang:110},
+           {p:'Horsch Leeb 5 LT',      B:30,N:6,tank:5000,pump:400,ang:110},
+           {p:'Berthoud Tenor 4500',   B:28,N:7,tank:4500,pump:260,ang:110},
+           {p:'Lemken Albatros 9/4500',B:27,N:6,tank:4500,pump:300,ang:80}];
+const TRK=['John Deere 6155M','Fendt 724 Vario','New Holland T7.215','Case IH Puma 185','Deutz-Fahr 6185'];
+/* --- Види обробки: норма внесення і потрібний діапазон медіанного діаметра краплі --- */
+const OPS=[{o:'Ґрунтове внесення до сходів',       Q:[200,300],d:[325,550],why:'покриття не критичне, знесення критичне'},
+           {o:'Післясходове внесення системного препарату',Q:[100,200],d:[250,450],why:'препарат переміщується в рослині'},
+           {o:'Обробка по вегетації контактним препаратом',Q:[200,300],d:[180,300],why:'потрібне щільне покриття листка'},
+           {o:'Обробка по вегетації проти шкідників',Q:[100,200],d:[200,350],why:'покриття по всій висоті рослини'}];
+const CROP=['пшениця озима','кукурудза','соняшник','ріпак озимий','соя'];
+
+/* --- Основні співвідношення --- */
+const PNOM=3,                                        /* номінальний тиск ISO, бар */
+      DBAND=0.20;                                    /* смуга компенсації пропорційного клапана */
+const qOf=(qn,p)=>qn*Math.sqrt(p/PNOM);              /* витрата розпилювача, л/хв */
+const pOf=(qn,q)=>PNOM*Math.pow(q/qn,2);             /* обернено: потрібний тиск, бар */
+const rate=(q,v,a)=>600*q/(v*a);                     /* норма внесення, л/га */
+const qNeed=(Q,v,a)=>Q*v*a/600;                      /* потрібна витрата розпилювача, л/хв */
+/* медіанний діаметр краплі: зростає з типорозміром, спадає з тиском */
+const vmd=(nz,qn,p)=>Math.round(215*nz.kd*Math.pow(PNOM/p,1/3)*Math.pow(qn/0.8,0.22));
+/* оптимальна висота штанги над обробленою поверхнею, м */
+const hOpt=ang=>ang>=110?0.50:0.75;
+
+function mkV(r_){const R=rng(hash([r_.group,r_.name,r_.num].join('|').toLowerCase().replace(/\s+/g,' '))),
+ pk=a=>a[Math.floor(R()*a.length)],ri=(a,b)=>Math.round(a+R()*(b-a)),rf=(a,b)=>a+R()*(b-a);
+const sp=pk(SPR),op=pk(OPS),trk=pk(TRK),crop=pk(CROP),
+ a=0.5,                                              /* крок розпилювачів на штанзі, м */
+ nNoz=Math.round(sp.B/a),
+ Qp=ri(op.Q[0]/10,op.Q[1]/10)*10,                    /* планова норма внесення, л/га */
+ vp=f1(rf(7,12));                                    /* планова швидкість, км/год */
+const V={a:sp,trk,crop,op:op.o,opWhy:op.why,dmin:op.d[0],dmax:op.d[1],
+ aNoz:a,nNoz,B:sp.B,Nsec:sp.N,tank:sp.tank,pump:sp.pump,ang:sp.ang,
+ hOpt:hOpt(sp.ang),Qp,vp,
+ wind:f1(rf(1.5,4.8)),                               /* швидкість вітру, м/с */
+ Tg:f2(rf(.18,.32)),                                 /* запізнення приймача GNSS, с */
+ Tv:f2(rf(.12,.28)),                                 /* спрацювання секційного клапана, с */
+ S:ri(180,460),                                      /* площа поля для проходу, га */
+ sigV:f1(rf(9,16)),                                  /* типове коливання робочої швидкості в загінці, % */
+ wedge:f1(rf(4,11)),                                 /* перекриття без секційного вимикання, % */
+ pres:f1(rf(.8,2.0)),                                /* залишкове перекриття із системою, % */
+ Cprep:ri(600,1800),                                 /* вартість препарату, грн/га */
+ id:'В-'+(hash(r_.group+r_.name+r_.num+'#id')%9000+1000)};
+/* час проходження рідини магістраллю від клапана до розпилювача */
+V.L=Math.round(Math.sqrt(V.S*1e4)*rf(.7,1.4)/50)*50;   /* довжина гону, м */
+/* річний обсяг обробок: площа господарства, помножена на кількість обробок за сезон.
+   Прив’язаний до ширини захвату — ширшу машину беруть під більший обсяг. */
+V.Sy=Math.round(sp.B*rf(60,140)/50)*50;
+/* вартість системи автоматики зростає з кількістю секцій і шириною штанги */
+V.Csys=Math.round((120+sp.N*22+sp.B*2.5)*rf(.88,1.14))*1000;
+V.Tl=f2(0.10+V.B/300);
+V.Tz=f2(V.Tg+V.Tv+V.Tl);
+V.nSec=V.nNoz/V.Nsec;                                /* ціле за побудовою таблиці SPR */
+V.ncr=Math.round(2*V.S*1e4/(V.B*V.L)*(1+V.wedge/20));   /* перетинів межі за поле */                    /* розпилювачів у секції */
+/* приховані несправності */
+const fl={wear:R()<.60?ri(1,V.Nsec):0,              /* зношені розпилювачі секції */
+          block:R()<.50?ri(1,V.Nsec):0,             /* частково забитий розпилювач */
+          cal:R()<.65?f1(rf(4,9))*(R()<.5?-1:1):0,  /* похибка витратоміра, % */
+          comp:R()<.45?ri(1,V.Nsec):0};             /* нерегульований компенсаційний клапан */
+if(fl.block==fl.wear&&fl.wear)fl.block=fl.block%V.Nsec+1;
+if(fl.comp==fl.wear||fl.comp==fl.block)fl.comp=0;
+V.fl=fl;
+V.wearK=f2(rf(1.12,1.22));                           /* у скільки разів більше дає зношений */
+V.blockK=f2(rf(.76,.86));                            /* і менше — частково забитий */
+V.ideal=idealQ(V);
+return V}
+
+/* --- Рекомендовані (еталонні) налаштування варіанта --- */
+function idealQ(V){
+ /* розпилювач: найменший типорозмір, що дає потрібний тиск у робочому діапазоні
+    і медіанний діаметр краплі в потрібних межах */
+ let best=null;
+ for(const nz of NOZ)for(const t of TIP){
+  const q=qNeed(V.Qp,V.vp,V.aNoz),p=pOf(t.q,q);
+  if(p<nz.pmin||p>nz.pmax)continue;
+  const d=vmd(nz,t.q,p);
+  if(d<V.dmin||d>V.dmax)continue;
+  /* з допустимих обираємо найгрубшу краплю: вона менше зноситься вітром */
+  const aim=V.dmin+0.78*(V.dmax-V.dmin),score=Math.abs(d-aim)/aim+Math.abs(p-3)/8;
+  if(!best||score<best.score)best={nz,t,p:f1(p),d,score}}
+ if(!best){const t=TIP[2],nz=NOZ[1],q=qNeed(V.Qp,V.vp,V.aNoz);
+  best={nz,t,p:f1(cl(pOf(t.q,q),1.5,5)),d:vmd(nz,t.q,3),score:9}}
+ return{tip:best.t.c,noz:best.nz.ab,p:best.p,h:V.hOpt,dose:'швидкість',sec:1,comp:1,d:best.d}}
+
+/* --- Поточні налаштування --- */
+const tipOf=c=>TIP.find(x=>x.c==c)||TIP[2];
+const nozOf=ab=>NOZ.find(x=>x.ab==ab)||NOZ[0];
+
+/* --- Гідравліка пульта керування ---
+   Qs — набір: tip, noz, p (задана уставка тиску), v, dose, open[] (відкриті секції),
+   comp (компенсаційні клапани працюють), h (висота штанги) */
+function hyd(V,Q){const t=tipOf(Q.tip),nz=nozOf(Q.noz),
+ nOpen=Q.open?Q.open.filter(Boolean).length:V.Nsec,
+ nAll=V.Nsec;
+let p;
+if(Q.dose=='швидкість'){                             /* DPA: комп’ютер тримає норму */
+ const q=qNeed(V.Qp,Q.v,V.aNoz);p=pOf(t.q,q)}
+else if(Q.dose=='оберти'){
+ /* пропорційний клапан стежить за подачею насоса, а та — за обертами вала.
+    Поки швидкість змінюється в межах ±20 % від планової, компенсація повна;
+    за цими межами клапан виходить на упор і далі норма «пливе», як при постійному тиску. */
+ const q=qNeed(V.Qp,V.vp,V.aNoz),k=cl(Q.v/V.vp,1-DBAND,1+DBAND);
+ p=pOf(t.q,q)*k*k}
+else p=Q.p;                                          /* постійний тиск: що виставили, те й є */
+/* вимикання секцій без компенсації: той самий потік насоса на меншу кількість розпилювачів */
+const kComp=(Q.comp&&!Q.badComp)?1:Math.pow(nAll/Math.max(1,nOpen),2);
+p=p*kComp;
+p=cl(p,0.3,12);
+const q=qOf(t.q,p),                                  /* витрата справного розпилювача, л/хв */
+ Qtot=f1(q*V.nSec*nOpen),                            /* витрата штанги, л/хв */
+ Qact=f1(rate(q,Q.v,V.aNoz)),                        /* фактична норма внесення, л/га */
+ d=vmd(nz,t.q,p);
+return{p:f2(p),q:f2(q),Qtot,Qact,d,cat:dcat(d),nOpen,
+ over:nz.pmax&&p>nz.pmax,under:p<nz.pmin,
+ pumpOver:Qtot>V.pump,t,nz}}
+
+/* --- Пролив: фактична витрата кожної секції з урахуванням несправностей --- */
+function secFlow(V,Q,h){const out=[];
+ for(let s=1;s<=V.Nsec;s++){
+  const open=!Q.open||Q.open[s-1],
+   wear=(V.fl.wear==s&&!Q.fixWear)?V.wearK:1,
+   blk =(V.fl.block==s&&!Q.fixBlock)?V.blockK:1;
+  /* розпилювачі секції зношуються разом (їх і міняють секцією), тому зношення
+     зміщує всю секцію; забивається ж один розпилювач, і в середньому по секції
+     це майже непомітно — знайти його можна лише проливом кожного розпилювача */
+  const k=wear*(1+(blk-1)/V.nSec);
+  out.push({s,open,k:f2(k),q:f2(h.q*wear),Qs:f1(h.q*k*V.nSec),
+   wear:wear!=1?1:0,block:blk!=1?1:0,blkQ:blk!=1?f2(h.q*wear*blk):0})}
+return out}
+
+/* --- Пролив окремих розпилювачів обраної секції, л/хв --- */
+function nozFlow(V,Q,h,sec){const r=rng(hash(V.id+'n'+sec)),out=[],
+ wear=(V.fl.wear==sec&&!Q.fixWear)?V.wearK:1,
+ blkPos=V.fl.block==sec&&!Q.fixBlock?1+Math.floor(r()*V.nSec):0;
+for(let i=1;i<=V.nSec;i++){
+ const k=wear*(i==blkPos?V.blockK:1)*(1+0.012*gs(r));   /* ±1,2 % природний розкид */
+ out.push({i,q:f2(h.q*k),blk:i==blkPos})}
+return out}
+
+/* --- Поперечний розподіл під штангою: CV, % --- */
+function boomCV(V,Q,rows){const h=Q.h??V.hOpt,ho=V.hOpt,
+ low=Math.max(0,(ho-h)/ho),high=Math.max(0,(h-ho)/ho);
+let cv=4+70*Math.pow(low,1.7)+18*Math.pow(high,1.6);
+for(const r of rows||[]){if(r.wear)cv+=2.6;if(r.block)cv+=6.2}
+ /* висока швидкість розгойдує штангу */
+ cv+=Math.max(0,(Q.v-12))*0.8;
+return f1(cl(cv,3,60))}
+
+/* --- Знесення, % від норми внесення --- */
+function drift(V,Q,d){const h=Q.h??V.hOpt,w=Q.wind??V.wind;
+ return f1(cl(2.4*Math.pow(Math.max(.3,w)/3,1.6)*Math.pow(250/Math.max(60,d),2.1)*Math.pow(h/V.hOpt,0.8),0,60))}
+/* ширина буферної зони, м */
+const buffer=dr=>Math.round(cl(3*dr,0,60));
+
+/* --- Пробний прохід --- */
+function pass(V,Q){const h=hyd(V,Q),rows=secFlow(V,Q,h),
+ cv=boomCV(V,Q,rows),dr=drift(V,Q,h.d),
+ /* фактична норма з урахуванням несправностей секцій */
+ kAvg=rows.filter(r=>r.open).reduce((a,b)=>a+b.k,0)/Math.max(1,h.nOpen),
+ /* похибка витратоміра переходить у норму лише в режимі «пропорційно швидкості» */
+ kCal=(Q.dose=='швидкість'&&!Q.calFixed)?(1+V.fl.cal/100):1,
+ Qact=f1(h.Qact*kAvg*kCal),
+ dev=f1(100*(Qact-V.Qp)/V.Qp),
+ /* секційне вимикання за GNSS */
+ dL=f2(Q.v/3.6*(V.Tz-(Q.Tlead??0))),
+ ncr=V.ncr,
+ over=f2(100*(Math.max(0,dL)*V.B*ncr/2e4)/V.S),
+ under=f2(100*(Math.max(0,-dL)*V.B*ncr/2e4)/V.S),
+ /* витрата робочого розчину на поле й заправки */
+ need=Math.round(Qact*V.S),fills=Math.ceil(need/V.tank),
+ segArea=f1(V.tank/Math.max(1,Qact)),                 /* га з однієї заправки */
+ bad=rows.filter(r=>r.wear||r.block).map(r=>r.s);
+return{...h,rows,cv,drift:dr,buffer:buffer(dr),Qact,dev,dL,ncr,over,under,
+ need,fills,segArea,bad,kAvg:f2(kAvg),kCal:f2(kCal)}}
+
+/* --- Діапазон робочих швидкостей для обраного розпилювача (режим DPA) --- */
+function vRange(V,Q){const t=tipOf(Q.tip),nz=nozOf(Q.noz),
+ vmin=600*qOf(t.q,nz.pmin)/(V.Qp*V.aNoz),
+ vmax=600*qOf(t.q,nz.pmax)/(V.Qp*V.aNoz);
+return{vmin:f1(vmin),vmax:f1(vmax),pmin:nz.pmin,pmax:nz.pmax}}
+
+/* --- Економіка --- */
+/* Середня за сезон похибка норми внесення для кожної системи дозування.
+   За постійного тиску норма змінюється обернено до швидкості, тому похибка дорівнює
+   коливанню швидкості; пропорційний клапан гасить його приблизно втричі;
+   дозування за швидкістю лишає тільки похибку витратоміра. */
+function devMode(V,dose,calFixed){
+ let e=dose=='тиск'?V.sigV:dose=='оберти'?V.sigV*0.30:1.5;
+ if(dose=='швидкість'&&!calFixed)e+=Math.abs(V.fl.cal);
+ return f1(e)}
+
+function econ(V,r1_,r2_){
+ /* Три джерела вигоди. Похибка дозування діє на кожному гектарі щороку —
+    коефіцієнта «частки виявлення» тут немає, бо це систематична похибка, а не
+    несправність, яку колись помічають. */
+ const Lp1=devMode(V,r1_.dose,r1_.calFixed)/100,Lp2=devMode(V,r2_.dose,r2_.calFixed)/100,
+  Ep=Math.round(Math.max(0,Lp1-Lp2)*V.Cprep*V.Sy),    /* точність дозування */
+  dA=f1(V.Sy*(V.wedge-V.pres)/100),                   /* площа перекриття за сезон */
+  Es=Math.round(dA*V.Cprep),                          /* секційне вимикання */
+  Ld=Math.max(0,(r1_.drift-r2_.drift))/100,
+  Ed=Math.round(Ld*V.Cprep*V.Sy),                     /* зменшення знесення */
+  Cex=Math.round(.10*V.Csys),
+  E=Ep+Es+Ed,Enet=E-Cex;
+return{Lp1:f1(100*Lp1),Lp2:f1(100*Lp2),Ep,dA,Es,Ed,dr1:r1_.drift,dr2:r2_.drift,Cex,E,Enet,
+ T:Enet>0?f2(V.Csys/Enet):null}}
+
+/* --- Бали: 16 + 20 + 20 + 22 + 22 = 100 --- */
+const pen=(e,t,s)=>e<=t?0:Math.min(1,(e-t)/s);
+const okn=(x,y,t)=>x!==''&&x!=null&&n(x)!=null&&Math.abs(n(x)-y)<=t;
+function score(S_,V){const r=[0,0,0,0,0],Q=Qs(S_,V),h=hyd(V,Q),p=pass(V,Q);
+/* 1. Налаштування: розрахунок витрати й тиску, вибір розпилювача — 16 */
+{const b=S_.bd||{},q0=qNeed(V.Qp,n(S_.v)||V.vp,V.aNoz),t=tipOf(S_.tip),p0=pOf(t.q,q0);
+ r[0]=(okn(b.q,q0,Math.max(.02,q0*.02))?6:0)+(okn(b.p,p0,Math.max(.1,p0*.03))?6:0)+
+      (S_.tip&&S_.noz?4:0)}
+/* 2. Пролив і діагностика — 20 */
+{const ck=S_.ck||{};let k=0;
+ const said=(v)=>Object.keys(ck).some(x=>ck[x]==v);
+ k+=(V.fl.wear?ck['s'+V.fl.wear]=='Зношені розпилювачі':!said('Зношені розпилювачі'))?5:0;
+ k+=(V.fl.block?ck['s'+V.fl.block]=='Частково забитий розпилювач':!said('Частково забитий розпилювач'))?5:0;
+ k+=(V.fl.comp?ck['s'+V.fl.comp]=='Нерегульований компенсаційний клапан':!said('Нерегульований компенсаційний клапан'))?4:0;
+ k+=S_.calDone?(S_.calFixed?4:2):0;
+ k+=S_.pourDone?2:0;
+ r[1]=k}
+/* 3. Дозування і діапазон швидкостей — 20 */
+{const b=S_.bd||{},vr=vRange(V,Q);
+ r[2]=(okn(b.vmin,vr.vmin,Math.max(.2,vr.vmin*.04))?6:0)+(okn(b.vmax,vr.vmax,Math.max(.2,vr.vmax*.04))?6:0)+
+      (S_.dose=='швидкість'?5:S_.dose=='оберти'?3:0)+(S_.doseWhy?3:0)}
+/* 4. Секції, штанга й знесення — 22 */
+{const b=S_.bd||{},dL=Math.abs((n(S_.v)||V.vp)/3.6*(V.Tz-(n(S_.Tlead)??0)));
+ /* знесення оцінюємо не за абсолютним числом: вітер і потрібна крапля задані варіантом,
+    і за сильного вітру низького знесення не досягти жодними налаштуваннями.
+    Порівнюємо з тим, що дають еталонні налаштування в тих самих умовах. */
+ const dr0=drift(V,{h:V.hOpt,wind:V.wind},V.ideal.d);
+ r[3]=(okn(b.Tz,V.Tz,.03)?5:0)+5*(1-pen(dL,.2,.8))
+      +6*(1-pen(p.cv,7,10))+6*(1-pen(p.drift,dr0+0.3,6))}
+/* 5. Прохід і економіка — 22 */
+{const l=S_.tr&&S_.tr.last;
+ if(l){const e=ecRef(S_,V),b=S_.ec||{};
+  r[4]=8*(1-pen(Math.abs(l.dev),3,10))+(okn((S_.bd||{}).need,l.need,Math.max(50,l.need*.02))?4:0)
+   +(okn((S_.bd||{}).fills,l.fills,0)?3:0)
+   +(e?((okn(b.E,e.E,Math.max(500,e.E*.03))?4:0)+(e.T!=null&&okn(b.T,e.T,Math.max(.05,e.T*.08))?3:0)):0)}}
+return r.map(x=>Math.max(0,Math.round(x*10)/10))}
+
+/* Еталонна економіка: перший прохід проти останнього */
+function ecRef(S_,V){const h=S_.hist||[];if(h.length<1)return null;
+ return econ(V,h[0],h[h.length-1])}
+
+/* --- Поточні параметри з полів студента --- */
+function Qs(S_,V,o){return Object.assign({
+ tip:S_.tip||V.ideal.tip,noz:S_.noz||V.ideal.noz,
+ p:n(S_.p)||V.ideal.p,v:n(S_.v)||V.vp,
+ dose:S_.dose||'тиск',h:n(S_.h)??V.hOpt,wind:n(S_.wind)??V.wind,
+ open:S_.open||new Array(V.Nsec).fill(1),
+ comp:S_.comp??1,badComp:!!(V.fl.comp&&!S_.fixComp&&S_.open&&!S_.open[V.fl.comp-1]),
+ Tlead:n(S_.Tlead)??0,calFixed:!!S_.calFixed,
+ fixWear:!!S_.fixWear,fixBlock:!!S_.fixBlock,fixComp:!!S_.fixComp},o||{})}
+/* ===== Стан, збереження, прохід, протокол ===== */
+const DEMO={group:'Приклад',name:'Демонстраційний приклад',num:35};
+const F=(x,d)=>{if(x===''||x==null||(typeof x=='number'&&isNaN(x)))return'—';const s=d==null?String(x):Number(x).toFixed(d);return s.replace('.',',').replace('-','−')};
+const r1=x=>Math.round(x*10)/10,r2=x=>Math.round(x*100)/100,r3=x=>Math.round(x*1000)/1000;
+const TH=x=>(x<0?'−':'')+String(Math.round(Math.abs(x))).replace(/\B(?=(\d{3})+(?!\d))/g,' ');
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const vs=x=>esc(String(x??'').replace('.',','));
+const NAR=()=>innerWidth<620;
+let S=null;try{S=JSON.parse(localStorage.getItem(KEY))}catch(e){}if(!S||!S.tr)S=null;
+const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}};
+let V=S&&S.reg?mkV(S.reg):null,AN=0;
+const TT=['Реєстрація й варіант','1. Норма, розпилювач і тиск','2. Пролив і діагностика',
+          '3. Дозування і швидкість','4. Секції, штанга, знесення','5. Прохід і економіка',
+          'Підсумковий протокол','Досліди «що буде, якщо…»','Калькулятор'];
+const LAB=7,CALC=8,NST=6;
+const DIAG=['—','Норма','Зношені розпилювачі','Частково забитий розпилювач','Нерегульований компенсаційний клапан'];
+const DOSE=['тиск','оберти','швидкість'];
+const DOSEL={'тиск':'За постійного робочого тиску','оберти':'Пропорційно обертам вала двигуна','швидкість':'Пропорційно швидкості руху (бортовий комп’ютер)'};
+const CALL=60;                                      /* тривалість проливу, с */
+
+function theme(t){const o=['auto','light','dark'];let i=o.indexOf(localStorage.getItem(TKEY)||'auto');
+ if(t!==0){i=(i+1)%3;try{localStorage.setItem(TKEY,o[i])}catch(e){}}
+ const v=o[i];if(v=='auto')document.documentElement.removeAttribute('data-theme');else document.documentElement.setAttribute('data-theme',v);
+ const b=document.getElementById('thb');if(b)b.textContent='Тема: '+({auto:'авто',light:'світла',dark:'темна'})[v];
+ if(t!==0&&typeof R=='function')R()}
+
+function blank(){return{reg:null,step:0,ck:{},chk:{pour:0,man:0,sec:0},
+ pourDone:0,calDone:0,calShown:null,calFixed:0,pourSec:1,
+ tip:'',noz:'',p:'',v:'',dose:'тиск',doseWhy:'',h:'',wind:'',
+ open:null,comp:1,Tlead:'',fixWear:0,fixBlock:0,fixComp:0,
+ bd:{q:'',p:'',vmin:'',vmax:'',Tz:'',need:'',fills:''},
+ tr:{n:0,last:null},hist:[],ec:{E:'',T:''},
+ lab:{tip:'',noz:'',p:3,v:9,h:.5,wind:3,dose:'швидкість',open:null,comp:1,pin:null,log:[]},
+ calc:{Q:'',v:'',a:'0,5',q:'',p:'',qn:'',B:'',Tg:'',Tv:'',Tl:'',Tlead:'',N:'',n:'',S:'',tank:'',Sy:'',Cprep:'',Csys:'',p1:'',p2:'',w1:'',w2:'',dr1:'',dr2:''}}}
+
+const QS=o=>Qs(S,V,o);
+const tipNow=()=>S.tip||V.ideal.tip;
+const nozNow=()=>S.noz||V.ideal.noz;
+const vNow=()=>n(S.v)||V.vp;
+const hNow=()=>n(S.h)??V.hOpt;
+const openNow=()=>S.open||new Array(V.Nsec).fill(1);
+
+/* ---------- Пролив: контрольний замір витрати ---------- */
+function pourGo(){S.pourDone=1;S.chk.pour=1;save();R()}
+/* показ витратоміра проти фактичного проливу */
+const meterShow=h=>f2(h.Qtot*(1+V.fl.cal/100));
+function calGo(){S.calDone=1;const h=hyd(V,QS({}));S.calShown=meterShow(h);save();R()}
+const calErrPct=()=>S.calShown==null?null:r1(V.fl.cal);
+/* правильний діагноз секції */
+const trueDiag=s=>V.fl.wear==s?'Зношені розпилювачі':V.fl.block==s?'Частково забитий розпилювач':
+                  V.fl.comp==s?'Нерегульований компенсаційний клапан':'Норма';
+/* тиск у магістралі, коли закрити одну секцію (перевірка компенсаційних клапанів) */
+function secTest(s){const o=new Array(V.Nsec).fill(1);o[s-1]=0;
+ const bad=V.fl.comp==s&&!S.fixComp;
+ return f2(hyd(V,QS({open:o,comp:!bad})).p)}
+
+/* ---------- Пробний прохід ---------- */
+function runCore(){const Q=QS({}),p=pass(V,Q),t=S.tr;
+ t.last={...p,v:Q.v,tip:Q.tip,noz:Q.noz,dose:Q.dose,h:Q.h,wind:Q.wind,Tlead:Q.Tlead,
+  calFixed:Q.calFixed?1:0,comp:Q.comp?1:0};
+ t.n++;
+ (S.hist=S.hist||[]).push({n:t.n,v:Q.v,dose:Q.dose,p:p.p,Qact:p.Qact,dev:p.dev,cv:p.cv,
+  drift:p.drift,dL:p.dL,buffer:p.buffer,d:p.d,calFixed:Q.calFixed?1:0,h:Q.h});
+ if(S.hist.length>12)S.hist.shift()}
+function run(){if(!S.tip||!S.noz)return alert('Оберіть розпилювач (крок 1).');
+ if(!n(S.v))return alert('Вкажіть робочу швидкість (крок 1).');
+ if(S.dose=='тиск'&&!n(S.p))return alert('За постійного тиску задайте уставку тиску (крок 1).');
+ if(n(S.Tlead)==null)return alert('Задайте випередження T_лід (крок 4).');
+ runCore();AN=1;save();R()}
+
+/* ---------- Еталонні розрахунки для самоперевірки ---------- */
+const ref=()=>{const t=tipOf(tipNow()),q=qNeed(V.Qp,vNow(),V.aNoz);
+ return{q,p:pOf(t.q,q),...vRange(V,QS({})),Tz:V.Tz}};
+
+/* ---------- Стан «приклад із методички» ---------- */
+function demoState(){S=blank();S.demo=1;S.reg={...DEMO};V=mkV(S.reg);const I=V.ideal;
+ S.tip=I.tip;S.noz=I.noz;S.v=String(V.vp);S.p=String(I.p);S.h=String(V.hOpt);S.wind=String(V.wind);
+ S.open=new Array(V.Nsec).fill(1);S.comp=1;
+ S.chk={pour:1,man:1,sec:1};S.pourDone=1;S.calDone=1;
+ for(let s=1;s<=V.Nsec;s++)S.ck['s'+s]=trueDiag(s);
+ /* перший прохід — як машину налаштували «на око»: постійний тиск, швидкість вища за планову,
+    штанга зависоко, нічого не усунено, випередження не задано */
+ S.dose='тиск';S.v=String(f1(V.vp+2.5));S.h=String(f1(V.hOpt+0.15));S.Tlead='0';
+ S.calShown=meterShow(hyd(V,QS({})));
+ runCore();
+ /* другий — після налагодження */
+ S.dose='швидкість';S.v=String(V.vp);S.h=String(V.hOpt);S.Tlead=F(V.Tz,2);
+ S.calFixed=1;S.fixWear=1;S.fixBlock=1;S.fixComp=1;
+ runCore();
+ const rf=ref(),l=S.tr.last;
+ S.bd={q:F(r2(rf.q),2),p:F(r1(rf.p),1),vmin:F(rf.vmin,1),vmax:F(rf.vmax,1),Tz:F(V.Tz,2),
+  need:String(l.need),fills:String(l.fills)};
+ S.doseWhy='норма внесення не залежить від швидкості руху';
+ const e=ecRef(S,V);S.ec={E:String(e.E),T:F(e.T,2)};
+ S.lab={tip:I.tip,noz:I.noz,p:I.p,v:V.vp,h:V.hOpt,wind:V.wind,dose:'швидкість',
+  open:new Array(V.Nsec).fill(1),comp:1,pin:null,log:[]};
+ S.step=0;return S}
+
+/* ---------- Рядки протоколу ---------- */
+function rec(i){const l=S.tr.last,m=(x,u)=>x===''||x==null?'—':String(x).replace('.',',')+u,
+ t=tipOf(tipNow()),nz=nozOf(nozNow()),h=hyd(V,QS({})),
+ dg=[];for(let s=1;s<=V.Nsec;s++)if(S.ck['s'+s]&&S.ck['s'+s]!='—'&&S.ck['s'+s]!='Норма')dg.push('секція '+s+' — '+S.ck['s'+s].toLowerCase());
+return[0,
+ `Q = ${F(V.Qp)} л/га; v = ${F(vNow(),1)} км/год; a = ${F(V.aNoz,1)} м; потрібна витрата q = ${m(S.bd.q,' л/хв')}; `+
+ `розпилювач ${esc(nz.t.toLowerCase())} ISO ${t.c} (${t.col}), q_ном = ${F(t.q,2)} л/хв; робочий тиск ${m(S.bd.p,' бар')}`,
+ `пролив ${CALL} с: ${S.pourDone?'виконано':'не виконано'}; витратомір показав ${m(S.calShown,' л/хв')} проти ${F(h.Qtot,1)} л/хв фактичних, `+
+ `похибка ${calErrPct()==null?'—':F(calErrPct(),1)+' %'}${S.calFixed?', поправку внесено':''}; `+
+ `діагноз: ${dg.length?dg.join('; '):'усі секції в нормі'}`,
+ `система дозування — ${esc(DOSEL[S.dose]||'—').toLowerCase()}; робочий діапазон швидкостей ${m(S.bd.vmin,'')}…${m(S.bd.vmax,' км/год')} `+
+ `(тиск ${F(nz.pmin,1)}…${F(nz.pmax,1)} бар); обґрунтування: ${esc(S.doseWhy||'—')}`,
+ `T_GNSS = ${F(V.Tg,2)} с; T_кл = ${F(V.Tv,2)} с; T_маг = ${F(V.Tl,2)} с; T_заг = ${m(S.bd.Tz,' с')}; T_лід = ${m(S.Tlead,' с')}`+
+ (l?`; ΔL = ${F(l.dL,2)} м`:'')+`; висота штанги ${m(S.h,' м')}, CV = ${l?F(l.cv,1)+' %':'—'}; `+
+ `крапля ${l?F(l.d)+' мкм ('+l.cat[2]+')':'—'}, знесення ${l?F(l.drift,1)+' %':'—'}, буферна зона ${l?F(l.buffer)+' м':'—'}`,
+ l?`прохід №${S.tr.n}: норма факт ${F(l.Qact,1)} л/га проти ${F(V.Qp)} планових, відхилення ${F(l.dev,1)} %; `+
+   `розчину на поле ${m(S.bd.need,' л')}, заправок ${m(S.bd.fills,'')}; `+
+   `економія E = ${m(S.ec.E,' грн/рік')}, окупність T = ${m(S.ec.T,' року')}`:'прохід не виконано'][i]}
+
+/* ---------- Позначки виконання ---------- */
+function done(i){const t=S.tr;
+ if(i==0)return S.reg?1:0;
+ if(i==1){const f=[S.tip&&S.noz,n(S.bd.q),n(S.bd.p),n(S.v)].filter(Boolean).length;return f>=4?1:f?.5:0}
+ if(i==2){const k=Object.keys(S.ck).filter(x=>S.ck[x]&&S.ck[x]!='—').length;
+  return k>=V.Nsec&&S.pourDone&&S.calDone?1:(k||S.pourDone||S.calDone?.5:0)}
+ if(i==3){const f=[n(S.bd.vmin),n(S.bd.vmax),S.dose&&S.doseWhy].filter(Boolean).length;return f>=3?1:f?.5:0}
+ if(i==4){const f=[n(S.bd.Tz),n(S.Tlead)!=null,n(S.h)!=null].filter(Boolean).length;return f>=3?1:f?.5:0}
+ if(i==5){if(!t.last)return 0;const f=[n(S.bd.need),n(S.bd.fills),S.ec.E,S.ec.T].filter(x=>x!==''&&x!=null).length;return f>=4?1:.5}
+ if(i==6)return [1,2,3,4,5].every(k=>done(k)==1)?1:0;
+ return 0}
+const tot=()=>score(S,V).reduce((a,b)=>a+b,0);
+function pcode(){const s=score(S,V),h=hash(JSON.stringify([S.reg,s,S.tr.n])).toString(36).toUpperCase();
+ return V.id+'-'+Math.round(tot())+'-'+h.slice(0,4)}
+/* ===== Рисунки: усе малюється кодом, у масштабі, без зовнішніх бібліотек ===== */
+const C=k=>'var(--'+k+')';
+const A=o=>Object.keys(o).map(k=>k.replace(/_/g,'-')+'="'+o[k]+'"').join(' ');
+const sv=(w,h,b)=>['<svg viewBox="0 0 '+w+' '+h+'" width="'+w+'" height="'+h+'" role="img">'+(b||''),'</svg>'];
+const ln=(x1,y1,x2,y2,c,w,o)=>'<line '+A({x1:r2(x1),y1:r2(y1),x2:r2(x2),y2:r2(y2),stroke:c||C('ln'),stroke_width:w||1,...(o||{})})+'/>';
+const rc=(x,y,w,h,f,o)=>'<rect '+A({x:r2(x),y:r2(y),width:r2(Math.max(0,w)),height:r2(Math.max(0,h)),fill:f||'none',...(o||{})})+'/>';
+const ci=(x,y,r,f,o)=>'<circle '+A({cx:r2(x),cy:r2(y),r:r2(Math.max(0,r)),fill:f||'none',...(o||{})})+'/>';
+const el=(x,y,rx,ry,f,o)=>'<ellipse '+A({cx:r2(x),cy:r2(y),rx:r2(rx),ry:r2(ry),fill:f||'none',...(o||{})})+'/>';
+const pa=(d,f,o)=>'<path '+A({d,fill:f||'none',...(o||{})})+'/>';
+const pg=(p,f,o)=>'<polygon '+A({points:p.map(q=>r2(q[0])+','+r2(q[1])).join(' '),fill:f||'none',...(o||{})})+'/>';
+const pl=(p,c,w,o)=>'<polyline '+A({points:p.map(q=>r2(q[0])+','+r2(q[1])).join(' '),fill:'none',stroke:c,stroke_width:w||1,...(o||{})})+'/>';
+function T(x,y,s,o){o=o||{};return'<text '+A({x:r2(x),y:r2(y),fill:o.c||C('ink'),font_size:o.s||11,
+ text_anchor:o.a||'start',font_weight:o.b?700:400,...(o.rot?{transform:'rotate('+o.rot+' '+r2(x)+' '+r2(y)+')'}:{}),
+ ...(o.o?{opacity:o.o}:{})})+'>'+esc(s)+'</text>'}
+/* рамка з підписом */
+function blk(x,y,w,h,t,o){o=o||{};return rc(x,y,w,h,o.f||C('pn2'),{stroke:o.c||C('ln'),stroke_width:o.sw||1.2,rx:o.rx??5})+
+ (t?T(x+w/2,y+h/2+(o.ts||4),t,{a:'middle',s:o.s||11,b:o.b,c:o.tc}):'')}
+/* розмірна лінія */
+function dimH(x1,x2,y,t,c){c=c||C('sub');const d=x2>x1?1:-1;
+ return ln(x1,y,x2,y,c,1)+ln(x1,y-4,x1,y+4,c,1)+ln(x2,y-4,x2,y+4,c,1)+
+ pg([[x1,y],[x1+6*d,y-2.6],[x1+6*d,y+2.6]],c)+pg([[x2,y],[x2-6*d,y-2.6],[x2-6*d,y+2.6]],c)+
+ (t?T((x1+x2)/2,y-6,t,{a:'middle',s:10,c}):'')}
+function dimV(y1,y2,x,t,c){c=c||C('sub');
+ return ln(x,y1,x,y2,c,1)+ln(x-4,y1,x+4,y1,c,1)+ln(x-4,y2,x+4,y2,c,1)+
+ (t?T(x+4,(y1+y2)/2+3,t,{s:10,c}):'')}
+/* легенда */
+function lg(items,x,y,s){return items.map((it,i)=>rc(x,y+i*(s||15)-7,9,9,it[1],{rx:2})+T(x+13,y+i*(s||15),it[0],{s:10,c:C('sub')})).join('')}
+const dash=(a,b)=>({stroke_dasharray:a+' '+(b||a)});
+/* колір за якістю */
+/* кольори за якістю: CV поперечного розподілу, знесення, відхилення норми */
+const cvc=v=>v<=7?C('ac'):v<=10?C('am'):C('wn');
+const drc=v=>v<=3?C('ac'):v<=6?C('am'):C('wn');
+const devc=v=>Math.abs(v)<=3?C('ac'):Math.abs(v)<=10?C('am'):C('wn');
+/* стрілка потоку вздовж відрізка */
+function arrow(x1,y1,x2,y2,c,w){const a=Math.atan2(y2-y1,x2-x1),L=8;
+ return pg([[x2,y2],[x2-L*Math.cos(a-.4),y2-L*Math.sin(a-.4)],[x2-L*Math.cos(a+.4),y2-L*Math.sin(a+.4)]],c||C('liq'))}
+/* труба з рухомими мітками потоку */
+function pipe(pts,c,w,ph,on){let s=pl(pts,c||C('liq'),w||5,{stroke_linejoin:'round',stroke_linecap:'round'});
+ if(!on)return s;
+ let len=0;const seg=[];
+ for(let i=0;i<pts.length-1;i++){const d=Math.hypot(pts[i+1][0]-pts[i][0],pts[i+1][1]-pts[i][1]);seg.push(d);len+=d}
+ const step=26;
+ for(let t=((ph||0)%1)*step;t<len;t+=step){let d=t,k=0;
+  while(k<seg.length&&d>seg[k]){d-=seg[k];k++}
+  if(k>=seg.length)break;
+  const u=d/seg[k],x=pts[k][0]+(pts[k+1][0]-pts[k][0])*u,y=pts[k][1]+(pts[k+1][1]-pts[k][1])*u;
+  s+=ci(x,y,(w||5)/2-1.1,'#fff',{opacity:.72})}
+ return s}
+
+/* ---------- Кругова шкала ---------- */
+function gauge(val,lo,hi,lab,unit,bands,fx){const w=112,h=84,cx=56,cy=62,R=42,
+ a0=-175,a1=-5,f=cl((val-lo)/(hi-lo),0,1),ar=d=>(d*Math.PI)/180,
+ P=(d,r)=>[cx+r*Math.cos(ar(d)),cy+r*Math.sin(ar(d))],
+ arc=(d1,d2,r,c,w_)=>{const p1=P(d1,r),p2=P(d2,r);return pa('M'+r2(p1[0])+' '+r2(p1[1])+'A'+r+' '+r+' 0 0 1 '+r2(p2[0])+' '+r2(p2[1]),'none',{stroke:c,stroke_width:w_,stroke_linecap:'round'})};
+let s=arc(a0,a1,R,C('ln'),8);
+for(const b of bands||[]){const d1=a0+(a1-a0)*cl((b[0]-lo)/(hi-lo),0,1),d2=a0+(a1-a0)*cl((b[1]-lo)/(hi-lo),0,1);if(d2>d1+.4)s+=arc(d1,d2,R,b[2],8)}
+const d=a0+(a1-a0)*f,p=P(d,R-13),o=P(d,8);
+s+=ln(o[0],o[1],p[0],p[1],C('ink'),2.4,{stroke_linecap:'round'})+ci(cx,cy,3.4,C('ink'));
+s+=T(cx,cy-16,F(r1(val),null)+(unit?' '+unit:''),{a:'middle',s:15,b:1});
+s+=T(cx,cy+17,lab,{a:'middle',s:9.5,c:C('sub')});
+return sv(w,h)[0]+s+sv(w,h)[1]}
+
+/* ---------- Графік із наведенням ---------- */
+/* ser: [{name,color,pts:[[x,y],…],dash}] */
+function chart(id,ser,o){o=o||{};const w=o.w||640,h=o.h||200,L=o.L||46,Rr=14,Tp=o.T||14,B=30,
+ xs=[].concat(...ser.map(s=>s.pts.map(p=>p[0]))),ys=[].concat(...ser.map(s=>s.pts.map(p=>p[1])));
+ if(!xs.length)return'';
+ const x0=o.x0??Math.min(...xs),x1=o.x1??Math.max(...xs),
+ y0=o.y0??0,y1=o.y1??Math.max(1,Math.max(...ys)*1.12),
+ X=v=>L+(w-L-Rr)*(v-x0)/((x1-x0)||1),Y=v=>Tp+(h-Tp-B)*(1-(v-y0)/((y1-y0)||1));
+let s=rc(L,Tp,w-L-Rr,h-Tp-B,C('pn'),{stroke:C('ln')});
+const nyt=o.ny||4;for(let i=0;i<=nyt;i++){const v=y0+(y1-y0)*i/nyt,y=Y(v);
+ s+=ln(L,y,w-Rr,y,C('ln'),i?.6:1,i?dash(3,4):{})+T(L-5,y+3.5,o.yf?o.yf(v):F(r1(v)),{a:'end',s:9.5,c:C('sub')})}
+const nxt=o.nx||5;for(let i=0;i<=nxt;i++){const v=x0+(x1-x0)*i/nxt,x=X(v);
+ s+=ln(x,Tp,x,h-B,C('ln'),.6,dash(3,4))+T(x,h-B+13,o.xf?o.xf(v):F(r1(v)),{a:'middle',s:9.5,c:C('sub')})}
+for(const b of o.bands||[])s+=rc(L,Y(b[1]),w-L-Rr,Y(b[0])-Y(b[1]),b[2],{opacity:.16});
+(o.vl||[]).forEach((g,i)=>{s+=ln(X(g[0]),Tp,X(g[0]),h-B,g[1]||C('am'),1.4,dash(5,4))+T(X(g[0])+3,Tp+11+i*13,g[2]||'',{s:9.5,c:g[1]||C('am')})});
+for(const se of ser){if(se.pts.length<2)continue;
+ s+=pl(se.pts.map(p=>[X(p[0]),Y(p[1])]),se.color,se.w||2,se.dash?dash(5,4):{})}
+for(const se of ser)if(se.dots)for(const p of se.pts)s+=ci(X(p[0]),Y(p[1]),2.6,se.color);
+if(o.xl)s+=T(w-Rr,h-4,o.xl,{a:'end',s:10,c:C('sub')});
+if(o.yl)s+=T(4,Tp-4,o.yl,{s:10,c:C('sub')});
+if(ser.length>1&&!o.nolg){const ls=ser.filter(x=>x.name),
+ y0l=o.lgb?h-B-8-(ls.length-1)*13:Tp+12+(o.vl||[]).length*13;
+ s+=ls.map((se,i)=>{const x=L+8,y=y0l+i*13;return ln(x,y-3.5,x+16,y-3.5,se.color,2.4,se.dash?dash(5,4):{})+T(x+21,y,se.name,{s:10,c:C('sub')})}).join('')}
+const inner=s,hit={L,Rr,Tp,B,w,h,x0,x1,y0,y1};
+return'<div class="ch" id="'+id+'" data-g="'+esc(JSON.stringify(hit))+'">'+sv(w,h)[0]+inner+
+ '<g id="'+id+'_c" style="display:none"><line y1="'+Tp+'" y2="'+(h-B)+'" stroke="'+C('ink')+'" stroke-width="1"/></g>'+
+ sv(w,h)[1]+'<div class="tip" id="'+id+'_t"></div></div>'}
+/* наведення на графік */
+function chBind(id,fn){const d=document.getElementById(id);if(!d)return;const g=JSON.parse(d.dataset.g),
+ tip=document.getElementById(id+'_t'),cur=document.getElementById(id+'_c'),svg=d.querySelector('svg');
+ const mv=e=>{const b=svg.getBoundingClientRect(),px=(e.touches?e.touches[0].clientX:e.clientX)-b.left,
+  ux=px/b.width*g.w;if(ux<g.L-2||ux>g.w-g.Rr+2){out();return}
+  const v=g.x0+(g.x1-g.x0)*(ux-g.L)/(g.w-g.L-g.Rr),t=fn(v);if(!t){out();return}
+  cur.style.display='';cur.firstChild.setAttribute('x1',r2(ux));cur.firstChild.setAttribute('x2',r2(ux));
+  tip.style.display='block';tip.innerHTML=t;
+  const tw=tip.offsetWidth||120;tip.style.left=Math.max(2,Math.min(b.width-tw-2,px-tw/2))+'px'};
+ const out=()=>{cur.style.display='none';tip.style.display='none'};
+ d.onmousemove=mv;d.onmouseleave=out;d.ontouchstart=mv;d.ontouchmove=e=>{mv(e);e.preventDefault()};d.ontouchend=out}
+
+/* ================= Гідравлічна схема пульта керування =================
+   Бак → насос → клапан максимального тиску → пропорційний клапан → фільтр →
+   блок секційних клапанів → штанга. Злив надлишку повертається в бак.
+   ph — фаза анімації потоку. */
+function hydSVG(V,Q,h,st){st=st||{};const w=900,hh=430,ph=st.ph||0,on=st.on!==0,
+ L=C('liq'),LD=C('sub'),BG=C('pn2');
+let s='';
+/* --- бак --- */
+const tx=24,ty=250,tw=132,th=120;
+s+=rc(tx,ty,tw,th,C('tank'),{stroke:C('boom'),stroke_width:1.6,rx:8,opacity:.55});
+{const lv=cl(st.level??.62,.08,.95);
+ s+=rc(tx+3,ty+th-3-(th-6)*lv,tw-6,(th-6)*lv,L,{opacity:.45,rx:5});
+ s+=T(tx+tw/2,ty+th/2+4,F(Math.round(V.tank*lv))+' л',{a:'middle',s:13,b:1})}
+s+=T(tx+tw/2,ty+th+16,'Бак  '+TH(V.tank)+' л',{a:'middle',s:11,b:1,c:C('sub')});
+/* --- насос --- */
+const px=206,py=300;
+s+=ci(px,py,28,BG,{stroke:C('boom'),stroke_width:1.8});
+for(let i=0;i<6;i++){const a=i*60+ph*220;
+ s+=ln(px,py,px+22*Math.cos(a*Math.PI/180),py+22*Math.sin(a*Math.PI/180),C('boom'),2.2)}
+s+=ci(px,py,5,C('boom'));
+s+=T(px,py+44,'Насос',{a:'middle',s:11,b:1,c:C('sub')})+T(px,py+56,TH(V.pump)+' л/хв',{a:'middle',s:9.5,c:C('sub')});
+s+=pipe([[tx+tw,py],[px-28,py]],L,7,ph,on);
+/* --- клапан максимального тиску --- */
+const mx=306,my=176;
+s+=pipe([[px,py-28],[px,my+26]],L,7,ph,on);
+s+=valve(px-26,my-26,52,52,'КМТ',st.relief,C('hot'));
+s+=T(px,my-50,'Клапан максимального',{a:'middle',s:10,c:C('sub')})+T(px,my-39,'тиску',{a:'middle',s:10,c:C('sub')});
+/* злив від КМТ у бак */
+s+=pipe([[px-26,my],[px-62,my],[px-62,ty-16],[tx+tw-26,ty-16],[tx+tw-26,ty]],LD,4.5,ph*.7,on&&st.relief,1);
+s+=T(px-66,my+14,'злив у бак',{a:'end',s:9.5,c:LD});
+/* --- пропорційний клапан --- */
+s+=pipe([[px+26,my],[mx+12,my]],L,7,ph,on);
+const prx=mx+48;
+s+=valve(prx-24,my-26,52,52,'ПК',st.prop,C('ac'));
+s+=T(prx+2,my-50,'Пропорційний',{a:'middle',s:10,c:C('sub')})+T(prx+2,my-39,'клапан',{a:'middle',s:10,c:C('sub')});
+s+=pipe([[prx-24,my+26],[prx-24,ty-30],[tx+tw-62,ty-30],[tx+tw-62,ty]],LD,4.5,ph*.7,on&&st.prop,1);
+/* --- фільтр --- */
+const fx=prx+86;
+s+=pipe([[prx+28,my],[fx-18,my]],L,7,ph,on);
+s+=rc(fx-18,my-24,36,48,BG,{stroke:C('boom'),stroke_width:1.5,rx:4});
+for(let i=0;i<5;i++)s+=ln(fx-13,my-18+i*10,fx+13,my-14+i*10,C('boom'),1.1);
+s+=T(fx,my-39,'Фільтр',{a:'middle',s:10,c:C('sub')});
+/* --- манометр --- */
+const gx=fx+74;
+s+=pipe([[fx+18,my],[gx+120,my]],L,7,ph,on);
+s+=ln(gx,my,gx,my-40,L,4);
+{const pm=cl((h.p||0)/10,0,1),a0=-210,a1=30,a=a0+(a1-a0)*pm;
+ s+=ci(gx,my-62,26,'#fff',{stroke:C('boom'),stroke_width:1.8});
+ for(let i=0;i<=10;i+=2){const t_=a0+(a1-a0)*i/10;
+  s+=ln(gx+20*Math.cos(t_*Math.PI/180),my-62+20*Math.sin(t_*Math.PI/180),
+        gx+24*Math.cos(t_*Math.PI/180),my-62+24*Math.sin(t_*Math.PI/180),'#555',1)}
+ s+=ln(gx,my-62,gx+19*Math.cos(a*Math.PI/180),my-62+19*Math.sin(a*Math.PI/180),C('hot'),2.2,{stroke_linecap:'round'});
+ s+=ci(gx,my-62,3,'#333');
+ s+=T(gx,my-96,F(h.p,1)+' бар',{a:'middle',s:12,b:1,c:C('ink')});
+ s+=T(gx,my-28,'манометр',{a:'middle',s:9.5,c:C('sub')})}
+/* --- блок секційних клапанів і штанга --- */
+const N=V.Nsec,bx0=gx+150,bw=Math.min(96,(w-bx0-24)/N),by=my;
+s+=T(bx0+N*bw/2,my-96,'Блок секційних клапанів і штанга',{a:'middle',s:11,b:1,c:C('sub')});
+const openArr=Q.open||new Array(N).fill(1);
+for(let i=0;i<N;i++){const x=bx0+i*bw+bw/2,op=openArr[i];
+ s+=pipe([[Math.max(bx0-24,gx+120),by],[x,by]],L,5,ph,on);
+ s+=valve(x-17,by-17,34,34,String(i+1),op,op?C('ac'):C('sub'),9.5);
+ /* компенсаційний злив у бак */
+ if(!op&&Q.comp)s+=pipe([[x,by+17],[x,by+34],[bx0-40,by+34],[bx0-40,ty-46],[tx+tw-98,ty-46],[tx+tw-98,ty]],LD,3.5,ph*.6,on,1);
+ /* до штанги */
+ if(op){s+=pipe([[x,by+17],[x,by+66]],L,4,ph,on);
+  /* секція штанги з розпилювачами */
+  const ny=by+70,nn=Math.min(5,V.nSec);
+  s+=ln(x-bw/2+6,ny,x+bw/2-6,ny,C('boom'),4,{stroke_linecap:'round'});
+  for(let k=0;k<nn;k++){const nx=x-bw/2+10+(bw-20)*(k+.5)/nn;
+   s+=ci(nx,ny+4,2.6,st.tipHex||C('drop'));
+   if(on)s+=pg([[nx,ny+6],[nx-7,ny+40],[nx+7,ny+40]],C('spray'),{opacity:.42})}}
+ else s+=T(x,by+56,'закрита',{a:'middle',s:9,c:C('sub')})}
+if(Q.comp&&openArr.some(x=>!x))s+=T(bx0-46,by+48,'злив через компенсаційні клапани',{a:'end',s:9.5,c:LD});
+/* --- стрілки напрямку потоку: білим поверх труби --- */
+const AW='#fff';
+s+=arrow(tx+tw+28,py,tx+tw+46,py,AW);
+s+=arrow(px,my+74,px,my+56,AW);
+s+=arrow(px+42,my,px+60,my,AW);
+s+=arrow(prx+42,my,prx+60,my,AW);
+s+=arrow(gx+42,my,gx+60,my,AW);
+/* --- підписи стану --- */
+s+=T(24,24,'Витрата штанги '+F(h.Qtot,1)+' л/хв з '+TH(V.pump)+' л/хв подачі насоса',{s:11,b:1,c:h.pumpOver?C('wn'):C('sub')});
+s+=T(24,42,'Норма внесення '+F(h.Qact,1)+' л/га',{s:11,c:C('sub')});
+s+=T(w-24,24,'Відкрито секцій: '+h.nOpen+' з '+N,{a:'end',s:11,c:C('sub')});
+return'<div class="fig"><div class="sx">'+sv(w,hh)[0]+s+sv(w,hh)[1]+'</div>'+
+ '<div class="tlg"><i style="background:'+L+'"></i>нагнітальна магістраль (під тиском)'+
+ '<i style="background:'+LD+'"></i>злив надлишку в бак'+
+ '<i style="background:'+C('spray')+'"></i>факел розпилу</div>'+
+ (st.cap?'<div class="cap">'+st.cap+'</div>':'')+'</div>'}
+/* клапан: квадрат зі стрілкою, зелений відкритий / сірий закритий */
+function valve(x,y,w,h,t,open,c,fs){
+ return rc(x,y,w,h,open?'color-mix(in srgb,'+(c||C('ac'))+' 22%, '+C('pn2')+')':C('pn2'),
+   {stroke:open?(c||C('ac')):C('ln'),stroke_width:1.8,rx:5})+
+  (open?ln(x+6,y+h/2,x+w-6,y+h/2,c||C('ac'),2):ln(x+7,y+7,x+w-7,y+h-7,C('sub'),2)+ln(x+w-7,y+7,x+7,y+h-7,C('sub'),2))+
+  T(x+w/2,y+h-5,t,{a:'middle',s:fs||10.5,b:1,c:open?(c||C('ac')):C('sub')})}
+
+/* ================= Штанга в поперечному розрізі ================= */
+function boomSVG(V,Q,cv,o){o=o||{};const w=760,
+ a=V.aNoz,hb=Q.h??V.hOpt,ang=V.ang,nN=6,x0=104,
+ /* масштаб однаковий по висоті й поперек; підбираємо так, щоб фігура лишалась компактною */
+ PX=cl(Math.min((w-x0-66)/(a*(nN+0.4)),150/Math.max(.45,hb)),60,210),
+ y0=48,gy=y0+hb*PX,cy0=gy+18,chh=58,hh=cy0+chh+26;
+let s=rc(0,0,w,hh,C('pn2'));
+/* ґрунт */
+s+=rc(0,gy,w,cy0-gy,C('soil'),{opacity:.5})+ln(0,gy,w,gy,C('soil2'),1.6);
+/* штанга */
+s+=rc(x0-26,y0-9,nN*a*PX+16,14,C('boom'),{rx:4});
+/* розпилювачі й факели */
+const half=Math.tan(ang/2*Math.PI/180),spread=hb*half*PX;
+/* віртуальні розпилювачі за межами видимої ділянки, щоб крива показувала
+   усталену картину, а не край штанги */
+const cov=[];
+for(let i=-4;i<nN+4;i++){const nx=x0+i*a*PX;
+ cov.push([nx-spread,nx+spread]);
+ if(i<0||i>=nN)continue;
+ s+=pg([[nx-4,y0+5],[nx+4,y0+5],[nx+2,y0+12],[nx-2,y0+12]],C('boom'));
+ s+=pg([[nx,y0+12],[nx-spread,gy],[nx+spread,gy]],C('spray'),{opacity:.28,stroke:C('spray'),stroke_width:.8})}
+/* висота */
+s+=dimV(y0+12,gy,x0-62,'')+T(x0-56,(y0+gy)/2-4,'h = '+F(hb,2)+' м',{s:11,b:1});
+s+=dimH(x0,x0+a*PX,y0-22,'a = '+F(a,1)+' м',C('ink'));
+/* крива поперечного розподілу: сума трикутних профілів */
+/* профіль одного факела — трикутний, спадає до нуля на краю смуги */
+const prof=[];for(let x=0;x<w;x+=2){let v=0;
+ for(const c of cov){const m=(c[0]+c[1])/2,r=(c[1]-c[0])/2;
+  v+=Math.max(0,1-Math.abs(x-m)/r)}
+ prof.push([x,v])}
+const mp=Math.max(...prof.map(p=>p[1]))||1;
+s+=rc(0,cy0,w,chh,C('pn'),{opacity:.72});
+s+=pl(prof.map(p=>[p[0],cy0+chh-chh*0.86*p[1]/mp]),cvc(cv),2.2);
+/* середня лінія в робочій зоні */
+{const inZ=prof.filter(p=>p[0]>=x0&&p[0]<=x0+(nN-1)*a*PX),av=inZ.reduce((s_,p)=>s_+p[1],0)/Math.max(1,inZ.length);
+ s+=ln(x0,cy0+chh-chh*0.86*av/mp,x0+(nN-1)*a*PX,cy0+chh-chh*0.86*av/mp,C('sub'),1.2,dash(5,4))}
+s+=T(6,cy0-6,'Поперечний розподіл під штангою',{s:10,c:C('sub')});
+s+=T(w-8,cy0-6,'CV = '+F(cv,1)+' %  ·  '+(cv<=7?'у нормі, не більше 7 %':cv<=10?'на межі допуску':'поза допуском'),
+ {a:'end',s:11,b:1,c:cvc(cv)});
+s+=T(6,hh-8,'масштаб '+F(r1(PX))+' px на 1 м, однаковий по висоті й поперек; розпилювачі '+F(ang)+'°, крок '+F(a,1)+' м',{s:9.5,c:C('sub')});
+return'<div class="fig"><div class="sx">'+sv(w,hh)[0]+s+sv(w,hh)[1]+'</div>'+
+ (o.cap?'<div class="cap">'+o.cap+'</div>':'')+'</div>'}
+
+/* ================= Крапля і знесення ================= */
+function driftSVG(V,Q,d,dr,buf,o){o=o||{};const w=760,hh=300;
+let s=rc(0,0,w,hh,C('pn2'));
+/* шкала категорій крапель */
+const sx=24,sw=w-48,sy=40,dmaxS=700;
+s+=T(sx,24,'Категорія краплі за медіанним діаметром (ASABE S572.1)',{s:11,b:1,c:C('sub')});
+for(const c of DCAT){const a=Math.min(c[0],dmaxS)/dmaxS*sw,b=Math.min(c[1],dmaxS)/dmaxS*sw;
+ if(b<=a)continue;
+ s+=rc(sx+a,sy,b-a,22,c[4],{opacity:.3,stroke:c[4],stroke_width:1})+
+    T(sx+(a+b)/2,sy+15,c[3],{a:'middle',s:10,b:1,c:c[4]})}
+/* потрібний діапазон */
+{const a=V.dmin/dmaxS*sw,b=Math.min(V.dmax,dmaxS)/dmaxS*sw;
+ s+=rc(sx+a,sy-7,b-a,36,'none',{stroke:C('ac'),stroke_width:2,rx:3,...dash(5,3)})+
+    T(sx+(a+b)/2,sy+40,'потрібно для цієї обробки: '+F(V.dmin)+'…'+F(V.dmax)+' мкм',{a:'middle',s:10,c:C('ac')})}
+/* поточна крапля */
+{const x=sx+Math.min(d,dmaxS)/dmaxS*sw,ok=d>=V.dmin&&d<=V.dmax;
+ s+=ln(x,sy-14,x,sy+26,ok?C('ink'):C('wn'),2)+
+    T(x,sy-18,F(d)+' мкм',{a:'middle',s:11,b:1,c:ok?C('ink'):C('wn')})}
+for(const g of [0,200,400,600])s+=T(sx+g/dmaxS*sw,sy+70,F(g),{a:'middle',s:9.5,c:C('sub')});
+s+=T(sx+sw,sy+70,'мкм',{a:'end',s:9.5,c:C('sub')});
+/* знесення: факел, вітер, буферна зона */
+const gy=hh-54,bx=70;
+s+=rc(0,gy,w,hh-gy,C('soil'),{opacity:.5})+ln(0,gy,w,gy,C('soil2'),1.4);
+/* крайній розпилювач штанги */
+s+=rc(bx-56,gy-74,66,9,C('boom'),{rx:3});
+s+=pg([[bx-26,gy-65],[bx-18,gy-65],[bx-20,gy-56],[bx-24,gy-56]],C('boom'));
+s+=pg([[bx-22,gy-56],[bx-44,gy],[bx,gy]],C('spray'),{opacity:.45,stroke:C('spray'),stroke_width:.8});
+/* шлейф знесення — довжина пропорційна буферній зоні */
+/* масштаб підбираємо так, щоб шлейф було видно навіть за малої буферної зони */
+const PXm=cl((w-bx-170)/Math.max(2.5,buf),6,120),bl=buf*PXm;
+for(let i=0;i<26;i++){const t=i/25,x=bx+bl*t*1.05,y=gy-10-34*Math.sin(Math.PI*t*.5)-4;
+ s+=ci(x,y,cl(3.4-2.6*t,.7,3.4),C('drop'),{opacity:cl(.62-.5*t,.06,.62)})}
+s+=rc(bx,gy,bl,hh-gy,C('wn'),{opacity:.16});
+s+=dimH(bx,bx+bl,gy+26,'буферна зона '+F(buf)+' м',C('wn'));
+/* вітер */
+{const wy=gy-96;s+=T(bx-34,wy-6,'вітер '+F(Q.wind??V.wind,1)+' м/с',{s:11,b:1,c:C('sub')});
+ for(let i=0;i<3;i++){const y=wy+10+i*12;s+=ln(bx-34,y,bx+54,y,C('sub'),1.2)+arrow(bx+40,y,bx+56,y,C('sub'))}}
+s+=T(w-24,gy-58,'знесення '+F(dr,1)+' % норми',{a:'end',s:13,b:1,c:drc(dr)});
+s+=T(w-24,gy-40,dr<=3?'прийнятно':dr<=6?'підвищене':'високе — обробку краще відкласти',{a:'end',s:10,c:drc(dr)});
+s+=T(w-24,gy-22,'масштаб '+F(r1(PXm),1)+' px на 1 м',{a:'end',s:9,c:C('sub')});
+return'<div class="fig"><div class="sx">'+sv(w,hh)[0]+s+sv(w,hh)[1]+'</div>'+
+ (o.cap?'<div class="cap">'+o.cap+'</div>':'')+'</div>'}
+
+/* ================= Пролив секцій (стовпчикова діаграма, як рис. 3.1 методички) ================= */
+function secPourSVG(V,rows,qSecNom,curSec){const nS=rows.length,w=680,hh=210,bw=Math.min(68,(w-120)/nS),
+ gap=(w-100-nS*bw)/Math.max(1,nS),base=156,top=34,mx=Math.max(qSecNom*1.32,Math.max(...rows.map(r=>r.Qs))*1.12),
+ Y=v=>base-(base-top)*cl(v/mx,0,1);
+let s=rc(0,0,w,hh,C('pn2'));
+s+=ln(56,base,w-14,base,C('ln'),1.2);
+for(let i=0;i<=4;i++){const v=mx*i/4;s+=ln(56,Y(v),w-14,Y(v),C('ln'),.6,dash(3,4))+T(52,Y(v)+3.5,F(r1(v),1),{a:'end',s:9,c:C('sub')})}
+s+=rc(56,Y(qSecNom*1.1),w-70,Y(qSecNom*0.9)-Y(qSecNom*1.1),C('ac'),{opacity:.16});
+s+=ln(56,Y(qSecNom),w-14,Y(qSecNom),C('ac'),1.6,dash(6,4))+T(58,top-12,'розрахункова витрата секції '+F(qSecNom,1)+' л/хв',{s:9.5,c:C('ac'),b:1});
+rows.forEach((r,i)=>{const px=68+i*(bw+gap),dev=100*(r.Qs-qSecNom)/qSecNom,
+ c=Math.abs(dev)<=10?C('ac'):C('wn'),sel=r.s==curSec;
+ s+='<g style="cursor:pointer" onclick="setN(\'pourSec\','+r.s+')">'+
+  rc(px,Y(r.Qs),bw,base-Y(r.Qs),c,{rx:3,stroke:sel?C('ink'):'none',stroke_width:sel?2:0})+
+  T(px+bw/2,Y(r.Qs)-5,F(r.Qs,1),{a:'middle',s:9.5,b:sel?1:0,c:C('ink')})+
+  T(px+bw/2,base+15,'секція '+r.s,{a:'middle',s:9.5,b:sel?1:0,c:C('sub')})+
+  T(px+bw/2,base+29,(dev>0?'+':'')+F(dev,1)+' %',{a:'middle',s:9,b:Math.abs(dev)>10?1:0,c:Math.abs(dev)>10?C('wn'):C('sub')})+
+  '</g>'});
+s+=T(10,top-12,'витрата секції, л/хв',{s:9.5,c:C('sub')});
+s+=T(w-14,hh-6,'зелена смуга — допуск ±10 % · натисніть на секцію для порозпилювачного проливу',{a:'end',s:9.5,c:C('sub')});
+return'<div class="fig"><div class="sx">'+sv(w,hh)[0]+s+sv(w,hh)[1]+'</div></div>'}
+
+/* ================= Пролив розпилювачів секції ================= */
+function pourSVG(V,list,qn,o){o=o||{};const nN=list.length,
+ w=Math.max(420,70+nN*Math.min(58,620/nN)),hh=230,bw=Math.min(44,(w-90)/nN),gap=(w-80-nN*bw)/Math.max(1,nN-1),
+ base=168,top=36,mx=Math.max(qn*1.35,Math.max(...list.map(x=>x.q))*1.12);
+let s=rc(0,0,w,hh,C('pn2'));
+const Y=v=>base-(base-top)*cl(v/mx,0,1);
+s+=ln(56,base,w-14,base,C('ln'),1.2);
+for(let i=0;i<=4;i++){const v=mx*i/4;s+=ln(56,Y(v),w-14,Y(v),C('ln'),.6,dash(3,4))+T(52,Y(v)+3.5,F(r2(v),2),{a:'end',s:9,c:C('sub')})}
+/* номінал і допуск ±10 % */
+s+=rc(56,Y(qn*1.1),w-70,Y(qn*0.9)-Y(qn*1.1),C('ac'),{opacity:.16});
+s+=ln(56,Y(qn),w-14,Y(qn),C('ac'),1.6,dash(6,4))+T(58,top-14,'розрахункова витрата '+F(qn,2)+' л/хв',{s:9.5,c:C('ac'),b:1});
+list.forEach((x,i)=>{const px=60+i*(bw+gap),dev=(x.q-qn)/qn,
+ c=Math.abs(dev)<=.1?C('ac'):Math.abs(dev)<=.18?C('am'):C('wn');
+ s+=rc(px,Y(x.q),bw,base-Y(x.q),c,{rx:2});
+ s+=T(px+bw/2,Y(x.q)-5,F(x.q,2),{a:'middle',s:9,c:C('ink')});
+ s+=T(px+bw/2,base+14,String(x.i),{a:'middle',s:9.5,c:C('sub')});
+ if(x.blk)s+=T(px+bw/2,base+28,'▲',{a:'middle',s:11,c:C('wn')})});
+s+=T(10,top-14,'л/хв',{s:9.5,c:C('sub')});
+s+=T(10,base+14,'№',{s:9.5,c:C('sub')});
+s+=T(w-14,hh-8,'зелена смуга — допуск ±10 % від розрахункової витрати',{a:'end',s:9.5,c:C('sub')});
+return'<div class="fig"><div class="sx">'+sv(w,hh)[0]+s+sv(w,hh)[1]+'</div>'+
+ (o.cap?'<div class="cap">'+o.cap+'</div>':'')+'</div>'}
+
+/* ================= Межа поля: секційне вимикання ================= */
+function fieldSVG(V,Q,dL,o){o=o||{};const w=680,hh=240,
+ PX=o.px??cl(480/Math.max(6,5*Math.abs(dL)+2*(Q.Tlead||0)*Q.v/3.6+4),10,60),
+ bE=430,y0=54,v=Q.v;
+const By=Math.min(96,V.B*PX);
+let s=rc(0,0,w,hh,C('pn2'));
+s+=rc(0,0,bE,hh,C('leaf'),{opacity:.22})+rc(bE,0,w-bE,hh,C('idle'),{opacity:.5});
+s+=ln(bE,0,bE,hh,C('ink'),1.8,dash(7,5))+T(w-8,24,'межа поля',{a:'end',s:10,b:1,c:C('sub')})+T(w-8,38,'поворотна смуга',{a:'end',s:10,c:C('sub')});
+const xE=cl(bE+dL*PX,10,w-8);
+s+=rc(0,y0,Math.max(0,Math.min(xE,w)),By,C('spray'),{opacity:.4});
+if(dL>.01){s+=rc(bE,y0,xE-bE,By,C('wn'),{opacity:.45,stroke:C('wn'),stroke_width:1.2});
+ s+=T((bE+xE)/2,y0-10,'повторна обробка',{a:'middle',s:11,b:1,c:C('wn')})}
+else if(dL<-.01){s+=rc(xE,y0,bE-xE,By,C('over'),{opacity:.42,stroke:C('over'),stroke_width:1.2,...dash(4,3)});
+ s+=T((bE+xE)/2,y0-10,'необроблена смуга',{a:'middle',s:11,b:1,c:C('over')})}
+else s+=T(bE+14,y0-10,'штанга вимикається точно на межі',{s:11,b:1,c:C('ac')});
+const xC=cl(bE-(Q.Tlead||0)*v/3.6*PX,12,w-8);
+s+=ln(xC,y0-26,xC,y0+By+16,C('ac'),1.6)+T(xC-6,y0-30,'команда «вимкнути»',{a:'end',s:10,c:C('ac')});
+{const near=Math.abs(xE-bE)<70;
+ s+=ln(xE,y0-18,xE,y0+By+36,C('ink'),1.4,dash(4,3))+
+   T(xE+(dL<0?-6:6),y0+By+(near?26:48),'остання крапля',{a:dL<0?'end':'start',s:10,c:C('ink')})}
+if(Math.abs(dL)>.01)s+=dimH(bE,xE,y0+By+22,'ΔL = '+F(dL,2)+' м',dL>0?C('wn'):C('over'));
+if((Q.Tlead||0)>.001)s+=dimH(xC,bE,y0+By+58,'шлях за T_лід = '+F(r2((Q.Tlead)*v/3.6),2)+' м',C('ac'));
+s+=dimV(y0,y0+By,22,'');s+=T(18,y0+By/2,'B = '+F(V.B)+' м',{a:'end',s:10,c:C('sub'),rot:-90});
+/* агрегат */
+const tX=cl(xC-54,34,w-44);
+s+=rc(tX-16,y0+By/2-13,30,26,C('trk'),{rx:4,stroke:C('trk2'),stroke_width:1.2})+
+   ci(tX-10,y0+By/2+13,7,C('tyre'))+ci(tX+8,y0+By/2+13,7,C('tyre'))+
+   pg([[tX+16,y0+By/2],[tX+26,y0+By/2-5],[tX+26,y0+By/2+5]],C('trk2'));
+s+=T(8,hh-8,'масштаб '+F(r1(PX),1)+' px на 1 м; v = '+F(v,1)+' км/год; T_заг = '+F(V.Tz,2)+' с',{s:9.5,c:C('sub')});
+return'<div class="fig"><div class="sx">'+sv(w,hh)[0]+s+sv(w,hh)[1]+'</div>'+
+ (o.cap?'<div class="cap">'+o.cap+'</div>':'')+'</div>'}
+/* ===== Екрани: кроки 0…2 ===== */
+const H=(t,k)=>'<h2>'+esc(t)+'</h2>'+(k?'<p class="hint">'+k+'</p>':'');
+const inp=(k,lab,ph,o)=>{o=o||{};const id='i_'+k.replace(/\./g,'_');
+ return(lab?'<label for="'+id+'">'+lab+'</label>':'')+
+ '<input id="'+id+'" type="text" inputmode="'+(o.im||'decimal')+'" value="'+vs(get(k))+'" placeholder="'+esc(ph||'')+'" oninput="set(\''+k+'\',this.value)">'};
+const get=k=>k.split('.').reduce((o,x)=>o==null?null:o[x],S);
+function set(k,v){const p=k.split('.');let o=S;for(let i=0;i<p.length-1;i++)o=o[p[i]];o[p[p.length-1]]=v;save();
+ clearTimeout(set.t);set.t=setTimeout(R,380)}
+function copyRec(el,txt){if(navigator.clipboard)navigator.clipboard.writeText(txt);
+ const old=el.textContent;el.textContent='Скопійовано ✓';setTimeout(()=>el.textContent=old,1400)}
+function setN(k,v){const p=k.split('.');let o=S;for(let i=0;i<p.length-1;i++)o=o[p[i]];o[p[p.length-1]]=v;save();R()}
+function chk(val,ref,tolPct,tolAbs){const x=n(val);if(x==null||val==='')return'';
+ const t=Math.max(tolAbs??0,Math.abs(ref)*(tolPct??.02));
+ return Math.abs(x-ref)<=t?' <span class="ok" title="збігається з розрахунком">✓</span>':' <span class="no" title="перевірте розрахунок">✗</span>'}
+const sel=(k,opts,lab,cur)=>(lab?'<label>'+lab+'</label>':'')+'<select onchange="setN(\''+k+'\',this.value)">'+
+ opts.map(o=>{const v=Array.isArray(o)?o[0]:o,t=Array.isArray(o)?o[1]:o;
+ return'<option value="'+esc(v)+'"'+(String(cur)==String(v)?' selected':'')+'>'+esc(t)+'</option>'}).join('')+'</select>';
+const kvc=a=>'<div class="kv">'+a.map(x=>'<div><b'+(x[3]?' class="'+x[3]+'"':'')+'>'+x[1]+'</b><span>'+esc(x[0])+'</span>'+(x[2]?'<em>'+x[2]+'</em>':'')+'</div>').join('')+'</div>';
+const gsc=a=>'<div class="gs">'+a.map(x=>'<div class="gt"><b'+(x[2]?' style="color:'+x[2]+'"':'')+'>'+x[1]+'</b><span>'+esc(x[0])+'</span></div>').join('')+'</div>';
+const recBox=i=>'<div class="rb"><div style="display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:3px"><b>Запишіть у протокол (пункт '+i+'):</b><button class="g sm np" onclick="copyRec(this,rec('+i+'))">Скопіювати</button></div>'+esc(rec(i))+'</div>';
+const nb=(a,b)=>'<div class="nb">'+(a?'<button class="g" onclick="go('+a[0]+')">← '+esc(a[1])+'</button>':'<span></span>')+
+ (b?'<button class="p" onclick="go('+b[0]+')">'+esc(b[1])+' →</button>':'<span></span>')+'</div>';
+const tr=(a,b)=>'<tr><th>'+a+'</th><td>'+b+'</td></tr>';
+const gc=(v,lo,hi,lab,u,b)=>'<div class="gc">'+gauge(v,lo,hi,lab,u,b)+'</div>';
+
+/* ---------- 0. Реєстрація ---------- */
+function scr0(){const d=S.reg||{};
+let s=H('Реєстрація та індивідуальний варіант',
+ 'Варіант визначається групою, прізвищем та номером у журналі. Той самий підпис завжди дає той самий варіант — його можна відтворити.');
+s+='<div class="r3">'+
+ '<div><label for="rg">Група</label><input id="rg" type="text" value="'+vs(d.group)+'" oninput="rset(\'group\',this.value)" placeholder="АІ-31"></div>'+
+ '<div><label for="rn">Прізвище та ім’я</label><input id="rn" type="text" value="'+vs(d.name)+'" oninput="rset(\'name\',this.value)" placeholder="Іваненко Іван"></div>'+
+ '<div><label for="rk">№ у журналі</label><input id="rk" type="text" inputmode="numeric" value="'+vs(d.num)+'" oninput="rset(\'num\',this.value)" placeholder="7"></div></div>';
+s+='<button class="p" onclick="mkvar()">Отримати варіант</button>'+
+   (S.reg?' <button class="g" onclick="wipe()">Очистити все й почати заново</button>':'');
+if(V){s+='<h3>Варіант '+esc(V.id)+'</h3>';
+ s+='<div class="tw"><table class="t2">'+
+  tr('Обприскувач',esc(V.a.p)+' — штанга '+F(V.B)+' м, '+V.Nsec+' секцій по '+V.nSec+' розпилювачів, крок '+F(V.aNoz,1)+' м')+
+  tr('Бак і насос','бак '+TH(V.tank)+' л; подача насоса '+TH(V.pump)+' л/хв; кут факела розпилювачів '+F(V.ang)+'°')+
+  tr('Трактор',esc(V.trk))+
+  tr('Обробка',esc(V.op)+' на культурі «'+esc(V.crop)+'»')+
+  tr('Норма внесення','Q = '+TH(V.Qp)+' л/га; потрібна крапля '+F(V.dmin)+'…'+F(V.dmax)+' мкм ('+esc(V.opWhy)+')')+
+  tr('Планова швидкість',F(V.vp,1)+' км/год; типове коливання швидкості в загінці ±'+F(V.sigV,1)+' %')+
+  tr('Умови','швидкість вітру '+F(V.wind,1)+' м/с')+
+  tr('Поле',F(V.S)+' га, довжина гону '+TH(V.L)+' м; перекриття без секційного вимикання '+F(V.wedge,1)+' %, із ним '+F(V.pres,1)+' %')+
+  tr('Запізнення ланок','приймач GNSS T_GNSS = '+F(V.Tg,2)+' с; секційний клапан T_кл = '+F(V.Tv,2)+' с; магістраль T_маг = '+F(V.Tl,2)+' с (разом T_заг = '+F(V.Tz,2)+' с)')+
+  tr('Економіка','обробок за сезон '+TH(V.Sy)+' га; вартість препарату '+TH(V.Cprep)+' грн/га; вартість системи автоматики '+TH(V.Csys)+' грн')+
+  '</table></div>';
+ s+='<details class="inf"><summary>Що саме автоматизують в обприскувачі й навіщо</summary>'+
+  '<p>Обприскувач має покласти на гектар задану кількість робочої рідини — не більше й не менше. Кількість цю визначає не бак і не насос, а <b>витрата кожного розпилювача</b> і <b>швидкість руху</b>. Варто швидкості змінитися, і норма внесення зміниться разом із нею.</p>'+
+  '<p>Пульт керування — це набір клапанів між насосом і штангою: головний, клапан максимального тиску, пропорційний, фільтр і блок секційних клапанів. Саме вони вирішують, скільки рідини піде на штангу, а скільки повернеться в бак.</p>'+
+  '<p>Автоматика додає до цього три речі: тримає норму незалежно від швидкості, вимикає секції на вже обробленій площі за даними GNSS і не дає тиску стрибнути, коли частину секцій вимкнено. У цій роботі ви по черзі перевірите кожну з них.</p></details>'}
+s+=nb(null,V?[1,'Норма, розпилювач і тиск']:null);
+return s}
+function rset(k,v){S.reg=S.reg||{};S.reg[k]=v;save()}
+function mkvar(){const d=S.reg||{};
+ if(!d.group||!d.name||!String(d.num||'').trim())return alert('Заповніть групу, прізвище та номер у журналі.');
+ const keep={...d};S=blank();S.reg=keep;V=mkV(keep);S.open=new Array(V.Nsec).fill(1);save();R()}
+function wipe(){if(!confirm('Видалити всі введені дані й результати?'))return;try{localStorage.removeItem(KEY)}catch(e){}S=blank();V=null;save();R()}
+
+/* ---------- 1. Норма, розпилювач і тиск ---------- */
+function scr1(){const rf=ref(),Q=QS({}),h=hyd(V,Q),t=tipOf(tipNow()),nz=nozOf(nozNow());
+let s=H('Крок 1. Норма внесення, розпилювач і робочий тиск',
+ 'Норму внесення задає агроном. Ваше завдання — перевести її у витрату одного розпилювача, підібрати розпилювач і знайти тиск, за якого він цю витрату дає.');
+
+s+='<h3>1.1. Розрахунок потрібної витрати</h3>';
+s+='<div class="r2"><div>'+inp('bd.q','Потрібна витрата одного розпилювача q, л/хв','наприклад, 0,82')+
+ '<p class="hint">q = Q · v · a / 600, де Q — норма, л/га; v — швидкість, км/год; a — крок розпилювачів, м.'+chk(S.bd.q,rf.q,.02,.02)+'</p></div>';
+s+='<div>'+inp('v','Робоча швидкість v, км/год','наприклад, '+F(V.vp,1))+
+ '<p class="hint">Планова за технологією — '+F(V.vp,1)+' км/год.</p></div></div>';
+s+=gsc([['Q — норма внесення',TH(V.Qp)+' л/га'],['a — крок розпилювачів',F(V.aNoz,1)+' м'],
+ ['розпилювачів на штанзі',String(V.nNoz)],['ширина захвату B',F(V.B)+' м']]);
+s+='<details class="inf"><summary>Звідки береться коефіцієнт 600</summary>'+
+ '<p>Один розпилювач обробляє смугу завширшки a метрів. За годину агрегат проходить v·1000 метрів, отже обробляє v·1000·a квадратних метрів, або v·a/10 гектарів.</p>'+
+ '<p>За ту саму годину розпилювач виливає q·60 літрів. Норма внесення — це літри на гектар:</p>'+
+ '<p style="text-align:center"><b>Q = q·60 / (v·a/10) = 600·q / (v·a)</b></p>'+
+ '<p>Звідси й обернена формула q = Q·v·a/600. Коефіцієнт 600 — це просто 60 хвилин, помножені на 10, і більше нічого.</p></details>';
+
+s+='<h3>1.2. Вибір розпилювача</h3>';
+s+='<div class="r2"><div>'+sel('noz',NOZ.map(x=>[x.ab,x.t]),'Тип розпилювача',nozNow())+
+ '<p class="hint">Робочий діапазон тиску: '+F(nz.pmin,1)+'…'+F(nz.pmax,1)+' бар. Інжекторні дають грубшу краплю й менше зносяться вітром.</p></div>'+
+ '<div>'+sel('tip',TIP.map(x=>[x.c,'ISO '+x.c+' — '+x.col+', '+F(x.q,2)+' л/хв']),'Типорозмір за ISO 10625 (номінальна витрата при 3 бар)',tipNow())+
+ '<p class="hint">Колір на корпусі розпилювача однозначно вказує на його номінальну витрату.</p></div></div>';
+s+='<div class="r2"><div>'+inp('bd.p','Робочий тиск p, бар','наприклад, 3,1')+
+ '<p class="hint">p = 3 · (q / q_ном)², бо витрата росте як корінь із тиску.'+chk(S.bd.p,rf.p,.03,.1)+'</p></div>'+
+ '<div>'+inp('p','Уставка тиску на пульті, бар','наприклад, '+F(V.ideal.p,1))+
+ '<p class="hint">Те, що ви реально виставляєте регулятором. У режимі дозування за швидкістю тиск задає комп’ютер.</p></div></div>';
+s+=tipTable();
+s+='<details class="inf"><summary>Чому витрата росте як корінь із тиску</summary>'+
+ '<p>Розпилювач — це отвір. Рідина витікає з нього зі швидкістю u = √(2p/ρ) (рівняння Бернуллі), а витрата — це швидкість, помножена на площу отвору. Площа не змінюється, тому</p>'+
+ '<p style="text-align:center"><b>q(p) = q_ном · √(p / 3)</b></p>'+
+ '<p>Наслідок, який треба запам’ятати: щоб збільшити витрату вдвічі, тиск треба підняти <b>вчетверо</b>. Тиском норму внесення регулюють погано — набагато швидше змінити типорозмір розпилювача.</p></details>';
+s+=chartQP();
+s+=gsc([['витрата при обраному тиску',F(h.q,2)+' л/хв'],
+ ['норма внесення',F(h.Qact,1)+' л/га',Math.abs(h.Qact-V.Qp)/V.Qp>.05?C('wn'):C('ac')],
+ ['витрата штанги',F(h.Qtot,1)+' л/хв',h.pumpOver?C('wn'):C('ac')],
+ ['медіанний діаметр краплі',F(h.d)+' мкм ('+h.cat[2]+')',h.d<V.dmin||h.d>V.dmax?C('wn'):C('ac')]]);
+s+='<div class="concl">'+verdict1(h,nz)+'</div>';
+s+=recBox(1);
+s+=nb([0,'Реєстрація'],[2,'Пролив і діагностика']);
+return s}
+function tipTable(){const t=tipOf(tipNow());
+let s='<div class="tw"><table class="t2 c"><tr><th>ISO</th><th>Колір</th><th>q при 2 бар</th><th>q при 3 бар (ном.)</th><th>q при 4 бар</th><th>q при 6 бар</th></tr>';
+for(const x of TIP){const on=x.c==t.c;
+ s+='<tr style="cursor:pointer;'+(on?'font-weight:700;background:color-mix(in srgb,'+C('ac')+' 12%,transparent)':'')+'" onclick="setN(\'tip\',\''+x.c+'\')" title="Обрати ISO '+x.c+'">'+
+  '<td>'+x.c+'</td><td><span style="display:inline-block;width:12px;height:12px;border-radius:3px;background:'+x.hex+';vertical-align:-1px;margin-right:5px"></span>'+esc(x.col)+'</td>'+
+  [2,3,4,6].map(p=>'<td>'+F(qOf(x.q,p),2)+'</td>').join('')+'</tr>'}
+return s+'</table></div>'}
+function chartQP(){const t=tipOf(tipNow()),nz=nozOf(nozNow()),pts=[];
+ for(let p=1;p<=8.2;p+=.1)pts.push([p,qOf(t.q,p)]);
+ const h=hyd(V,QS({}));
+ return chart('cqp',[{name:'q(p) для ISO '+t.c,color:C('liq'),pts}],
+  {h:190,x0:1,x1:8,xl:'тиск, бар',yl:'витрата розпилювача, л/хв',nolg:1,
+   bands:[[0,qOf(t.q,nz.pmax),C('ac')]],
+   vl:[[nz.pmin,C('am'),'нижня межа '+F(nz.pmin,1)],[nz.pmax,C('am'),'верхня межа '+F(nz.pmax,1)],[h.p,C('ink'),'ваш тиск']]})}
+function verdict1(h,nz){const b=[];
+ if(h.under)b.push('тиск '+F(h.p,1)+' бар нижчий за робочу межу '+F(nz.pmin,1)+' бар — факел не розкриється');
+ if(h.over)b.push('тиск '+F(h.p,1)+' бар вищий за робочу межу '+F(nz.pmax,1)+' бар');
+ if(h.pumpOver)b.push('витрата штанги '+F(h.Qtot,1)+' л/хв перевищує подачу насоса '+TH(V.pump)+' л/хв');
+ if(Math.abs(h.Qact-V.Qp)/V.Qp>.05)b.push('норма внесення '+F(h.Qact,1)+' л/га замість '+TH(V.Qp)+' — змініть типорозмір розпилювача або тиск');
+ if(h.d<V.dmin)b.push('крапля '+F(h.d)+' мкм дрібніша за потрібні '+F(V.dmin)+' мкм — сильно знесе вітром');
+ if(h.d>V.dmax)b.push('крапля '+F(h.d)+' мкм грубіша за потрібні '+F(V.dmax)+' мкм — не буде покриття');
+ if(!b.length)return'<b>Розпилювач підібрано.</b> ISO '+tipOf(tipNow()).c+' при '+F(h.p,1)+' бар дає '+F(h.q,2)+
+  ' л/хв, що відповідає нормі '+F(h.Qact,1)+' л/га. Крапля '+F(h.d)+' мкм — у потрібних межах.';
+ return'<b>Ще не підібрано.</b><ul><li>'+b.join('</li><li>')+'</li></ul>'}
+
+/* ---------- 2. Пролив і діагностика ---------- */
+function scr2(){const Q=QS({}),h=hyd(V,Q),rows=secFlow(V,Q,h);
+let s=H('Крок 2. Пролив і діагностика секцій',
+ 'Розрахунок показує, скільки розпилювач має давати. Скільки він дає насправді — показує тільки мірний циліндр. Розбіжність між ними і є предметом цього кроку.');
+s+='<h3>2.1. Пролив секцій</h3>';
+s+='<p class="hint">Під кожну секцію підставляють мірну ємність і збирають рідину '+CALL+' с при робочому тиску. Розрахункова витрата одного розпилювача — <b>'+F(h.q,2)+' л/хв</b>, секції з '+V.nSec+' розпилювачів — <b>'+F(h.q*V.nSec,1)+' л/хв</b>.</p>';
+s+='<button class="'+(S.pourDone?'g':'p')+'" onclick="pourGo()">'+(S.pourDone?'Повторити пролив':'Виконати пролив секцій')+'</button>';
+if(S.pourDone){
+ s+='<div class="tw"><table class="t2 c"><tr><th>Секція</th><th>Зібрано за '+CALL+' с, л</th><th>Витрата, л/хв</th><th>Відхилення від розрахунку</th><th>Ваш діагноз</th></tr>';
+ for(const r of rows){const dev=100*(r.Qs-h.q*V.nSec)/(h.q*V.nSec),
+  c=Math.abs(dev)<=4?'':' style="color:'+C('wn')+';font-weight:700"';
+  s+='<tr><td><b>'+r.s+'</b></td><td>'+F(r.Qs*CALL/60,2)+'</td><td'+c+'>'+F(r.Qs,1)+'</td><td'+c+'>'+F(dev,1)+' %</td>'+
+   '<td>'+sel('ck.s'+r.s,DIAG,'',S.ck['s'+r.s]||'—')+'</td></tr>'}
+ s+='</table></div>';
+ s+=secPourSVG(V,rows,f1(h.q*V.nSec),S.pourSec);
+ s+=pourSVG(V,nozFlow(V,Q,h,S.pourSec),h.q,{cap:'Пролив кожного розпилювача секції '+S.pourSec+' окремо (можна також натиснути на стовпчик секції вище). Зношені розпилювачі піднімають усю секцію, а один забитий у середньому по секції майже непомітний.'});
+ s+='<div class="pc"><span style="font-size:.84rem;color:'+C('sub')+'">секція для порозпилювачного проливу</span>'+
+  '<select onchange="setN(\'pourSec\',+this.value)">'+rows.map(r=>'<option value="'+r.s+'"'+(S.pourSec==r.s?' selected':'')+'>секція '+r.s+'</option>').join('')+'</select></div>'}
+
+s+='<h3>2.2. Перевірка витратоміра</h3>';
+s+='<p class="hint">Бортовий комп’ютер рахує норму внесення за показом витратоміра. Якщо витратомір бреше, норма зміститься рівно на його похибку — і жодна автоматика цього не помітить.</p>';
+s+='<button class="'+(S.calDone?'g':'p')+'" onclick="calGo()">'+(S.calDone?'Зняти показ ще раз':'Порівняти витратомір із проливом')+'</button>';
+if(S.calDone){const e=calErrPct(),qSum=f1(rows.filter(r=>r.open).reduce((a,b)=>a+b.Qs,0));
+ s+=kvc([['пролив справних секцій',F(h.Qtot,1)+' л/хв',Math.abs(qSum-h.Qtot)>.15?'із несправними: '+F(qSum,1)+' л/хв':'сума за мірним циліндром'],
+  ['витратомір до поправки',F(S.calShown,1)+' л/хв',S.calFixed?'після поправки: '+F(h.Qtot,1)+' л/хв':'показ на терміналі'],
+  ['похибка витратоміра',F(e,1)+' %',Math.abs(e)>3?'поза допуском ±3 %':'у допуску ±3 %',Math.abs(e)>3?'up':'dn'],
+  ['норма без поправки',F(V.Qp*(1+e/100),1)+' л/га','замість '+TH(V.Qp)+' л/га',Math.abs(e)>3?'up':'']]);
+ s+='<label><input type="checkbox" '+(S.calFixed?'checked':'')+' onchange="setN(\'calFixed\',this.checked?1:0)"> Внести поправку ('+(e>0?'−':'+')+F(Math.abs(e),1)+' %) у бортовий комп’ютер</label>'}
+
+s+='<h3>2.3. Перевірка компенсаційних клапанів</h3>';
+s+='<p class="hint">Закрийте по черзі кожну секцію і стежте за манометром. Якщо компенсаційний клапан відрегульовано, тиск не зміниться. Якщо ні — підскочить.</p>';
+s+='<button class="'+(S.chk.sec?'g':'p')+'" onclick="setN(\'chk.sec\',1)">'+(S.chk.sec?'Повторити перевірку':'Перевірити секції по черзі')+'</button>';
+if(S.chk.sec){const p0=hyd(V,QS({})).p;
+ s+='<div class="tw"><table class="t2 c"><tr><th>Закрито секцію</th>'+rows.map(r=>'<th>'+r.s+'</th>').join('')+'</tr>'+
+  '<tr><th style="text-align:left">Манометр, бар</th>'+rows.map(r=>{const p=secTest(r.s),bad=Math.abs(p-p0)>.15;
+   return'<td'+(bad?' style="color:'+C('wn')+';font-weight:700"':'')+'>'+F(p,2)+'</td>'}).join('')+'</tr></table></div>';
+ s+='<p class="note">За відкритих усіх секцій манометр показує '+F(p0,2)+' бар.</p>'}
+
+s+='<details class="inf"><summary>Як розрізнити три несправності (підказка)</summary>'+
+ '<ul><li><b>Зношені розпилювачі</b> — отвір розробився, витрата всієї секції вища за розрахункову на 12…22 %. Їх міняють секцією, тому й зношуються вони разом.</li>'+
+ '<li><b>Частково забитий розпилювач</b> — у середньому по секції майже непомітний, бо він один із '+V.nSec+'. Знайти можна лише проливом кожного розпилювача окремо.</li>'+
+ '<li><b>Нерегульований компенсаційний клапан</b> — витрата секції в нормі, але при її закритті тиск у магістралі підскакує.</li>'+
+ '<li><b>Норма</b> — витрата в допуску ±10 %, тиск при закритті не змінюється.</li></ul></details>';
+
+s+='<h3>Усунути знайдене</h3>';
+s+='<div class="lab-g">'+
+ fixBox('fixWear','Замінити зношені розпилювачі секції')+
+ fixBox('fixBlock','Прочистити забитий розпилювач')+
+ fixBox('fixComp','Відрегулювати компенсаційний клапан')+'</div>';
+s+=recBox(2);
+s+=nb([1,'Норма й розпилювач'],[3,'Дозування і швидкість']);
+return s}
+const fixBox=(k,t)=>'<label><input type="checkbox" '+(S[k]?'checked':'')+' onchange="setN(\''+k+'\',this.checked?1:0)"> '+esc(t)+'</label>';
+/* ===== Анімація гідравлічної схеми ===== */
+const ANI={run:0,sp:1,ph:0,last:0,Q:null,h:null,cap:'',lvl:.72};
+function hydBox(Q,h,cap){ANI.Q=Q;ANI.h=h;ANI.cap=cap||'';
+ return'<div id="ani">'+hydSVG(V,Q,h,aniSt(ANI.cap))+'</div>'+
+ '<div class="pc"><button class="g sm" onclick="aniTog()" id="anib">'+(ANI.run?'⏸ Пауза потоку':'▶ Анімація потоку')+'</button>'+
+ (ANI.lvl<.68?'<button class="g sm" onclick="ANI.lvl=.72;R()">Наповнити бак</button>':'')+
+ '<span style="font-size:.82rem;color:'+C('sub')+'">насос подає '+TH(V.pump)+' л/хв, на штангу йде '+F(h.Qtot,1)+' л/хв, у бак зливається '+F(Math.max(0,V.pump-h.Qtot),1)+' л/хв</span></div>'}
+const aniSt=cap=>({ph:ANI.ph,on:1,level:ANI.lvl,cap,
+ relief:1,prop:(ANI.Q&&ANI.Q.dose!='тиск')?1:0,tipHex:(tipOf(ANI.Q?ANI.Q.tip:tipNow())||{}).hex});
+function aniTog(){ANI.run=!ANI.run;ANI.last=performance.now();
+ const b=document.getElementById('anib');if(b)b.textContent=ANI.run?'⏸ Пауза потоку':'▶ Анімація потоку';
+ if(ANI.run)requestAnimationFrame(aniTick)}
+function aniTick(){if(!ANI.run)return;const e=document.getElementById('ani');if(!e||!ANI.Q){ANI.run=0;return}
+ const now=performance.now(),dt=Math.min(.1,(now-ANI.last)/1000);ANI.last=now;
+ ANI.ph+=dt*2.2;
+ ANI.lvl=cl(ANI.lvl-dt*0.012,.1,.95);
+ e.innerHTML=hydSVG(V,ANI.Q,ANI.h,aniSt(ANI.cap));
+ requestAnimationFrame(aniTick)}
+
+/* ---------- 3. Дозування і швидкість ---------- */
+function scr3(){const Q=QS({}),rf=ref(),nz=nozOf(nozNow());
+let s=H('Крок 3. Система дозування і робочий діапазон швидкостей',
+ 'Норму внесення задає витрата розпилювача, поділена на швидкість. Отже, тримати норму можна лише тоді, коли система якось реагує на зміну швидкості. Систем таких три, і вони реагують по-різному.');
+s+='<div class="sen">'+DOSE.map(d=>'<button class="'+(S.dose==d?'on':'')+'" onclick="setN(\'dose\',\''+d+'\')">'+
+ '<b>'+esc(DOSEL[d].split(' (')[0])+'</b><small>'+esc(d=='тиск'?'ручне керування, без пропорційного клапана':
+  d=='оберти'?'пропорційний клапан стежить за подачею насоса':'витратомір і бортовий комп’ютер')+'</small></button>').join('')+'</div>';
+s+=chartQV();
+s+=doseTolTable(rf);
+s+='<h3>3.1. Робочий діапазон швидкостей</h3>';
+s+='<p class="hint">Навіть найкраща автоматика обмежена розпилювачем: тиск нижче '+F(nz.pmin,1)+' бар не розкриє факел, вище '+F(nz.pmax,1)+' бар — зруйнує краплю. Знайдіть швидкості, за яких тиск лишається в цих межах.</p>';
+s+='<div class="r2"><div>'+inp('bd.vmin','Мінімальна швидкість v_min, км/год','')+
+ '<p class="hint">v = 600 · q(p_min) / (Q · a)'+chk(S.bd.vmin,rf.vmin,.04,.2)+'</p></div>'+
+ '<div>'+inp('bd.vmax','Максимальна швидкість v_max, км/год','')+
+ '<p class="hint">v = 600 · q(p_max) / (Q · a)'+chk(S.bd.vmax,rf.vmax,.04,.2)+'</p></div></div>';
+s+=gsc([['q при '+F(nz.pmin,1)+' бар',F(qOf(tipOf(tipNow()).q,nz.pmin),2)+' л/хв'],
+ ['q при '+F(nz.pmax,1)+' бар',F(qOf(tipOf(tipNow()).q,nz.pmax),2)+' л/хв'],
+ ['ваша швидкість',F(vNow(),1)+' км/год',(vNow()<rf.vmin||vNow()>rf.vmax)?C('wn'):C('ac')],
+ ['планова швидкість',F(V.vp,1)+' км/год']]);
+s+='<label for="i_doseWhy">Чому ви обрали саме цю систему дозування</label>'+
+ '<input id="i_doseWhy" type="text" value="'+vs(S.doseWhy)+'" oninput="set(\'doseWhy\',this.value)" placeholder="одним реченням">';
+s+='<div class="concl">'+verdict3(Q,rf,nz)+'</div>';
+s+=hydBox(Q,hyd(V,Q),'Пульт керування при обраній системі дозування. У режимі постійного тиску пропорційний клапан у роботі не бере участі.');
+s+=recBox(3);
+s+=nb([2,'Пролив і діагностика'],[4,'Секції, штанга, знесення']);
+return s}
+function doseTolTable(rf){const vp=V.vp,
+ b1=F(vp*0.95,1)+'…'+F(vp*1.05,1)+' км/год (±5 % від планової)',
+ b2=F(vp*0.80*0.95,1)+'…'+F(vp*1.20*1.05,1)+' км/год (±20 % хід клапана + ±5 % допуск норми)',
+ b3=F(rf.vmin,1)+'…'+F(rf.vmax,1)+' км/год (увесь робочий діапазон розпилювача)';
+return'<div class="tw"><table class="t2"><tr><th>Система дозування</th><th>Межі швидкості з нормою в допуску ±5 %</th><th>Як поводиться норма при зміні швидкості</th></tr>'+
+ '<tr><th>За постійного тиску</th><td><b>'+b1+'</b></td><td>Тиск і витрата розпилювача не змінюються. Норма змінюється обернено до швидкості: похибка норми дорівнює відхиленню швидкості.</td></tr>'+
+ '<tr><th>Пропорційно обертам</th><td><b>'+b2+'</b></td><td>Подача насоса йде за обертами вала (±20 % від '+F(vp,1)+' км/год норма точна, а за межами упору клапана відхиляється ще на ±5 % до виходу за допуск).</td></tr>'+
+ '<tr><th>Пропорційно швидкості</th><td><b>'+b3+'</b></td><td>Комп’ютер вимірює швидкість і витрату та сам регулює тиск. Норма стала, доки тиск не впреться в межі розпилювача.</td></tr>'+
+ '</table></div>'}
+function chartQV(){const series=DOSE.map((d,i)=>{const pts=[];
+ for(let v=4;v<=16;v+=.2){const hh=hyd(V,QS({v,dose:d}));pts.push([v,hh.Qact])}
+ return{name:DOSEL[d].split(' (')[0],color:[C('wn'),C('am'),C('ac')][i],pts,dash:i==1}});
+ return chart('cqv',series,{h:230,x0:4,x1:16,y0:0,y1:V.Qp*2.1,xl:'робоча швидкість, км/год',yl:'норма внесення, л/га',
+  lgb:1,bands:[[V.Qp*.95,V.Qp*1.05,C('ac')]],vl:[[V.vp,C('ink'),'планова '+F(V.vp,1)]]})}
+function verdict3(Q,rf,nz){const v=vNow(),u=[];
+ u.push(S.dose=='швидкість'?'дозування за швидкістю тримає норму на всьому діапазоні — це єдина система, що не залежить від того, як ви їдете':
+  S.dose=='оберти'?'пропорційний клапан утримає норму лише в межах ±20 % від '+F(V.vp,1)+' км/год, тобто '+F(V.vp*.8,1)+'…'+F(V.vp*1.2,1)+' км/год':
+  'за постійного тиску норма змінюється обернено до швидкості: відхилення швидкості на 10 % дає відхилення норми на 10 %');
+ if(v<rf.vmin)u.push('швидкість '+F(v,1)+' км/год нижча за v_min = '+F(rf.vmin,1)+': тиск впаде нижче '+F(nz.pmin,1)+' бар і факел не розкриється');
+ else if(v>rf.vmax)u.push('швидкість '+F(v,1)+' км/год вища за v_max = '+F(rf.vmax,1)+': тиск перевищить '+F(nz.pmax,1)+' бар');
+ else u.push('швидкість '+F(v,1)+' км/год лежить у робочому діапазоні '+F(rf.vmin,1)+'…'+F(rf.vmax,1)+' км/год');
+ return'<ul><li>'+u.join('</li><li>')+'</li></ul>'}
+
+/* ---------- 4. Секції, штанга, знесення ---------- */
+function scr4(){const Q=QS({}),h=hyd(V,Q),rows=secFlow(V,Q,h),cv=boomCV(V,Q,rows),
+ d=h.d,dr=drift(V,Q,d),buf=buffer(dr),open=openNow();
+let s=H('Крок 4. Секційні клапани, висота штанги і знесення',
+ 'Три речі, які вирішуються на штанзі: що відбувається з тиском при вимиканні секцій, на якій висоті факели перекриваються рівно, і скільки рідини забирає вітер.');
+
+s+='<h3>4.1. Вимикання секцій і компенсація тиску</h3>';
+s+='<div class="sg">'+open.map((o,i)=>'<button class="'+(o?'on':'off')+'" onclick="togSec('+i+')">секція '+(i+1)+'<br>'+(o?'відкрита':'закрита')+'</button>').join('')+'</div>';
+s+='<label><input type="checkbox" '+(S.comp?'checked':'')+' onchange="setN(\'comp\',this.checked?1:0)"> Компенсаційні клапани увімкнено (надлишок зливається в бак)</label>';
+s+=kvc([['відкрито секцій',h.nOpen+' з '+V.Nsec,''],
+ ['тиск у магістралі',F(h.p,2)+' бар',S.comp?'компенсація тримає':'зростає як (N/n)²',S.comp?'dn':'up'],
+ ['витрата розпилювача',F(h.q,2)+' л/хв',S.comp?'не змінилась':'зросла в N/n разів',S.comp?'dn':'up'],
+ ['норма внесення',F(h.Qact,1)+' л/га',F(100*(h.Qact-V.Qp)/V.Qp,1)+' % від планової',Math.abs(h.Qact-V.Qp)/V.Qp>.05?'up':'dn']]);
+s+=chartSec();
+s+=secTable();
+s+='<details class="inf"><summary>Чому без компенсації тиск росте саме як квадрат</summary>'+
+ '<p>Насос подає ту саму кількість рідини незалежно від того, скільки секцій відкрито. Якщо з N секцій лишилось n, уся подача йде на меншу кількість розпилювачів, і витрата кожного зростає в N/n разів:</p>'+
+ '<p style="text-align:center"><b>q′ = q · N / n</b></p>'+
+ '<p>А тиск пов’язаний із витратою квадратично, бо витрата росте як корінь із тиску. Отже</p>'+
+ '<p style="text-align:center"><b>p′ = p · (N / n)²</b></p>'+
+ '<p>Закрити одну секцію з п’яти означає підняти витрату кожного розпилювача на 25 %, а тиск — на 56 %. Саме для цього й потрібні компенсаційні клапани: вони скидають надлишок у бак і лишають тиск незмінним.</p></details>';
+s+=hydBox(Q,h,'Пульт керування з поточним станом секційних клапанів. Закриті секції повертають рідину в бак через компенсаційні клапани.');
+
+s+='<h3>4.2. Висота штанги і рівномірність</h3>';
+s+='<div class="r2"><div><label>Висота штанги над оброблюваною поверхнею: <b>'+F(hNow(),2)+'</b> м</label>'+
+ '<input type="range" min="0.25" max="1.0" step="0.05" value="'+hNow()+'" oninput="setN(\'h\',+this.value)">'+
+ '<p class="hint">Для розпилювачів '+F(V.ang)+'° при кроці '+F(V.aNoz,1)+' м рекомендована висота — <b>'+F(V.hOpt,2)+' м</b>.</p></div>'+
+ '<div><label>Швидкість вітру: <b>'+F(n(S.wind)??V.wind,1)+'</b> м/с</label>'+
+ '<input type="range" min="0.5" max="9" step="0.5" value="'+(n(S.wind)??V.wind)+'" oninput="setN(\'wind\',+this.value)">'+
+ '<p class="hint">У варіанті задано '+F(V.wind,1)+' м/с. Понад 5 м/с обробку зазвичай припиняють.</p></div></div>';
+s+=boomSVG(V,Q,cv,{cap:'Факели сусідніх розпилювачів мають перекриватися так, щоб сумарний шар був рівним. Унизу — поперечний розподіл, що з цього виходить.'});
+
+s+='<h3>4.3. Крапля і знесення</h3>';
+s+=driftSVG(V,Q,d,dr,buf,{cap:'Чим вищий тиск, тим дрібніша крапля і тим далі її несе вітром. Буферна зона — смуга, яку доводиться лишати необробленою.'});
+
+s+='<h3>4.4. Секційне вимикання за GNSS</h3>';
+s+='<div class="r3"><div>'+inp('bd.Tz','Сумарне запізнення T_заг, с','')+
+ '<p class="hint">T_заг = T_GNSS + T_кл + T_маг'+chk(S.bd.Tz,V.Tz,0,.03)+'</p></div>'+
+ '<div>'+inp('Tlead','Випередження T_лід, с','наприклад, '+F(V.Tz,2))+'</div>'+
+ '<div>'+gsc([['T_GNSS, приймач',F(V.Tg,2)+' с'],['T_кл, клапан',F(V.Tv,2)+' с'],['T_маг, магістраль',F(V.Tl,2)+' с']])+'</div></div>';
+{const dL=f2(vNow()/3.6*(V.Tz-(n(S.Tlead)??0)));
+ s+=fieldSVG(V,{...Q,Tlead:n(S.Tlead)??0},dL,{cap:'Вид зверху на межу поля. Команда подається за T_лід до межі, остання крапля лягає там, де агрегат опиниться через T_заг.'})}
+s+='<div class="concl">'+verdict4(h,cv,dr,buf)+'</div>';
+s+=recBox(4);
+s+=nb([3,'Дозування'],[5,'Прохід і економіка']);
+return s}
+function togSec(i){const o=openNow().slice();o[i]=o[i]?0:1;if(!o.some(Boolean))o[i]=1;setN('open',o)}
+function secTable(){const N=V.Nsec,p0=n(S.p)||V.ideal.p;
+let s='<div class="tw"><table class="t2 c"><tr><th>Відкрито секцій (n з N)</th><th>Тиск без компенсації, бар</th><th>Витрата розпилювача без компенсації, л/хв</th><th>Тиск із компенсацією, бар</th><th>Витрата із компенсацією, л/хв</th></tr>';
+for(let k=N;k>=1;k--){const o=new Array(N).fill(0).map((_,i)=>i<k?1:0),
+ a=hyd(V,{...QS({}),open:o,comp:0,dose:'тиск',p:p0}),
+ b=hyd(V,{...QS({}),open:o,comp:1,badComp:false,dose:'тиск',p:p0});
+ s+='<tr'+(k==openNow().filter(Boolean).length?' style="font-weight:700;background:color-mix(in srgb,'+C('ac')+' 12%,transparent)"':'')+'>'+
+  '<td>'+k+' з '+N+'</td><td'+(a.p>=11.9?' style="color:'+C('wn')+'"':'')+'>'+F(a.p,2)+(a.p>=11.9?' (КМТ)':'')+'</td>'+
+  '<td>'+F(a.q,2)+'</td><td>'+F(b.p,2)+'</td><td>'+F(b.q,2)+'</td></tr>'}
+return s+'</table></div>'}
+function chartSec(){const pts=[],pts2=[],t=tipOf(tipNow()),N=V.Nsec;
+ for(let k=1;k<=N;k++){const o=new Array(N).fill(0).map((_,i)=>i<k?1:0);
+  pts.push([k,hyd(V,{...QS({}),open:o,comp:0,dose:'тиск',p:n(S.p)||V.ideal.p}).p]);
+  pts2.push([k,hyd(V,{...QS({}),open:o,comp:1,dose:'тиск',p:n(S.p)||V.ideal.p}).p])}
+ return chart('csec',[{name:'без компенсації',color:C('wn'),pts,dots:1},{name:'з компенсацією',color:C('ac'),pts:pts2,dots:1}],
+  {h:190,x0:1,x1:V.Nsec,nx:V.Nsec-1,y0:0,xl:'відкрито секцій',yl:'тиск у магістралі, бар',lgb:1,xf:v=>F(Math.round(v))})}
+function verdict4(h,cv,dr,buf){const u=[],hb=hNow();
+ u.push(Math.abs(hb-V.hOpt)<.03?'висота штанги відповідає рекомендованій — поперечний розподіл рівний, CV = '+F(cv,1)+' %':
+  hb<V.hOpt?'штанга занизько на '+F((V.hOpt-hb)*100)+' см: факели не встигають перекритися, по полю йдуть смуги, CV = '+F(cv,1)+' %':
+  'штанга зависоко на '+F((hb-V.hOpt)*100)+' см: перекриття надмірне, а знесення зростає, CV = '+F(cv,1)+' %');
+ u.push('крапля '+F(h.d)+' мкм ('+h.cat[2]+'), знесення '+F(dr,1)+' % норми, буферна зона '+F(buf)+' м'+
+  (dr>6?' — за таких умов обробку краще відкласти':dr>3?' — на межі прийнятного':''));
+ const dL=vNow()/3.6*(V.Tz-(n(S.Tlead)??0));
+ u.push(Math.abs(dL)<=.2?'випередження узгоджене із запізненням: ΔL = '+F(r2(dL),2)+' м':
+  'ΔL = '+F(r2(dL),2)+' м '+(dL>0?'повторної обробки':'необробленої смуги')+' на кожному перетині межі');
+ if(!S.comp)u.push('компенсаційні клапани вимкнено: при вимиканні секцій тиск і норма підуть угору');
+ return'<b>Стан штанги:</b><ul><li>'+u.join('</li><li>')+'</li></ul>'}
+
+/* ---------- 5. Прохід і економіка ---------- */
+function scr5(){const t=S.tr,l=t.last;
+let s=H('Крок 5. Пробний прохід і економічна оцінка',
+ 'Прохід зводить разом усі налаштування: що вийшло з нормою, скільки потрібно розчину, скільки заправок і чи виправдала себе автоматика.');
+s+=gsc([['розпилювач','ISO '+tipNow()+' '+nozNow()],['швидкість',F(vNow(),1)+' км/год'],
+ ['дозування',esc(S.dose)],['висота штанги',F(hNow(),2)+' м'],
+ ['усунено',String([S.fixWear,S.fixBlock,S.fixComp,S.calFixed].filter(Boolean).length)+' з 4']]);
+s+='<button class="p" onclick="run()">'+(l?'Виконати ще один прохід':'Виконати пробний прохід')+'</button>'+
+   (l?' <span class="chip">проходів: '+t.n+'</span>':'');
+if(!l){s+='<p class="note">Проходів ще не було. Перед проходом заповніть кроки 1–4.</p>'+nb([4,'Секції й штанга'],null);return s}
+
+s+='<h3>5.1. Що вийшло</h3>';
+s+='<div class="gg">'+
+ gc(Math.abs(l.dev),0,25,'відхилення норми','%',[[0,3,C('ac')],[3,10,C('am')],[10,25,C('wn')]])+
+ gc(l.cv,0,25,'CV розподілу','%',[[0,7,C('ac')],[7,10,C('am')],[10,25,C('wn')]])+
+ gc(l.drift,0,15,'знесення','%',[[0,3,C('ac')],[3,6,C('am')],[6,15,C('wn')]])+
+ gc(Math.abs(l.dL),0,3,'ΔL на межі','м',[[0,.2,C('ac')],[.2,1,C('am')],[1,3,C('wn')]])+'</div>';
+s+=kvc([['норма факт',F(l.Qact,1)+' л/га','план '+TH(V.Qp)+' л/га',Math.abs(l.dev)>3?'up':'dn'],
+ ['тиск',F(l.p,2)+' бар','витрата '+F(l.q,2)+' л/хв'],
+ ['крапля',F(l.d)+' мкм',l.cat[2]],
+ ['буферна зона',F(l.buffer)+' м','при вітрі '+F(l.wind??V.wind,1)+' м/с']]);
+s+='<h3>5.2. Витрата розчину на поле</h3>';
+s+='<div class="r3"><div>'+inp('bd.need','Потрібно розчину на поле, л','')+
+ '<p class="hint">V = Q_факт · S_поля'+chk(S.bd.need,l.need,.02,50)+'</p></div>'+
+ '<div>'+inp('bd.fills','Кількість заправок','')+
+ '<p class="hint">округлюється вгору до цілого'+chk(S.bd.fills,l.fills,0,0)+'</p></div>'+
+ '<div>'+gsc([['площа поля',F(V.S)+' га'],['об’єм бака',TH(V.tank)+' л'],['га з однієї заправки',F(l.segArea,1)]])+'</div></div>';
+
+s+='<h3>5.3. Економічна оцінка</h3>';
+const e=ecRef(S,V);
+if(e){const a=S.hist[0],b=S.hist[S.hist.length-1];
+ s+='<p class="hint">Порівнюємо перший прохід (машина, налаштована «на око») з останнім. Похибку дозування беремо не з одного проходу, а як властивість системи: у загінці швидкість однаково коливається на ±'+F(V.sigV,1)+' %, і кожна система дозування відповідає на це по-своєму.</p>';
+ s+='<div class="tw"><table class="t2 c"><tr><th>Показник</th><th>Прохід №'+a.n+' (до налагодження)</th><th>Прохід №'+b.n+' (після налагодження)</th><th>Різниця</th></tr>'+
+  '<tr><th style="text-align:left">Система дозування</th><td>'+esc(a.dose)+'</td><td>'+esc(b.dose)+'</td><td>—</td></tr>'+
+  '<tr><th style="text-align:left">Швидкість, км/год</th><td>'+F(a.v,1)+'</td><td>'+F(b.v,1)+'</td><td>'+(b.v-a.v>0?'+':'')+F(r1(b.v-a.v),1)+'</td></tr>'+
+  '<tr><th style="text-align:left">Висота штанги, м</th><td>'+F(a.h??V.hOpt,2)+'</td><td>'+F(b.h??V.hOpt,2)+'</td><td>'+(b.h-a.h>0?'+':'')+F(r2((b.h??V.hOpt)-(a.h??V.hOpt)),2)+'</td></tr>'+
+  '<tr><th style="text-align:left">Норма внесення, л/га</th><td>'+F(a.Qact,1)+'</td><td>'+F(b.Qact,1)+'</td><td>'+(b.Qact-a.Qact>0?'+':'')+F(r1(b.Qact-a.Qact),1)+'</td></tr>'+
+  '<tr><th style="text-align:left">Відхилення норми в проході, %</th><td>'+F(a.dev,1)+'</td><td>'+F(b.dev,1)+'</td><td>'+F(r1(Math.abs(a.dev)-Math.abs(b.dev)),1)+'</td></tr>'+
+  '<tr><th style="text-align:left">CV розподілу, %</th><td>'+F(a.cv,1)+'</td><td>'+F(b.cv,1)+'</td><td>'+(b.cv-a.cv>0?'+':'')+F(r1(b.cv-a.cv),1)+'</td></tr>'+
+  '<tr><th style="text-align:left">Знесення, %</th><td>'+F(e.dr1,1)+'</td><td>'+F(e.dr2,1)+'</td><td>'+(e.dr2-e.dr1>0?'+':'')+F(r1(e.dr2-e.dr1),1)+'</td></tr>'+
+  '<tr><th style="text-align:left">ΔL на межі, м</th><td>'+F(a.dL,2)+'</td><td>'+F(b.dL,2)+'</td><td>'+(b.dL-a.dL>0?'+':'')+F(r2(b.dL-a.dL),2)+'</td></tr>'+
+  '<tr><th style="text-align:left">Середня похибка норми за сезон, %</th><td>'+F(e.Lp1,1)+'</td><td>'+F(e.Lp2,1)+'</td><td>−'+F(r1(e.Lp1-e.Lp2),1)+'</td></tr>'+
+  '</table></div>';
+ s+='<details class="inf"><summary>Похибка норми за сезон для всіх режимів дозування (при коливанні швидкості ±'+F(V.sigV,1)+' %)</summary>'+
+  '<div class="tw"><table class="t2 c"><tr><th>Система дозування</th><th>Похибка норми за сезон, %</th><th>Пояснення</th></tr>'+
+  '<tr><td style="text-align:left">За постійного тиску</td><td><b>'+F(devMode(V,'тиск',0),1)+'</b></td><td style="text-align:left">дорівнює коливанню швидкості (±'+F(V.sigV,1)+' %)</td></tr>'+
+  '<tr><td style="text-align:left">Пропорційно обертам вала</td><td><b>'+F(devMode(V,'оберти',0),1)+'</b></td><td style="text-align:left">0,30 від коливання швидкості (клапан гасить коливання втричі)</td></tr>'+
+  '<tr><td style="text-align:left">Пропорційно швидкості (витратомір не повірено)</td><td><b>'+F(devMode(V,'швидкість',0),1)+'</b></td><td style="text-align:left">1,5 % + похибка витратоміра '+F(Math.abs(V.fl.cal),1)+' %</td></tr>'+
+  '<tr><td style="text-align:left">Пропорційно швидкості (витратомір повірено)</td><td><b>'+F(devMode(V,'швидкість',1),1)+'</b></td><td style="text-align:left">лишається тільки власна похибка системи 1,5 %</td></tr>'+
+  '</table></div></details>';
+ s+='<div class="tw"><table class="t2">'+
+  tr('Точність дозування','E_д = (p₁ − p₂)/100 · C_преп · S_сез = '+F(r1(e.Lp1-e.Lp2),1)+'/100 · '+TH(V.Cprep)+' · '+TH(V.Sy)+' = <b>'+TH(e.Ep)+' грн/рік</b>')+
+  tr('Секційне вимикання','ΔA = '+TH(V.Sy)+' · ('+F(V.wedge,1)+' − '+F(V.pres,1)+')/100 = '+F(e.dA,1)+' га; E_с = <b>'+TH(e.Es)+' грн/рік</b>')+
+  tr('Зменшення знесення','E_з = ('+F(e.dr1,1)+' − '+F(e.dr2,1)+')/100 · C_преп · S_сез = <b>'+TH(e.Ed)+' грн/рік</b>')+
+  tr('Повна вигода E','E = E_д + E_с + E_з = '+TH(e.Ep)+' + '+TH(e.Es)+' + '+TH(e.Ed)+' = <b>'+TH(e.E)+' грн/рік</b>')+
+  tr('Обслуговування','C_екс = 0,10 · '+TH(V.Csys)+' = '+TH(e.Cex)+' грн/рік')+
+  tr('Чиста вигода','E_чист = '+TH(e.E)+' − '+TH(e.Cex)+' = <b>'+TH(e.Enet)+' грн/рік</b>')+
+  tr('Термін окупності',e.T!=null?'T = '+TH(V.Csys)+' / '+TH(e.Enet)+' = <b>'+F(e.T,2)+' року</b>':'система не окупається')+
+  '</table></div>';
+ s+='<div class="r2"><div>'+inp('ec.E','E — повна вигода, грн/рік','')+'<p class="hint">'+chk(S.ec.E,e.E,.03,500)+'</p></div>'+
+  '<div>'+inp('ec.T','T — термін окупності, років','')+'<p class="hint">'+(e.T!=null?chk(S.ec.T,e.T,.08,.05):'')+'</p></div></div>';
+ s+='<div class="concl">'+(e.T==null?'<b>За цими даними система не окупається.</b> Перевірте, чи справді змінилася система дозування між першим і останнім проходом.'
+  :'<b>Висновок.</b> Перехід від дозування «'+esc(a.dose)+'» до «'+esc(b.dose)+'» зменшує похибку норми з '+F(e.Lp1,1)+' % до '+F(e.Lp2,1)+
+   ' %. На '+TH(V.Sy)+' га обробок за сезон це '+TH(e.Ep)+' грн, секційне вимикання додає '+TH(e.Es)+
+   ' грн, і система окупається за '+F(e.T,2)+' року.')+'</div>'}
+else s+='<p class="note">Для економічної оцінки потрібно щонайменше два проходи з різними системами дозування.</p>';
+if(S.hist.length>1)s+=histTab();
+s+=recBox(5);
+s+=nb([4,'Секції й штанга'],[6,'Протокол']);
+return s}
+function histTab(){const h=S.hist;
+let s='<h3>Журнал проходів</h3><div class="tw"><table class="t2 c"><tr><th>№</th><th>v</th><th>дозування</th><th>p, бар</th><th>норма, л/га</th><th>відх., %</th><th>CV, %</th><th>знесення, %</th><th>ΔL, м</th></tr>';
+for(const r of h)s+='<tr><td>'+r.n+'</td><td>'+F(r.v,1)+'</td><td>'+esc(r.dose)+'</td><td>'+F(r.p,2)+'</td><td>'+F(r.Qact,1)+'</td><td>'+F(r.dev,1)+'</td><td>'+F(r.cv,1)+'</td><td>'+F(r.drift,1)+'</td><td>'+F(r.dL,2)+'</td></tr>';
+return s+'</table></div>'}
+
+/* ---------- 6. Протокол ---------- */
+function scr6(){const sc=score(S,V),T_=tot(),
+ nm=['Норма, розпилювач і тиск','Пролив і діагностика','Дозування і швидкість','Секції, штанга, знесення','Прохід і економіка'],
+ mxv=[16,20,20,22,22];
+let s=H('Підсумковий протокол','Перенесіть ці рядки у звіт. Код протоколу підтверджує, що результат отримано саме у вашому варіанті.');
+if(S.demo)s+='<div class="wm">ПРИКЛАД ІЗ МЕТОДИЧКИ — не є звітом студента</div>';
+s+='<div class="tw"><table class="t2">'+
+ tr('Студент',esc((S.reg.name||'')+', група '+(S.reg.group||'')+', № '+(S.reg.num||'')))+
+ tr('Варіант',esc(V.id)+' — '+esc(V.a.p)+', '+esc(V.op.toLowerCase()))+
+ tr('Код протоколу','<b style="font-family:ui-monospace,monospace;letter-spacing:.06em">'+esc(pcode())+'</b>')+
+ '</table></div>';
+s+='<h3>Результати по пунктах</h3><div class="tw"><table class="t2">';
+for(let i=1;i<=5;i++)s+=tr('Пункт '+i+'. '+nm[i-1],esc(rec(i)));
+s+='</table></div>';
+s+='<h3>Самоконтроль виконання</h3><div class="tw"><table class="t2 c"><tr><th>Розділ</th><th>Виконано</th><th>Бали</th></tr>';
+for(let i=0;i<5;i++)s+='<tr><td style="text-align:left">'+esc(nm[i])+'</td><td>'+
+ (done(i+1)==1?'<span class="ok">повністю</span>':done(i+1)?'<span style="color:'+C('am')+'">частково</span>':'<span class="no">ні</span>')+
+ '</td><td>'+F(sc[i],1)+' / '+mxv[i]+'</td></tr>';
+s+='<tr><th style="text-align:left">Разом</th><th></th><th>'+F(r1(T_),1)+' / 100</th></tr></table></div>';
+s+='<div class="bar"><span>виконано</span><i style="width:'+Math.round(cl(T_,0,100)*2.6)+'px;background:'+(T_>=75?C('ac'):T_>=50?C('am'):C('wn'))+'"></i><b>'+F(r1(T_),1)+' %</b></div>';
+s+='<p class="hint">Бали — це самоконтроль повноти роботи, а не оцінка викладача.</p>';
+s+='<h3>Висновок</h3><div class="concl">'+concl()+'</div>';
+s+='<button class="p" onclick="print()">Друк / зберегти у PDF</button> <button class="g" onclick="go(0)">До реєстрації</button>';
+s+=nb([5,'Прохід і економіка'],null);
+return s}
+function concl(){const l=S.tr.last,e=ecRef(S,V),u=[],t=tipOf(tipNow());
+ if(!l)return'Пробний прохід не виконано — висновок зробити неможливо.';
+ u.push('Норму внесення задають витрата розпилювача і швидкість: Q = 600·q/(v·a). Тиском її регулюють погано, бо витрата росте лише як корінь із тиску — щоб подвоїти витрату, тиск довелося б підняти вчетверо');
+ u.push('Розрахунок показує потрібну витрату, а пролив — фактичну: у цьому варіанті '+
+  (V.fl.wear?'зношені розпилювачі секції '+V.fl.wear+' давали на '+F((V.wearK-1)*100)+' % більше норми':'витрата секцій була в допуску')+
+  (V.fl.block?', а забитий розпилювач у секції '+V.fl.block+' знайшовся лише при проливі кожного розпилювача окремо':''));
+ u.push('Із трьох систем дозування норму незалежно від швидкості тримає тільки дозування за швидкістю руху; за постійного тиску похибка норми дорівнює відхиленню швидкості, тобто ±'+F(V.sigV,1)+' % у цьому варіанті');
+ u.push('Компенсаційні клапани потрібні тому, що без них закриття секцій піднімає тиск як (N/n)²: закрити одну секцію з '+V.Nsec+' означає підняти тиск у '+F(Math.pow(V.Nsec/(V.Nsec-1),2),2)+' раза');
+ u.push('Висота штанги '+F(V.hOpt,2)+' м для розпилювачів '+F(V.ang)+'° дає CV '+F(l.cv,1)+' %, а крапля '+F(l.d)+' мкм при вітрі '+F(l.wind??V.wind,1)+' м/с — знесення '+F(l.drift,1)+' % і буферну зону '+F(l.buffer)+' м');
+ if(e&&e.T!=null)u.push('Економічно система виправдана: чиста вигода '+TH(e.Enet)+' грн/рік на '+TH(V.Sy)+' га обробок, окупність '+F(e.T,2)+' року');
+ return'<ul><li>'+u.join('</li><li>')+'</li></ul>'}
+/* ---------- 7. Досліди «що буде, якщо…» ---------- */
+function scr7(){const L=S.lab;if(!L.tip){L.tip=V.ideal.tip;L.noz=V.ideal.noz;L.p=V.ideal.p;L.v=V.vp;
+ L.h=V.hOpt;L.wind=V.wind;L.open=new Array(V.Nsec).fill(1);save()}
+const Q=Qs({tip:L.tip,noz:L.noz,p:String(L.p),v:String(L.v),dose:L.dose,h:String(L.h),wind:String(L.wind),
+ open:L.open,comp:L.comp,Tlead:String(V.Tz),calFixed:1,fixWear:1,fixBlock:1,fixComp:1},V);
+const h=hyd(V,Q),cv=boomCV(V,Q,[]),dr=drift(V,Q,h.d),buf=buffer(dr),P=L.pin,nz=nozOf(L.noz);
+let s=H('Досліди «що буде, якщо…»',
+ 'Ця сторінка не оцінюється. Рухайте один повзунок за раз і дивіться, що змінюється: саме ці залежності потрібні у блоках «Дослід» методички.');
+s+='<div class="lab-g">'+
+ '<div>'+sel('lab.noz',NOZ.map(x=>[x.ab,x.t]),'Тип розпилювача',L.noz)+'</div>'+
+ '<div>'+sel('lab.tip',TIP.map(x=>[x.c,'ISO '+x.c+' — '+x.col+', '+F(x.q,2)+' л/хв']),'Типорозмір',L.tip)+'</div>'+
+ (L.dose=='тиск'
+   ? sld('lab.p','Уставка тиску','бар',1,8,.1,L.p,'робочий діапазон '+F(nz.pmin,1)+'…'+F(nz.pmax,1)+' бар')
+   : lockedP(h,L))+
+ sld('lab.v','Швидкість','км/год',4,16,.5,L.v,'планова '+F(V.vp,1)+' км/год')+
+ sld('lab.h','Висота штанги','м',.25,1,.05,L.h,'рекомендована '+F(V.hOpt,2)+' м')+
+ sld('lab.wind','Вітер','м/с',.5,9,.5,L.wind,'у варіанті '+F(V.wind,1)+' м/с')+
+ '<div>'+sel('lab.dose',DOSE.map(d=>[d,DOSEL[d].split(' (')[0]]),'Система дозування',L.dose)+'</div>'+
+ '<div><label>Секції та компенсація</label>'+
+  '<div class="sg">'+L.open.map((o,i)=>'<button class="'+(o?'on':'off')+'" onclick="labSec('+i+')">'+(i+1)+'</button>').join('')+
+  '<button class="'+(L.comp?'on':'off')+'" onclick="setN(\'lab.comp\',S.lab.comp?0:1)">компенсація</button></div></div>'+
+ '</div>';
+s+='<div class="pc"><button class="g sm" onclick="labPin()">'+(P?'Закріплено — замінити':'Закріпити для порівняння')+'</button>'+
+ (P?'<button class="g sm" onclick="labUnpin()">Зняти</button>':'')+
+ '<button class="g sm" onclick="labLog()">Додати в журнал</button>'+
+ '<button class="g sm" onclick="labRst()">Еталонні налаштування</button></div>';
+s+='<div class="gg">'+
+ gc(h.p,0,10,'тиск','бар',[[nz.pmin,nz.pmax,C('ac')]])+
+ gc(h.Qact,0,V.Qp*2,'норма внесення','л/га',[[V.Qp*.95,V.Qp*1.05,C('ac')]])+
+ gc(h.d,100,700,'крапля','мкм',[[V.dmin,V.dmax,C('ac')]])+
+ gc(dr,0,15,'знесення','%',[[0,3,C('ac')],[3,6,C('am')],[6,15,C('wn')]])+'</div>';
+s+=gsc([['витрата розпилювача',F(h.q,2)+' л/хв'],['витрата штанги',F(h.Qtot,1)+' л/хв',h.pumpOver?C('wn'):C('ac')],
+ ['CV поперечного розподілу',F(cv,1)+' %',cvc(cv)],['буферна зона',F(buf)+' м',drc(dr)]]);
+if(P)s+='<div class="tw"><table class="t2 c"><tr><th>Показник</th><th>закріплено</th><th>зараз</th><th>різниця</th></tr>'+
+ trc('тиск, бар',P.p,h.p)+trc('норма, л/га',P.Qact,h.Qact)+trc('крапля, мкм',P.d,h.d)+trc('знесення, %',P.dr,dr)+
+ '<tr><th style="text-align:left">налаштування</th><td colspan="3" style="text-align:left">'+esc(labDesc(P.set))+' → '+esc(labDesc(labSt()))+'</td></tr></table></div>';
+s+=hydBox(Q,h,'Пульт керування при поточних налаштуваннях досліду.');
+s+=boomSVG(V,Q,cv,{cap:'Перекриття факелів і поперечний розподіл при висоті '+F(L.h,2)+' м.'});
+s+=driftSVG(V,Q,h.d,dr,buf,{cap:'Крапля й знесення при тиску '+F(h.p,1)+' бар і вітрі '+F(L.wind,1)+' м/с.'});
+{const pv=[],pd=[];for(let p=1;p<=8;p+=.1){const hh=hyd(V,{...Q,dose:'тиск',p});
+  pv.push([p,hh.d]);pd.push([p,drift(V,Q,hh.d)*30])}
+ s+='<h3>Тиск → крапля → знесення</h3>';
+ s+=chart('l1',[{name:'медіанний діаметр краплі, мкм',color:C('liq'),pts:pv},
+   {name:'знесення, % × 30',color:C('wn'),pts:pd}],
+  {h:200,x0:1,x1:8,xl:'тиск, бар',lgb:1,bands:[[V.dmin,V.dmax,C('ac')]],vl:[[h.p,C('ink'),'зараз']]})}
+{const pts=[];for(let hh=.25;hh<=1.001;hh+=.025)pts.push([hh,boomCV(V,{...Q,h:hh},[])]);
+ s+='<h3>Висота штанги → рівномірність</h3>';
+ s+=chart('l2',[{name:'CV, %',color:C('ac'),pts}],{h:190,x0:.25,x1:1,xl:'висота штанги, м',yl:'CV, %',nolg:1,
+  bands:[[0,7,C('ac')]],vl:[[V.hOpt,C('am'),'рекомендована'],[L.h,C('ink'),'зараз']]})}
+s+='<div class="concl">'+labConcl(h,cv,dr,nz,L)+'</div>';
+if(L.log.length){s+='<h3>Журнал дослідів</h3><div class="tw"><table class="t2 c"><tr><th>№</th><th>розпилювач</th><th>p</th><th>v</th><th>h</th><th>вітер</th><th>дозування</th><th>норма</th><th>крапля</th><th>знесення</th></tr>';
+ L.log.forEach((r,i)=>{s+='<tr><td>'+(i+1)+'</td><td>'+esc(r.set.noz+' '+r.set.tip)+'</td><td>'+F(r.p,2)+'</td><td>'+F(r.set.v,1)+'</td><td>'+F(r.set.h,2)+'</td><td>'+F(r.set.wind,1)+'</td><td>'+esc(r.set.dose)+'</td><td>'+F(r.Qact,1)+'</td><td>'+F(r.d)+'</td><td>'+F(r.dr,1)+'</td></tr>'});
+ s+='</table></div><button class="g sm" onclick="labClr()">Очистити журнал</button>'}
+s+=nb([6,'Протокол'],[8,'Калькулятор']);
+return s}
+/* у режимах з автоматичним керуванням тиск задає система, а не оператор */
+function lockedP(h,L){return'<div><label>Тиск: <b>'+F(h.p,2)+'</b> бар</label>'+
+ '<input type="range" min="1" max="8" step="0.1" value="'+cl(h.p,1,8)+'" disabled>'+
+ '<p class="hint" style="margin:0 0 6px">Тиск задає система дозування, а не оператор. '+
+ 'Щоб змінювати тиск вручну, оберіть дозування за постійного робочого тиску.</p></div>'}
+const sld=(k,lab,u,a,b,st,v,nt)=>'<div><label>'+esc(lab)+': <b>'+F(v,st<1?(st<.1?2:1):0)+'</b> '+esc(u)+'</label>'+
+ '<input type="range" min="'+a+'" max="'+b+'" step="'+st+'" value="'+v+'" oninput="setN(\''+k+'\',+this.value)">'+
+ (nt?'<p class="hint" style="margin:0 0 6px">'+esc(nt)+'</p>':'')+'</div>';
+const trc=(nm,a,b)=>{const d=b-a;return'<tr><th>'+esc(nm)+'</th><td>'+F(a,1)+'</td><td>'+F(b,1)+'</td><td>'+(d>0?'+':'')+F(r1(d),1)+'</td></tr>'};
+function labSec(i){const o=S.lab.open.slice();o[i]=o[i]?0:1;if(!o.some(Boolean))o[i]=1;setN('lab.open',o)}
+function labSt(){const L=S.lab;return{tip:L.tip,noz:L.noz,p:L.p,v:L.v,h:L.h,wind:L.wind,dose:L.dose,comp:L.comp}}
+function labMt(){const L=S.lab,Q=Qs({tip:L.tip,noz:L.noz,p:String(L.p),v:String(L.v),dose:L.dose,
+ h:String(L.h),wind:String(L.wind),open:L.open,comp:L.comp},V),h=hyd(V,Q);
+ return{...h,dr:drift(V,Q,h.d),cv:boomCV(V,Q,[]),set:labSt()}}
+function labPin(){S.lab.pin=labMt();save();R()}
+function labUnpin(){S.lab.pin=null;save();R()}
+function labLog(){S.lab.log.push(labMt());if(S.lab.log.length>14)S.lab.log.shift();save();R()}
+function labClr(){S.lab.log=[];save();R()}
+function labRst(){const I=V.ideal;S.lab={...S.lab,tip:I.tip,noz:I.noz,p:I.p,v:V.vp,h:V.hOpt,wind:V.wind,
+ dose:'швидкість',open:new Array(V.Nsec).fill(1),comp:1};save();R()}
+const labDesc=s=>'ISO '+s.tip+' '+s.noz+', '+F(s.p,1)+' бар, '+F(s.v,1)+' км/год, h '+F(s.h,2)+' м, вітер '+F(s.wind,1)+' м/с';
+function labConcl(h,cv,dr,nz,L){const u=[];
+ u.push(h.p<nz.pmin?'тиск '+F(h.p,1)+' бар нижчий за робочу межу — факел не розкривається':
+  h.p>nz.pmax?'тиск '+F(h.p,1)+' бар вищий за робочу межу — краплю руйнує, знесення зростає':
+  'тиск '+F(h.p,1)+' бар у робочому діапазоні розпилювача');
+ u.push(Math.abs(h.Qact-V.Qp)/V.Qp<=.05?'норма внесення '+F(h.Qact,1)+' л/га відповідає плановій':
+  'норма '+F(h.Qact,1)+' л/га замість '+TH(V.Qp)+' — відхилення '+F(100*(h.Qact-V.Qp)/V.Qp,1)+' %');
+ u.push(h.d<V.dmin?'крапля '+F(h.d)+' мкм дрібніша за потрібну — знесення '+F(dr,1)+' %':
+  h.d>V.dmax?'крапля '+F(h.d)+' мкм грубіша за потрібну — покриття листка буде недостатнім':
+  'крапля '+F(h.d)+' мкм у потрібних межах, знесення '+F(dr,1)+' %');
+ u.push(cv<=7?'поперечний розподіл рівний: CV = '+F(cv,1)+' %':'CV = '+F(cv,1)+' % — висота штанги '+F(L.h,2)+' м не відповідає рекомендованій '+F(V.hOpt,2)+' м');
+ if(!L.comp&&L.open.some(x=>!x))u.push('секції вимкнено без компенсації: тиск піднявся до '+F(h.p,2)+' бар');
+ if(h.pumpOver)u.push('витрата штанги перевищує подачу насоса — тиск не втримається');
+ return'<b>Що показує цей набір налаштувань:</b><ul><li>'+u.join('</li><li>')+'</li></ul>'}
+
+/* ---------- 8. Калькулятор ---------- */
+function scr8(){const c=S.calc,g=k=>n(c[k]);
+let s=H('Калькулятор','Незалежний від варіанта. Сюди підставляють числа з умов методички й перевіряють свої розрахунки.');
+s+='<h3>Норма внесення й витрата розпилювача</h3>';
+s+='<div class="r3"><div>'+inp('calc.Q','Q — норма внесення, л/га','200')+'</div>'+
+ '<div>'+inp('calc.v','v — швидкість, км/год','9')+'</div>'+
+ '<div>'+inp('calc.a','a — крок розпилювачів, м','0,5')+'</div></div>';
+if(g('Q')&&g('v')&&g('a')){const q=g('Q')*g('v')*g('a')/600;
+ s+='<div class="tw"><table class="t2">'+
+  tr('Потрібна витрата розпилювача','q = Q · v · a / 600 = '+F(g('Q'))+' · '+F(g('v'),1)+' · '+F(g('a'),1)+' / 600 = <b>'+F(r2(q),2)+' л/хв</b>')+
+  '</table></div>';
+ s+='<div class="r3"><div>'+inp('calc.qn','q_ном розпилювача при 3 бар, л/хв','0,8')+'</div><div></div><div></div></div>';
+ if(g('qn')){const p=3*Math.pow(q/g('qn'),2);
+  s+='<div class="tw"><table class="t2">'+
+   tr('Потрібний тиск','p = 3 · (q / q_ном)² = 3 · ('+F(r2(q),2)+' / '+F(g('qn'),2)+')² = <b>'+F(r2(p),2)+' бар</b>')+
+   tr('Перевірка','q(p) = '+F(g('qn'),2)+' · √('+F(r2(p),2)+'/3) = '+F(r2(g('qn')*Math.sqrt(p/3)),2)+' л/хв')+
+   '</table></div>'}}
+s+='<h3>Вимикання секцій без компенсації</h3>';
+s+='<div class="r3"><div>'+inp('calc.N','N — усього секцій','5')+'</div>'+
+ '<div>'+inp('calc.n','n — лишилось відкритих','4')+'</div>'+
+ '<div>'+inp('calc.p','p — вихідний тиск, бар','3')+'</div></div>';
+if(g('N')&&g('n')&&g('p')){const k=g('N')/g('n');
+ s+='<div class="tw"><table class="t2">'+
+  tr('Витрата розпилювача','q′ = q · N/n = q · '+F(r2(k),2)+' — зростає на <b>'+F(r1((k-1)*100),1)+' %</b>')+
+  tr('Тиск у магістралі','p′ = p · (N/n)² = '+F(g('p'),1)+' · '+F(r2(k*k),2)+' = <b>'+F(r2(g('p')*k*k),2)+' бар</b>')+
+  '</table></div>'}
+s+='<h3>Часовий бюджет секційного вимикання</h3>';
+s+='<div class="r3"><div>'+inp('calc.Tg','T_GNSS, с','0,25')+'</div><div>'+inp('calc.Tv','T_кл, с','0,20')+'</div><div>'+inp('calc.Tl','T_маг, с','0,18')+'</div></div>';
+s+='<div class="r3"><div>'+inp('calc.Tlead','T_лід, с','0,6')+'</div><div>'+inp('calc.B','B — ширина захвату, м','24')+'</div><div></div></div>';
+if(g('Tg')!=null&&g('Tv')!=null&&g('Tl')!=null&&g('v')){const Tz=g('Tg')+g('Tv')+g('Tl'),Tl=g('Tlead')??0,
+ d=Tz-Tl,dl=g('v')/3.6*d;
+ s+='<div class="tw"><table class="t2">'+
+  tr('Сумарне запізнення','T_заг = '+F(g('Tg'),2)+' + '+F(g('Tv'),2)+' + '+F(g('Tl'),2)+' = <b>'+F(r2(Tz),2)+' с</b>')+
+  tr('Шлях помилки','ΔL = v/3,6 · (T_заг − T_лід) = '+F(g('v'),1)+'/3,6 · '+F(r2(d),2)+' = <b>'+F(r2(dl),2)+' м</b> '+(d>0?'повторної обробки':d<0?'необробленої смуги':''))+
+  (g('B')?tr('Площа на одному перетині','ΔL · B = '+F(r2(Math.abs(dl)),2)+' · '+F(g('B'))+' = <b>'+F(r1(Math.abs(dl)*g('B')),1)+' м²</b>'):'')+
+  '</table></div>'}
+s+='<h3>Потреба в розчині, економія й термін окупності (для досліду в завданні 5)</h3>';
+if(V)s+='<div class="pc"><button class="g sm" onclick="calcFillVar()">Підставити дані мого варіанта ('+esc(V.id)+')</button>'+
+ '<button class="g sm" onclick="calcHalfSy()">Підставити вдвічі менший сезонний обсяг (S_сез / 2)</button></div>';
+s+='<div class="r3"><div>'+inp('calc.S','S_поля — площа поля, га','251')+'</div>'+
+ '<div>'+inp('calc.tank','V_бака — об’єм бака, л','4000')+'</div>'+
+ '<div>'+inp('calc.Sy','S_сез — обробок за сезон, га','2100')+'</div></div>';
+if(g('Q')&&g('S')){const need=Math.round(g('Q')*g('S')),fills=g('tank')?Math.ceil(need/g('tank')):null;
+ s+='<div class="tw"><table class="t2">'+
+  tr('Потреба в розчині на поле','V = Q · S_поля = '+F(g('Q'),1)+' · '+F(g('S'))+' = <b>'+TH(need)+' л</b>')+
+  (fills?tr('Кількість заправок','n_запр = ⌈'+TH(need)+' / '+TH(g('tank'))+'⌉ = '+F(r2(need/g('tank')),2)+' → <b>'+fills+' заправок</b> (з однієї заправки '+F(r1(g('tank')/g('Q')),1)+' га)'):'')+
+  '</table></div>'}
+s+='<div class="r3"><div>'+inp('calc.Cprep','C_преп — препарат, грн/га','1276')+'</div>'+
+ '<div>'+inp('calc.Csys','C_сист — вартість системи, грн','318000')+'</div>'+
+ '<div>'+inp('calc.p1','p₁ — похибка до, %','15,5')+'</div></div>';
+s+='<div class="r3"><div>'+inp('calc.p2','p₂ — похибка після, %','1,5')+'</div>'+
+ '<div>'+inp('calc.w1','перекриття до, %','11,0')+'</div>'+
+ '<div>'+inp('calc.w2','перекриття після, %','1,8')+'</div></div>';
+s+='<div class="r3"><div>'+inp('calc.dr1','знесення до, %','1,3')+'</div>'+
+ '<div>'+inp('calc.dr2','знесення після, %','1,0')+'</div><div></div></div>';
+if(g('Sy')&&g('Cprep')&&g('Csys')&&g('p1')!=null&&g('p2')!=null){
+ const Ep=Math.round(Math.max(0,(g('p1')-g('p2'))/100)*g('Cprep')*g('Sy')),
+  dA=f1(g('Sy')*Math.max(0,(g('w1')??0)-(g('w2')??0))/100),
+  Es=Math.round(dA*g('Cprep')),
+  Ed=Math.round(Math.max(0,((g('dr1')??0)-(g('dr2')??0))/100)*g('Cprep')*g('Sy')),
+  E=Ep+Es+Ed,Cex=Math.round(0.10*g('Csys')),Enet=E-Cex,T=Enet>0?f2(g('Csys')/Enet):null;
+ s+='<div class="tw"><table class="t2">'+
+  tr('Точність дозування E_д','('+F(g('p1'),1)+' − '+F(g('p2'),1)+')/100 · '+TH(g('Cprep'))+' · '+TH(g('Sy'))+' = <b>'+TH(Ep)+' грн/рік</b>')+
+  tr('Секційне вимикання E_с','ΔA = '+F(dA,1)+' га; E_с = <b>'+TH(Es)+' грн/рік</b>')+
+  tr('Зменшення знесення E_з','<b>'+TH(Ed)+' грн/рік</b>')+
+  tr('Повна вигода E','<b>'+TH(E)+' грн/рік</b>')+
+  tr('Обслуговування C_екс','0,10 · '+TH(g('Csys'))+' = '+TH(Cex)+' грн/рік')+
+  tr('Чиста вигода E_чист','<b>'+TH(Enet)+' грн/рік</b>')+
+  tr('Термін окупності T',T!=null?'T = '+TH(g('Csys'))+' / '+TH(Enet)+' = <b>'+F(T,2)+' року</b>':'<b>не окупається (E_чист ≤ 0)</b>')+
+  '</table></div>'}
+s+='<p class="hint">Усі формули ті самі, що в методичці. Калькулятор нічого не підказує — він лише рахує за вашими числами.</p>';
+s+=nb([7,'Досліди'],null);
+return s}
+function calcFillVar(){if(!V)return;const e=ecRef(S,V);
+ S.calc={...S.calc,Q:String(V.Qp),v:F(V.vp,1),a:F(V.aNoz,1),B:String(V.B),
+  Tg:F(V.Tg,2),Tv:F(V.Tv,2),Tl:F(V.Tl,2),Tlead:F(V.Tz,2),N:String(V.Nsec),n:String(V.Nsec-1),
+  p:F(n(S.p)||V.ideal.p,1),qn:F(tipOf(tipNow()).q,2),
+  S:String(V.S),tank:String(V.tank),Sy:String(V.Sy),Cprep:String(V.Cprep),Csys:String(V.Csys),
+  p1:F(e?e.Lp1:V.sigV,1),p2:F(e?e.Lp2:1.5,1),w1:F(V.wedge,1),w2:F(V.pres,1),
+  dr1:F(e?e.dr1:1.3,1),dr2:F(e?e.dr2:1.0,1)};save();R()}
+function calcHalfSy(){if(!V)return;if(!n(S.calc.Sy))calcFillVar();
+ S.calc.Sy=String(Math.round((n(S.calc.Sy)||V.Sy)/2));save();R()}
+
+/* ===== Навігація, бічна панель, рендер ===== */
+function go(i){S.step=i;save();scrollTo(0,0);R()}
+function nav(){let s='';
+for(let i=0;i<=NST;i++){const d=done(i),on=S.step==i?' on':'';
+ s+='<button class="'+on.trim()+'" onclick="go('+i+')"'+(i>0&&!S.reg?' disabled':'')+'>'+
+  '<i class="'+(d==1?'ok':d?'pt':'')+'"></i>'+esc(TT[i])+'</button>'}
+s+='<button class="lab'+(S.step==LAB?' on':'')+'" onclick="go('+LAB+')"'+(!S.reg?' disabled':'')+'><i></i>'+esc(TT[LAB])+'</button>';
+s+='<button class="lab'+(S.step==CALC?' on':'')+'" onclick="go('+CALC+')"><i></i>'+esc(TT[CALC])+'</button>';
+return s}
+function dashP(){if(!V)return'<div class="t">ТЕРМІНАЛ ОБПРИСКУВАЧА</div><div class="d"><span>варіант не отримано</span></div>';
+const Q=QS({}),h=hyd(V,Q),l=S.tr.last,
+ d=(a,b,al)=>'<div class="d'+(al?' al':'')+'"><span>'+a+'</span><span>'+b+'</span></div>';
+let s='<div class="t">ТЕРМІНАЛ · '+esc(V.id)+'</div>';
+s+=d('норма план, л/га',TH(V.Qp));
+s+=d('норма факт, л/га',F(h.Qact,1),Math.abs(h.Qact-V.Qp)/V.Qp>.05);
+s+=d('тиск, бар',F(h.p,2),h.over||h.under);
+s+=d('розпилювач','ISO '+tipNow()+' '+nozNow());
+s+=d('витрата, л/хв',F(h.q,2));
+s+=d('штанга, л/хв',F(h.Qtot,1),h.pumpOver);
+s+=d('швидкість, км/год',F(vNow(),1));
+s+=d('дозування',esc(S.dose));
+s+=d('секцій відкрито',h.nOpen+'/'+V.Nsec,h.nOpen<V.Nsec);
+s+=d('висота штанги, м',F(hNow(),2),Math.abs(hNow()-V.hOpt)>.07);
+s+=d('крапля, мкм',F(h.d),h.d<V.dmin||h.d>V.dmax);
+if(l){s+='<div class="t" style="margin-top:8px">ПРОХІД №'+S.tr.n+'</div>';
+ s+=d('відхилення норми, %',F(l.dev,1),Math.abs(l.dev)>3);
+ s+=d('CV, %',F(l.cv,1),l.cv>7);
+ s+=d('знесення, %',F(l.drift,1),l.drift>3);
+ s+=d('ΔL, м',F(l.dL,2),Math.abs(l.dL)>.2);
+ s+=d('заправок',String(l.fills))}
+return s}
+function bann(){if(!S.demo)return'';
+return'<div class="bn"><span><b>Відкрито приклад із методички.</b> Усі поля заповнені правильними значеннями — на ньому видно, як має виглядати виконана робота. Для свого звіту отримайте власний варіант.</span>'+
+ '<button class="p" style="margin:0" onclick="go(0)">Отримати свій варіант</button></div>'}
+function R(){const m=document.getElementById('mn'),ae=document.activeElement,
+ aid=ae&&ae.id,ss=ae&&ae.selectionStart,se=ae&&ae.selectionEnd;
+ document.getElementById('nv').innerHTML=nav();
+ document.getElementById('bn').innerHTML=bann();
+ document.getElementById('ds').innerHTML=dashP();
+ document.getElementById('chip').textContent=V?('варіант '+V.id+' · '+F(r1(tot()),1)+' / 100'):'варіант не отримано';
+ if(!S.reg||!V)S.step=0;
+ m.innerHTML=[scr0,scr1,scr2,scr3,scr4,scr5,scr6,scr7,scr8][S.step]();
+ for(const id of ['cqp','cqv','csec','l1','l2'])chBind(id,chTip(id));
+ if(aid){const ne=document.getElementById(aid);if(ne&&(ne.tagName=='INPUT'||ne.tagName=='SELECT')){ne.focus({preventScroll:true});try{if(ss!=null)ne.setSelectionRange(ss,se)}catch(e){}}}
+ if(ANI.run){ANI.last=performance.now();requestAnimationFrame(aniTick)}}
+function chTip(id){const L=S.lab;
+ if(id=='cqp')return x=>{const t=tipOf(tipNow());return'тиск '+F(r2(x),2)+' бар<br>витрата '+F(qOf(t.q,x),2)+' л/хв'};
+ if(id=='cqv')return x=>{const o=DOSE.map(d=>esc(DOSEL[d].split(' (')[0])+': '+F(hyd(V,QS({v:r1(x),dose:d})).Qact,1)+' л/га');
+  return F(r1(x),1)+' км/год<br>'+o.join('<br>')};
+ if(id=='csec')return x=>{const k=cl(Math.round(x),1,V.Nsec),o=new Array(V.Nsec).fill(0).map((_,i)=>i<k?1:0),
+   a=hyd(V,{...QS({}),open:o,comp:0,dose:'тиск',p:n(S.p)||V.ideal.p}),b=hyd(V,{...QS({}),open:o,comp:1,dose:'тиск',p:n(S.p)||V.ideal.p});
+  return'відкрито '+k+' з '+V.Nsec+'<br>без компенсації '+F(a.p,2)+' бар<br>з компенсацією '+F(b.p,2)+' бар'};
+ if(id=='l1')return x=>{const Q=Qs({tip:L.tip,noz:L.noz,p:String(x),v:String(L.v),dose:'тиск',h:String(L.h),wind:String(L.wind)},V),
+   hh=hyd(V,Q);return'тиск '+F(r2(x),2)+' бар<br>крапля '+F(hh.d)+' мкм ('+hh.cat[2]+')<br>знесення '+F(drift(V,Q,hh.d),1)+' %'};
+ if(id=='l2')return x=>{const Q=Qs({tip:L.tip,noz:L.noz,p:String(L.p),v:String(L.v),h:String(x),wind:String(L.wind)},V);
+  return'висота '+F(r2(x),2)+' м<br>CV '+F(boomCV(V,{...Q,h:x},[]),1)+' %'};
+ return()=>null}
+/* ===== Запуск ===== */
+theme(0);
+if(!S){demoState();save()}            /* перше відкриття: приклад із методички */
+let RW=innerWidth;addEventListener('resize',()=>{if(Math.abs(innerWidth-RW)>8){RW=innerWidth;clearTimeout(R.t);R.t=setTimeout(R,180)}});
+R();
+</script></body></html>
