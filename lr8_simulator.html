@@ -1,0 +1,1148 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ЛР 8 · Симулятор запобіжної муфти та корпусної деталі</title>
+<style>
+/* Макет: шапка з двома вкладками; у кожній — колонка вхідних даних і колонка інтерактивного креслення, KPI та результатів. */
+:root{
+  --bg:#eef2f7; --surface:#ffffff; --surface-2:#f8fafc; --ink:#0f172a; --muted:#475569; --line:#cbd5e1; --field:#f1f5f9;
+  --pin:#1d4ed8; --pin-2:#3b82f6; --pin-fill:#dbeafe; --wheel:#b45309; --wheel-2:#d97706; --wheel-fill:#fef3c7;
+  --ok:#15803d; --ok-bg:#dcfce7; --bad:#b91c1c; --bad-bg:#fee2e2; --clash:#dc2626; --code:#0f172a; --code-ink:#e2e8f0;
+  --shadow:0 4px 18px -4px rgba(15,23,42,.08),0 2px 6px -2px rgba(15,23,42,.04);
+  --font:"Inter","Segoe UI",system-ui,-apple-system,Roboto,"Helvetica Neue",Arial,sans-serif;
+  --mono:"JetBrains Mono",ui-monospace,"Cascadia Mono",Consolas,"DejaVu Sans Mono",monospace;
+  box-sizing:border-box; padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0b1120; --surface:#111827; --surface-2:#1e293b; --ink:#f1f5f9; --muted:#94a3b8; --line:#334155; --field:#1e293b;
+  --pin:#60a5fa; --pin-2:#3b82f6; --pin-fill:#1e3a5f; --wheel:#fbbf24; --wheel-2:#f59e0b; --wheel-fill:#45270d;
+  --ok:#4ade80; --ok-bg:#143523; --bad:#f87171; --bad-bg:#3b1818; --clash:#ef4444; --code:#090d16; --code-ink:#e2e8f0;
+  --shadow:0 8px 24px -4px rgba(0,0,0,.45); color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0b1120; --surface:#111827; --surface-2:#1e293b; --ink:#f1f5f9; --muted:#94a3b8; --line:#334155; --field:#1e293b;
+  --pin:#60a5fa; --pin-2:#3b82f6; --pin-fill:#1e3a5f; --wheel:#fbbf24; --wheel-2:#f59e0b; --wheel-fill:#45270d;
+  --ok:#4ade80; --ok-bg:#143523; --bad:#f87171; --bad-bg:#3b1818; --clash:#ef4444; --code:#090d16; --code-ink:#e2e8f0;
+  --shadow:0 8px 24px -4px rgba(0,0,0,.45); color-scheme:dark}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+.variant{display:flex;flex-wrap:wrap;align-items:flex-end;gap:12px;margin-top:10px;padding:12px 14px;border:1px solid var(--line);border-radius:11px;background:var(--field)}
+.variant label{display:block;font-size:.82rem;font-weight:600;color:var(--muted)}
+.variant input{width:140px;margin-top:4px}
+.variant .go{background:var(--pin);border-color:var(--pin);color:#fff}
+.vbadge{margin:0;flex:1 1 320px;min-width:260px;font-size:.88rem;color:var(--muted)}
+.vbadge b{color:var(--ink)}
+.vbadge.set{color:var(--ink);font-weight:600}
+pre.proto{white-space:pre-wrap}
+body{margin:0;background:var(--bg);color:var(--ink);font:15.5px/1.5 var(--font);-webkit-font-smoothing:antialiased}
+main{max-width:1180px;margin:0 auto;padding-inline:18px;padding-block:20px 34px;display:flex;flex-direction:column;gap:18px}
+header.top-header{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:18px 22px;box-shadow:var(--shadow);display:flex;flex-direction:column;gap:8px}
+.header-top{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap}
+.eyebrow{margin:0;font-size:.76rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--pin)}
+h1{margin:2px 0 4px;font-size:1.55rem;line-height:1.2;font-weight:800;letter-spacing:-.015em;text-wrap:balance}
+.lead{margin:0;color:var(--muted);max-width:74ch;font-size:.94rem}
+h2{margin:0;font-size:.98rem;font-weight:700;letter-spacing:-.01em;display:flex;align-items:center;gap:8px}
+h2::before{content:"";display:inline-block;width:4px;height:15px;border-radius:2px;background:var(--pin)}
+sub{font-size:.72em;line-height:0}
+.tabs-bar{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-top:8px;flex-wrap:wrap}
+.tabs{display:inline-flex;gap:6px;padding:4px;background:var(--field);border:1px solid var(--line);border-radius:11px;flex-wrap:wrap}
+.tabs button{font:inherit;font-size:.92rem;font-weight:650;padding:8px 18px;border:0;border-radius:8px;background:transparent;color:var(--muted);cursor:pointer;transition:all .16s ease}
+.tabs button:hover{color:var(--ink)}
+.tabs button[aria-selected="true"]{background:var(--pin);color:#ffffff;box-shadow:0 2px 8px rgba(29,78,216,.28)}
+.theme-btn{font:inherit;font-size:.84rem;font-weight:600;padding:7px 12px;border:1px solid var(--line);border-radius:8px;background:var(--field);color:var(--ink);cursor:pointer;transition:all .15s ease}
+.theme-btn:hover{border-color:var(--pin)}
+.pane{display:grid;grid-template-columns:minmax(0,320px) minmax(0,1fr);gap:18px;align-items:start}
+@media(max-width:860px){.pane{grid-template-columns:minmax(0,1fr)}}
+.col{display:flex;flex-direction:column;gap:16px;min-width:0}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:13px;padding:16px;display:flex;flex-direction:column;gap:12px;min-width:0;box-shadow:var(--shadow)}
+.fields{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.fields .wide{grid-column:1/-1}
+label{display:block;font-size:.82rem;font-weight:600;color:var(--muted)}
+label>input,label>select{display:block;margin-top:4px;font-weight:500}
+input[type=number],select{width:100%;padding:8px 10px;border:1px solid var(--line);border-radius:8px;background:var(--field);color:var(--ink);font:inherit;font-variant-numeric:tabular-nums;transition:border-color .15s,box-shadow .15s}
+input[type=number]:focus,select:focus{outline:none;border-color:var(--pin);box-shadow:0 0 0 3px rgba(59,130,246,.2)}
+input[type=range]{width:100%;accent-color:var(--pin);cursor:pointer}
+button.btn{font:inherit;font-size:.88rem;font-weight:600;padding:8px 14px;border:1px solid var(--line);border-radius:8px;background:var(--field);color:var(--ink);cursor:pointer;transition:all .15s ease}
+button.btn:hover{border-color:var(--pin);background:var(--surface-2)}
+.variant .go:hover{background:var(--pin);border-color:var(--pin);color:#fff;filter:brightness(1.12)}
+button.btn[aria-pressed="true"]{background:var(--pin);border-color:var(--pin);color:#ffffff}
+:focus-visible{outline:2px solid var(--pin);outline-offset:2px}
+.hint{margin:0;font-size:.82rem;color:var(--muted);line-height:1.45}
+.kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+@media(max-width:600px){.kpis{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.kpi{background:var(--surface-2);border:1px solid var(--line);border-radius:10px;padding:9px 11px;display:flex;flex-direction:column;gap:2px}
+.kpi span{font-size:.78rem;font-weight:600;color:var(--muted);letter-spacing:.01em}
+.kpi strong{font-size:1.05rem;font-weight:800;color:var(--ink);font-variant-numeric:tabular-nums}
+.stage-wrap{position:relative;border:1px solid var(--line);border-radius:11px;overflow:hidden;background:var(--field)}
+.stage svg{display:block;width:100%;height:auto;max-height:460px;background:transparent}
+.card>svg{display:block;width:100%;height:auto;max-height:300px;background:transparent}
+tr.good td{color:var(--ok);font-weight:600}
+tr.no td{color:var(--muted)}
+#bPoly{display:block;width:100%;height:auto;background:var(--field);border:1px solid var(--line);border-radius:10px}
+.legend-bar{display:flex;flex-wrap:wrap;gap:12px;align-items:center;padding:8px 12px;background:var(--surface-2);border-top:1px solid var(--line);font-size:.78rem;color:var(--muted)}
+.legend-item{display:inline-flex;align-items:center;gap:6px;font-weight:600}
+.swatch{width:12px;height:12px;border-radius:3px;display:inline-block;border:1px solid rgba(0,0,0,.15)}
+.row{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center}
+.row .grow{flex:1 1 180px;min-width:0}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:8px;overflow:hidden;background:var(--field)}
+.seg button{font:inherit;font-size:.86rem;font-weight:600;padding:7px 14px;border:0;background:transparent;color:var(--ink);cursor:pointer;transition:all .15s ease}
+.seg button[aria-pressed="true"]{background:var(--pin);color:#ffffff}
+label.check{display:inline-flex;align-items:center;gap:7px;color:var(--ink);font-size:.88rem;font-weight:600;cursor:pointer;padding:6px 10px;border-radius:8px;background:var(--field);border:1px solid var(--line)}
+label.check>input{margin:0;accent-color:var(--pin)}
+.status{margin:0;padding:10px 13px;border-radius:9px;background:var(--ok-bg);font-weight:650;font-size:.9rem;border-left:4px solid var(--ok);color:var(--ok)}
+.status.bad{background:var(--bad-bg);border-left-color:var(--bad);color:var(--bad)}
+.tablewrap{overflow-x:auto;border:1px solid var(--line);border-radius:9px}
+table{width:100%;border-collapse:collapse;font-size:.9rem;font-variant-numeric:tabular-nums}
+th,td{padding:7px 11px;border-bottom:1px solid var(--line);text-align:left;vertical-align:middle}
+tr:last-child td{border-bottom:0}
+tr:nth-child(even) td{background:var(--surface-2)}
+th{font-size:.78rem;color:var(--muted);font-weight:600}
+td.num,th.num{text-align:right;white-space:nowrap;font-weight:600;font-family:var(--mono);font-size:.86rem}
+.checks{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:7px;font-size:.86rem}
+.checks li{padding:7px 10px;border-radius:8px;font-weight:600;display:flex;align-items:center;gap:6px}
+.checks .ok{color:var(--ok);background:var(--ok-bg)}
+.checks .bad{color:var(--bad);background:var(--bad-bg)}
+pre{margin:0;padding:13px 15px;background:var(--code);color:var(--code-ink);border-radius:9px;font:.84rem/1.55 var(--mono);overflow-x:auto;border:1px solid var(--line)}
+.chips{display:flex;flex-wrap:wrap;gap:7px}
+.solve{list-style:none;margin:0;padding:0;display:grid;gap:9px;counter-reset:st}
+.solve li{counter-increment:st;border:1px solid var(--line);border-radius:11px;padding:9px 11px;background:var(--surface-2)}
+.solve li.locked{opacity:.5}
+.solve li.done{border-color:var(--ok);background:var(--ok-bg)}
+.solve .slab{font-weight:700;font-size:.9rem;color:var(--ink)}
+.solve .slab::before{content:counter(st) ". "}
+.solve .sform{display:block;font-weight:400;color:var(--muted);font-size:.8rem;margin-top:2px;font-variant-numeric:tabular-nums}
+.solve .srow{display:flex;gap:6px;align-items:center;margin-top:7px}
+.solve .srow input{flex:1 1 80px;min-width:0;padding:6px 9px}
+.solve .srow .btn{padding:6px 12px;font-size:.84rem;white-space:nowrap}
+.solve .chips{margin-top:7px}
+.solve .sv{margin:6px 0 0;font-size:.84rem;font-weight:600}
+.solve .sv.ok{color:var(--ok)}
+.solve .sv.bad{color:var(--bad)}
+.solve .sv.note{color:var(--muted);font-weight:400}
+.solve .shelp{display:block;margin-top:6px;background:none;border:0;padding:0;color:var(--muted);font:inherit;font-size:.8rem;text-decoration:underline;cursor:pointer}
+.solve .shelp:hover{color:var(--bad)}
+.lock{border-style:dashed;align-items:flex-start}
+.lock h2{color:var(--muted)}
+b.q{color:var(--bad);font-weight:800}
+.checks li.wait{color:var(--muted);font-weight:400}
+.chips button{font:inherit;font-size:.82rem;line-height:1.3;padding:7px 10px;border:1px solid var(--line);border-radius:8px;background:var(--field);color:var(--ink);cursor:pointer;text-align:center;font-variant-numeric:tabular-nums;transition:all .15s ease}
+.chips button:hover{border-color:var(--pin)}
+.chips button small{display:block;color:var(--muted);font-size:.74rem;margin-top:2px}
+.chips button[aria-pressed="true"]{border-color:var(--pin);background:var(--pin-fill);box-shadow:inset 0 0 0 1px var(--pin)}
+.chips button.best small{color:var(--ok);font-weight:700}
+.chips button.fail{opacity:.58}
+footer{font-size:.82rem;color:var(--muted);background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:13px 16px;line-height:1.5}
+.svg-ink{fill:var(--ink)} .svg-muted{fill:var(--muted)}
+.svg-halo{paint-order:stroke;stroke:var(--field);stroke-width:3px;stroke-linejoin:round}
+
+/* ЛР 5: дві сцени поруч (домкрат і профіль різьби) */
+.stage2{display:grid;grid-template-columns:minmax(0,0.85fr) minmax(0,1fr);gap:12px}
+@media(max-width:700px){.stage2{grid-template-columns:minmax(0,1fr)}}
+.stage2 .stage-wrap svg{max-height:640px}
+#bSvg{max-height:none}
+</style>
+</head>
+<body>
+<main>
+<header class="top-header">
+  <div class="header-top">
+    <div>
+      <p class="eyebrow">Деталі машин та ПТМ · лабораторна робота № 8</p>
+      <h1>Симулятор запобіжної муфти та корпусної деталі</h1>
+    </div>
+    <button type="button" class="theme-btn" id="themeBtn" title="Перемкнути тему">◐ Тема</button>
+  </div>
+  <p class="lead">Введіть свій номер у списку — симулятор відкриє ваш варіант і підставить вихідні дані.
+    П'ять ключових величин він не показує: їх ви рахуєте самі за таблицею 8.2 (варіант А) або 8.3 (Б)
+    і вводите в картку «Ваш розрахунок». Правильна відповідь відкриває наступний пункт, а добір зі
+    стандартного ряду — креслення, результати, параметри Fusion і протокол.</p>
+  <div class="variant">
+    <label>№ у списку групи<input id="vNo" type="number" min="1" max="40" step="1" placeholder="напр. 7"></label>
+    <button type="button" class="btn go" id="vGo">Відкрити мій варіант</button>
+    <p class="vbadge" id="vBadge">Непарний номер у списку — <b>варіант А</b> (запобіжна муфта зі зрізним штифтом, динамічна симуляція), парний — <b>варіант Б</b> (корпусна деталь редуктора). Роботи незалежні: вхідні дані свого варіанта беріть із додатка Б.</p>
+  </div>
+  <div class="tabs-bar">
+    <div class="tabs" role="tablist">
+      <button type="button" role="tab" id="tabA" aria-controls="paneA" aria-selected="true">А. Запобіжна муфта</button>
+      <button type="button" role="tab" id="tabB" aria-controls="paneB" aria-selected="false">Б. Корпусна деталь</button>
+    </div>
+  </div>
+</header>
+
+<!-- ================= А. ЗАПОБІЖНА МУФТА ================= -->
+<section class="pane" id="paneA" role="tabpanel" aria-labelledby="tabA">
+  <div class="col">
+    <div class="card">
+      <h2>Вхідні дані</h2>
+      <div class="fields">
+        <label>Номінальний момент T, Н·м<input id="aT" type="number" value="100" step="10" min="30"></label>
+        <label>Частота обертання n, об/хв<input id="aN" type="number" value="270" step="10" min="50"></label>
+        <label>Коефіцієнт пуску K<sub>п</sub><input id="aKp" type="number" value="1.25" step="0.05" min="1" max="1.6"></label>
+        <label>Коефіцієнт захисту K<sub>з</sub><input id="aKz" type="number" value="2" step="0.1" min="1.5" max="3"></label>
+        <label>Діаметр вала d, мм<input id="aD" type="number" value="32" step="1" min="16" max="90"></label>
+        <label>Матеріал штифта<select id="aMat"></select></label>
+      </div>
+      <p class="hint" id="aHint"></p>
+    </div>
+    <div class="card">
+      <h2>Вікно спрацювання</h2>
+      <svg id="aScheme" role="img" aria-label="Вікно моменту спрацювання запобіжної муфти"></svg>
+      <p class="hint">Штифт не має зрізатися на робочому моменті з пусковим піком (T<sub>р</sub>),
+        але має зрізатися раніше, ніж момент досягне межі, яку тримає привід (T<sub>доп</sub>).
+        Між цими двома числами й лежить придатний штифт.</p>
+    </div>
+    <div class="card">
+      <h2>Ваш розрахунок</h2>
+      <p class="hint">Ці числа симулятор не показує: ви рахуєте їх самі за формулами таблиці 8.2
+        методички. Правильна відповідь відкриває наступний пункт, а добір діаметра штифта —
+        креслення, результати, параметри Fusion і протокол.</p>
+      <ol class="solve" id="aSolve"></ol>
+    </div>
+  </div>
+
+  <div class="col">
+    <div class="card lock" id="aLock" hidden>
+      <h2>Відкриється після добору діаметра штифта</h2>
+      <p class="hint">Креслення муфти, таблиця ряду штифтів, результати, завдання для Motion Study,
+        параметри для Fusion і протокол з'являться, щойно ви виконаєте пункти 1–3 ліворуч:
+        порахуєте робочий максимум, розрахунковий діаметр штифта й доберете штифт зі
+        стандартного ряду.</p>
+    </div>
+    <div id="aStage" class="col">
+    <div class="card stage">
+      <div class="kpis" id="aKpis"></div>
+      <svg id="aSvg" role="img" aria-label="Запобіжна муфта зі зрізним штифтом: вид з торця і розріз"></svg>
+      <p class="hint">Штифт проходить крізь загартовану втулку в обох півмуфтах на колі діаметра
+        D₀. Площина стику півмуфт — це і є площина зрізу: весь момент передається одним
+        перерізом штифта.</p>
+    </div>
+    <div class="card">
+      <h2>Ряд штифтів за ISO 2338</h2>
+      <table class="out" id="aTab"><tbody></tbody></table>
+      <p class="hint">Зеленим — ті діаметри, за яких момент спрацювання потрапляє у вікно
+        T<sub>р</sub> … T<sub>доп</sub>. Беруть <b>найменший</b> із них: що менший штифт,
+        то раніше спрацює захист.</p>
+    </div>
+    <div class="card">
+      <h2>Дослід: коефіцієнт захисту</h2>
+      <p class="hint">K<sub>з</sub> зсуває верхню межу вікна. Натисніть, щоб побачити, який штифт
+        довелося б узяти за іншої межі міцності привода:</p>
+      <div class="chips" id="aChips"></div>
+    </div>
+    <div class="card">
+      <h2>Результати</h2>
+      <table class="out"><tbody id="aOut"></tbody></table>
+      <ul class="checks" id="aChk"></ul>
+    </div>
+    <div class="card">
+      <h2>Динамічна симуляція (Motion Study)</h2>
+      <pre class="proto" id="aMot"></pre>
+    </div>
+    <div class="card">
+      <h2>Параметри для Fusion</h2>
+      <pre class="proto" id="aFp"></pre>
+    </div>
+    <div class="card">
+      <h2>Протокол для звіту</h2>
+      <div class="row">
+        <button type="button" class="btn" id="aCopy">Копіювати</button>
+        <button type="button" class="btn" id="aSave">Зберегти .txt</button>
+      </div>
+      <pre class="proto" id="aPr"></pre>
+    </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= Б. КОРПУСНА ДЕТАЛЬ ================= -->
+<section class="pane" id="paneB" role="tabpanel" aria-labelledby="tabB" hidden>
+  <div class="col">
+    <div class="card">
+      <h2>Вхідні дані</h2>
+      <div class="fields">
+        <label>Міжосьова відстань a<sub>w</sub>, мм<input id="bAw" type="number" value="160" step="5" min="50" max="500"></label>
+        <label>Момент на тихохідному валу T₂, Н·м<input id="bT2" type="number" value="500" step="10" min="30"></label>
+        <label>Тип корпусу<select id="bHt"></select></label>
+        <label>Клас міцності болтів<select id="bCl"></select></label>
+      </div>
+      <p class="hint" id="bHint"></p>
+    </div>
+    <div class="card">
+      <h2>Розрахункова схема</h2>
+      <svg id="bScheme" role="img" aria-label="Схема навантаження фундаментних болтів корпусу"></svg>
+      <p class="hint">Реактивний момент T₂ намагається перевернути корпус. Його тримає пара сил
+        на двох рядах фундаментних болтів, розставлених на відстані L<sub>б</sub>:
+        один ряд притискається, другий — відривається.</p>
+    </div>
+    <div class="card">
+      <h2>Ваш розрахунок</h2>
+      <p class="hint">Ці числа симулятор не показує: ви рахуєте їх самі за формулами таблиці 8.3
+        методички. Правильна відповідь відкриває наступний пункт, а добір різьби —
+        креслення, результати, параметри Fusion і протокол.</p>
+      <ol class="solve" id="bSolve"></ol>
+    </div>
+  </div>
+
+  <div class="col">
+    <div class="card lock" id="bLock" hidden>
+      <h2>Відкриється після добору різьби фундаментних болтів</h2>
+      <p class="hint">Креслення корпусу, таблиця різьб, результати, параметри для Fusion і
+        протокол з'являться, щойно ви виконаєте пункти 1–3 ліворуч: порахуєте товщину стінки,
+        розрахунковий діаметр болта й доберете різьбу зі стандартного ряду.</p>
+    </div>
+    <div id="bStage" class="col">
+    <div class="card stage">
+      <div class="kpis" id="bKpis"></div>
+      <svg id="bSvg" role="img" aria-label="Корпус редуктора в розрізі: стінка, фланці, лапи, болти"></svg>
+      <p class="hint">Корпус і кришка стикаються по фланцях у площині осей валів. Лапи з
+        фундаментними болтами тримають редуктор на рамі; товщини всіх елементів прив'язані
+        до товщини стінки δ.</p>
+    </div>
+    <div class="card">
+      <h2>Метричні різьби (ISO 261/724)</h2>
+      <table class="out" id="bTab"><tbody></tbody></table>
+      <p class="hint">Зеленим — різьби, не менші за розрахунковий діаметр d₁. Беруть
+        <b>найменшу</b> з них: більший болт потребує більшої лапи й більшого припуску
+        під ключ.</p>
+    </div>
+    <div class="card">
+      <h2>Дослід: міжосьова відстань</h2>
+      <p class="hint">Усі розміри корпусу прив'язані до a<sub>w</sub>. Натисніть, щоб побачити,
+        як змінюються товщина стінки й різьба болтів:</p>
+      <div class="chips" id="bChips"></div>
+    </div>
+    <div class="card">
+      <h2>Результати</h2>
+      <table class="out"><tbody id="bOut"></tbody></table>
+      <ul class="checks" id="bChk"></ul>
+    </div>
+    <div class="card">
+      <h2>Конструктивні розміри корпусу</h2>
+      <table class="out"><tbody id="bGeo"></tbody></table>
+    </div>
+    <div class="card">
+      <h2>Параметри для Fusion</h2>
+      <pre class="proto" id="bFp"></pre>
+    </div>
+    <div class="card">
+      <h2>Протокол для звіту</h2>
+      <div class="row">
+        <button type="button" class="btn" id="bCopy">Копіювати</button>
+        <button type="button" class="btn" id="bSave">Зберегти .txt</button>
+      </div>
+      <pre class="proto" id="bPr"></pre>
+    </div>
+    </div>
+  </div>
+</section>
+</main>
+
+
+<script>var SIM = (function () {
+  var LAB = 8;
+  var R40 = [16,17,18,19,20,21,22,24,25,26,28,30,32,34,36,38,40,42,45,48,50,52,55,60,
+             63,65,70,71,75,80,85,90];
+  var PINS = [2, 2.5, 3, 4, 5, 6, 8, 10, 12, 16, 20, 25];
+
+  /* метричні різьби ISO 261/724: [позначення, d, P, d_1, A_s] */
+  var THREADS = [["M8", 8, 1.25, 6.647, 36.6], ["M10", 10, 1.5, 8.376, 58.0],
+                 ["M12", 12, 1.75, 10.106, 84.3], ["M14", 14, 2.0, 11.835, 115.0],
+                 ["M16", 16, 2.0, 13.835, 157.0], ["M20", 20, 2.5, 17.294, 245.0],
+                 ["M24", 24, 3.0, 20.752, 353.0], ["M30", 30, 3.5, 26.211, 561.0],
+                 ["M36", 36, 4.0, 31.670, 817.0]];
+
+  var PIN_MATS = [["сталь 20", 240], ["сталь 45", 360], ["сталь 40Х", 480]];
+  var BOLT_CL = [["4.6", 400, 240], ["5.8", 500, 400], ["8.8", 800, 640]];
+  var HTYPES = [["ливарний", 0.025, 1.0, 8], ["зварний", 0.040, 2.0, 6]];
+  var AW = [63, 71, 80, 90, 100, 112, 125, 140, 160, 180, 200, 225, 250, 280, 315, 355, 400];
+
+  var C = { SM: 150, KZAT: 1.5, CHI: 0.25, KTORS: 1.3, KFZ: 0.6 };
+  var KP_SET = [1.25, 1.30, 1.20, 1.35];
+  var KZ_SET = [2.00, 2.20, 1.90, 2.50];
+  var T2_K = [0.90, 1.00, 1.15];
+  var TARGET = [4, 5, 6, 8, 10];
+
+  function nf(x, k) { return x.toFixed(k).replace(".", ","); }
+  function rh(x) { return Math.round(x); }
+
+  function geomA(d) {
+    var D0 = 5 * rh(2.2 * d / 5);
+    return { D0: D0, lv: Math.max(10, 5 * rh(0.3 * D0 / 5)),
+             D: 5 * rh(1.6 * D0 / 5), L: 5 * rh(2.6 * d / 5) };
+  }
+
+  /* ---------------------------------------------------- варіант А: запобіжна муфта */
+  function fuse(i) {
+    var T = i.T, nr = i.nr, Kp = i.Kp, Kz = i.Kz, d = i.d, m = i.mat;
+    var o = { T: T, nr: nr, Kp: Kp, Kz: Kz, d: d, mat: m[0], tau: m[1] };
+    var gg = geomA(d);
+    o.D0 = gg.D0; o.lv = gg.lv; o.D = gg.D; o.L = gg.L;
+    o.Tr = Kp * T; o.Tdop = Kz * T;
+    o.d_req = Math.sqrt(8000 * o.Tdop / (Math.PI * o.tau * o.D0));
+    o.rows = [];
+    for (var j = 0; j < PINS.length; j++) {
+      var dp = PINS[j], F = Math.PI * dp * dp / 4 * o.tau, Ts = F * o.D0 / 2000;
+      o.rows.push({ dp: dp, F: F, Ts: Ts, ok_lo: Ts >= o.Tr - 1e-9,
+                    ok_hi: Ts <= o.Tdop + 1e-9,
+                    ok: Ts >= o.Tr - 1e-9 && Ts <= o.Tdop + 1e-9 });
+    }
+    var pick = o.rows[o.rows.length - 1];
+    o.found = false;
+    for (var q = 0; q < o.rows.length; q++) if (o.rows[q].ok) { pick = o.rows[q]; o.found = true; break; }
+    o.dp = pick.dp; o.F = pick.F; o.Ts = pick.Ts;
+    o.sig_sm = o.F / (o.dp * o.lv);
+    o.k_sm = C.SM / o.sig_sm; o.k_lo = o.Ts / o.Tr; o.k_hi = o.Tdop / o.Ts;
+    o.checks = [
+      [o.Ts >= o.Tr - 1e-9, "не зрізається в роботі: T_спр = " + nf(o.Ts, 1) +
+        " ≥ T_р = " + nf(o.Tr, 1) + " Н·м"],
+      [o.Ts <= o.Tdop + 1e-9, "спрацює вчасно: T_спр = " + nf(o.Ts, 1) +
+        " ≤ T_доп = " + nf(o.Tdop, 1) + " Н·м"],
+      [o.sig_sm <= C.SM + 1e-9, "зминання втулки: σ_зм = " + nf(o.sig_sm, 1) +
+        " ≤ [σ_зм] = 150 МПа"]
+    ];
+    o.l_pm = rh(0.5 * o.L);
+    o.d_vt = 5 * rh(2 * o.dp / 5);
+    o.d_fl = 5 * rh(1.25 * o.D0 / 5);
+    return o;
+  }
+
+  /* ---------------------------------------------------- варіант Б: корпусна деталь */
+  function housing(i) {
+    var aw = i.aw, T2 = i.T2, cl = i.cl, ht = i.ht;
+    var o = { aw: aw, T2: T2, cl: cl[0], sig_v: cl[1], sig_t: cl[2], ht: ht[0] };
+    o.Lb = 10 * rh(1.6 * aw / 10);
+    o.zb = aw <= 160 ? 4 : 6;
+    o.dl = Math.max(ht[3], rh(ht[1] * aw + ht[2]));
+    o.d1_req = 0.036 * aw + 12;
+    o.rows = THREADS.map(function (t) {
+      return { name: t[0], d: t[1], P: t[2], d1: t[3], As: t[4], ok: t[1] >= o.d1_req - 1e-9 };
+    });
+    var pick = o.rows[o.rows.length - 1];
+    for (var q = 0; q < o.rows.length; q++) if (o.rows[q].ok) { pick = o.rows[q]; break; }
+    o.name = pick.name; o.d1 = pick.d; o.P = pick.P; o.As = pick.As;
+    o.Fv = 2000 * T2 / (o.Lb * o.zb);
+    o.Fzat = C.KFZ * o.sig_t * o.As;
+    o.Fmin = C.KZAT * (1 - C.CHI) * o.Fv;
+    o.Fcalc = o.Fzat + C.CHI * o.Fv;
+    o.sig_r = C.KTORS * o.Fcalc / o.As;
+    o.sig_lim = 0.8 * o.sig_t;
+    o.M_zat = 0.2 * o.d1 * o.Fzat / 1000;
+    o.k_st = o.Fzat / o.Fmin; o.k_r = o.sig_lim / o.sig_r;
+    o.checks = [
+      [o.Fzat >= o.Fmin - 1e-9, "стик не розкривається: F_зат = " + nf(o.Fzat, 0) +
+        " ≥ " + nf(o.Fmin, 0) + " Н"],
+      [o.sig_r <= o.sig_lim + 1e-9, "болт не перевантажений: σ_р = " + nf(o.sig_r, 1) +
+        " ≤ 0,8·σ_т = " + nf(o.sig_lim, 0) + " МПа"],
+      [o.d1 >= o.d1_req - 1e-9, "різьба не менша за розрахункову: " + o.d1 +
+        " ≥ " + nf(o.d1_req, 2) + " мм"]
+    ];
+    o.dl1 = rh(0.9 * o.dl); o.b = rh(1.5 * o.dl); o.b1 = rh(1.35 * o.dl);
+    o.p = rh(2.35 * o.dl);
+    var near = function (x) {
+      var best = THREADS[0];
+      for (var k = 0; k < THREADS.length; k++)
+        if (Math.abs(THREADS[k][1] - x) < Math.abs(best[1] - x)) best = THREADS[k];
+      return best[0];
+    };
+    o.d2 = near(0.7 * o.d1); o.d3 = near(0.6 * o.d1);
+    o.d_pin = rh(0.8 * 0.7 * o.d1);
+    o.H = 10 * rh((0.9 * aw + 3 * o.dl) / 10);
+    return o;
+  }
+
+  /* ---------------------------------------------------- вхідні дані варіанта */
+  function pickDA(T, Kp, Kz, m, tgt) {
+    var dt = Math.pow(T * 1000 / (0.2 * 25), 1 / 3), fit = [];
+    for (var j = 0; j < R40.length; j++) {
+      var d = R40[j];
+      if (d < 0.9 * dt || d > 1.9 * dt) continue;
+      var r = fuse({ T: T, nr: 300, Kp: Kp, Kz: Kz, d: d, mat: m });
+      if (r.Ts >= r.Tr - 1e-9 && r.Ts <= r.Tdop + 1e-9 && r.sig_sm <= C.SM + 1e-9 &&
+          (tgt === null || Math.abs(r.dp - tgt) < 1e-9)) fit.push(d);
+    }
+    return fit.length ? fit[Math.floor(fit.length / 2)] : null;
+  }
+
+  function inputs(n) {
+    var T = 40 + 12 * n, nr = 200 + 10 * n;
+    var Kp = KP_SET[n % 4], Kz = KZ_SET[n % 4], mat = null, d = null;
+    var tgts = [TARGET[n % 5], null];
+    for (var t = 0; t < tgts.length && d === null; t++)
+      for (var off = 0; off < 3; off++) {
+        var m = PIN_MATS[(n + off) % 3], dd = pickDA(T, Kp, Kz, m, tgts[t]);
+        if (dd !== null) { mat = m; d = dd; break; }
+      }
+    var aw = AW[rh((n - 1) * (AW.length - 1) / 39)];
+    var T2 = 5 * rh(0.02 * aw * aw * T2_K[n % 3] / 5);
+    var cl = BOLT_CL[n % 3], ht = HTYPES[Math.floor(n / 2) % 2];
+    return { n: n, T: T, nr: nr, Kp: Kp, Kz: Kz, d: d, mat: mat,
+             mi: PIN_MATS.indexOf(mat), aw: aw, T2: T2, cl: cl,
+             ci: BOLT_CL.indexOf(cl), ht: ht, hi: HTYPES.indexOf(ht) };
+  }
+
+  return { LAB: LAB, R40: R40, PINS: PINS, THREADS: THREADS, PIN_MATS: PIN_MATS,
+           BOLT_CL: BOLT_CL, HTYPES: HTYPES, AW: AW, C: C, KP_SET: KP_SET,
+           KZ_SET: KZ_SET, geomA: geomA, inputs: inputs, fuse: fuse, housing: housing };
+})();
+if (typeof module !== "undefined") module.exports = SIM;
+
+/* ============================== ІНТЕРФЕЙС ============================== */
+if (typeof document !== "undefined") (function () {
+  /* ---------- спільні дрібні помічники (simkit) ---------- */
+  const $ = id => document.getElementById(id);
+  const f = (x, k = 1) => x.toFixed(k).replace(".", ","), g = x => String(+x.toFixed(4)).replace(".", ",");
+  const d = (x, k) => String(+x.toFixed(k));                 /* для Fusion — з крапкою */
+  const val = id => parseFloat($(id).value);
+  const row = (a, b, c) => `<tr><td>${a}</td><td class="num">${b}</td>${c === undefined ? "" : `<td class="num">${c}</td>`}</tr>`;
+  const kpi = (lbl, v) => `<div class="kpi"><span>${lbl}</span><strong>${v}</strong></div>`;
+  const chk = list => list.map(([ok, t, wait]) => wait
+    ? `<li class="wait">… ${t}</li>`
+    : `<li class="${ok ? "ok" : "bad"}">${ok ? "✔" : "✘"} ${t}</li>`).join("");
+  const okw = b => b ? "так" : "НІ";
+  const NS = 'vector-effect="non-scaling-stroke"';
+  const copy = (btn, pre) => btn.addEventListener("click", () => {
+    const done = () => { const t = btn.textContent; btn.textContent = "Скопійовано"; setTimeout(() => btn.textContent = t, 1500); };
+    const sel = () => { const r = document.createRange(); r.selectNodeContents(pre); const s = getSelection(); s.removeAllRanges(); s.addRange(r); };
+    try { navigator.clipboard.writeText(pre.textContent).then(done, sel); } catch (e) { sel(); }
+  });
+  const saveTxt = (name, text) => {
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(new Blob([text], { type: "text/plain;charset=utf-8" }));
+    a.download = name; document.body.appendChild(a); a.click();
+    setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 0);
+  };
+  let stuNo = null;
+  const head = v => `ЛАБОРАТОРНА РОБОТА № ${SIM.LAB} — ВАРІАНТ ${v}\n` +
+    `Студент: ____________________   Група: __________   № у списку: ${stuNo === null ? "____" : stuNo}\n` +
+    `Дата: ____________\n`;
+
+  /* ---------- механіка «студент рахує сам» (simkit) ---------- */
+  const SOL = { a: {}, b: {} };
+  const sv = (v, id) => SOL[v][id] || (SOL[v][id] = { done: false, shown: false, tries: 0, msg: "", cls: "" });
+  const done = (v, id) => !!(SOL[v][id] && SOL[v][id].done);
+  const mk = (v, id, s) => done(v, id) ? s : '<b class="q">?</b>';     /* у таблиці й KPI */
+  const mkt = (v, id, s) => done(v, id) ? String(s) : "?";             /* у протоколі */
+  const mk2 = (v, i1, i2, s) => done(v, i1) && done(v, i2) ? s : '<b class="q">?</b>';
+  const mkt2 = (v, i1, i2, s) => done(v, i1) && done(v, i2) ? String(s) : "?";
+  const solReset = v => { SOL[v] = {}; };
+  function solHow(v, id) {
+    const st = SOL[v][id];
+    return !st || !st.done ? "НЕ ПОРАХОВАНО" :
+      st.shown ? `з підказкою після ${st.tries} спроб` :
+        `ваша відповідь${st.tries > 1 ? ` з ${st.tries} спроб` : " з першої спроби"}`;
+  }
+
+  function drawSolve(v, spec) {
+    let open = true, h = "";
+    spec.forEach(q => {
+      const st = sv(v, q.id);
+      h += `<li class="${st.done ? "done" : open ? "now" : "locked"}"><div class="slab">${q.lbl}` +
+           `<span class="sform">${q.form}</span></div>`;
+      if (st.done) h += `<p class="sv ok">${q.show()} — ${solHow(v, q.id)}</p>`;
+      else if (!open) h += `<p class="sv note">спершу виконайте пункт вище</p>`;
+      else {
+        h += q.chips ? `<div class="chips" data-q="${q.id}">${q.chips()}</div>`
+          : `<div class="srow"><input type="number" step="any" inputmode="decimal" data-q="${q.id}" placeholder="ваше число">` +
+            `<button type="button" class="btn" data-go="${q.id}">Перевірити</button></div>`;
+        if (st.msg) h += `<p class="sv ${st.cls}">${st.msg}</p>`;
+        if (st.tries >= 3 && !q.chips) h += `<button type="button" class="shelp" data-show="${q.id}">не виходить — показати відповідь</button>`;
+      }
+      h += "</li>";
+      if (!st.done) open = false;
+    });
+    $(v + "Solve").innerHTML = h;
+  }
+
+  function solAnswer(v, q, x) {
+    const st = sv(v, q.id), ref = q.ref();
+    st.tries++;
+    if (!isFinite(x)) { st.cls = "bad"; st.msg = "Уведіть число."; return; }
+    const tol = Math.max(0.01 * Math.abs(ref), q.atol === undefined ? 0.01 : q.atol);
+    if (Math.abs(x - ref) <= tol) { st.done = true; st.cls = "ok"; st.msg = ""; return; }
+    st.cls = "bad";
+    const k = Math.abs(ref) > 1e-9 ? x / ref : 0;
+    st.msg = (k > 900 && k < 1100) || (k > 0.0009 && k < 0.0011)
+      ? "Не збігається рівно в 1000 разів — перевірте одиниці (Н·м і Н·мм)."
+      : k > 1.8 || (k < 0.55 && k > 0) ? "Не збігається, і дуже сильно. Перевірте формулу й порядок дій."
+        : "Не збігається. Перевірте, які саме числа ви підставили.";
+  }
+
+  function solBind(v, spec, recalc) {
+    $(v + "Solve").addEventListener("click", e => {
+      const go = e.target.closest("[data-go]"), sh = e.target.closest("[data-show]"),
+            ch = e.target.closest(".chips button");
+      if (go) {
+        const q = spec().find(x => x.id === go.dataset.go);
+        solAnswer(v, q, parseFloat($(v + "Solve").querySelector(`input[data-q="${q.id}"]`).value.replace(",", ".")));
+      } else if (sh) {
+        const st = sv(v, sh.dataset.show); st.done = true; st.shown = true;
+      } else if (ch) {
+        const q = spec().find(x => x.id === ch.closest(".chips").dataset.q);
+        q.pick(ch.dataset.k, sv(v, q.id));
+      } else return;
+      recalc();
+    });
+    $(v + "Solve").addEventListener("keydown", e => {
+      if (e.key === "Enter" && e.target.dataset.q) {
+        e.preventDefault();
+        $(v + "Solve").querySelector(`[data-go="${e.target.dataset.q}"]`).click();
+      }
+    });
+  }
+
+  function gate(v, ok) { $(v + "Lock").hidden = ok; $(v + "Stage").hidden = !ok; }
+
+  const sol0 = (v, spec, w) => spec().map(q => `   ${q.short.padEnd(w || 18)} — ${solHow(v, q.id)}`).join("\n");
+
+  /* ---------- тема й вкладки ---------- */
+  $("themeBtn").addEventListener("click", () => {
+    const root = document.documentElement, cur = root.getAttribute("data-theme");
+    const isDark = cur ? cur === "dark" : window.matchMedia("(prefers-color-scheme:dark)").matches;
+    root.setAttribute("data-theme", isDark ? "light" : "dark");
+  });
+  const tabs = { a: [$("tabA"), $("paneA")], b: [$("tabB"), $("paneB")] };
+  function show(k) { for (const x in tabs) { tabs[x][0].setAttribute("aria-selected", x === k); tabs[x][1].hidden = x !== k; } }
+  $("tabA").addEventListener("click", () => show("a"));
+  $("tabB").addEventListener("click", () => show("b"));
+
+  /* ====================================================================== А. ЗАПОБІЖНА МУФТА */
+  $("aMat").innerHTML = SIM.PIN_MATS.map((m, k) =>
+    `<option value="${k}">${m[0]} — τ_в = ${g(m[1])} МПа</option>`).join("");
+
+  let A = null, aTried = null;
+
+  const specA = () => [
+    { id: "Tr", short: "T_р, Н·м", lbl: "Робочий максимум T_р, Н·м (штифт не має зрізатися)",
+      form: "T_р = K_п·T, де K_п — коефіцієнт пускового перевантаження (табл. А3.8)",
+      ref: () => A.Tr, show: () => `T_р = ${f(A.Tr, 1)} Н·м, T_доп = K_з·T = ${f(A.Tdop, 1)} Н·м` },
+    { id: "dreq", short: "d_розр, мм", atol: 0.005,
+      lbl: "Розрахунковий діаметр штифта d_розр, мм (за верхньою межею вікна)",
+      form: "із T_доп = (π·d²/4)·τ_в·D₀/2000 випливає d_розр = √(8000·T_доп / (π·τ_в·D₀))",
+      ref: () => A.d_req, show: () => `d_розр = ${f(A.d_req, 3)} мм при D₀ = ${g(A.D0)} мм` },
+    { id: "dp", short: "добір штифта", lbl: "Який діаметр штифта беремо зі стандартного ряду?",
+      form: "для кожного d з ряду ISO 2338: T_спр = (π·d²/4)·τ_в·D₀/2000. Беруть найменший d, за якого T_р ≤ T_спр ≤ T_доп. Натискайте: симулятор скаже, чи годиться",
+      ref: () => A.dp, show: () => `штифт ⌀${g(A.dp)} мм, T_спр = ${f(A.Ts, 1)} Н·м`,
+      chips: () => A.rows.map(r =>
+        `<button type="button" data-k="${r.dp}"${aTried && aTried.has(r.dp) ? ` class="${r.dp === A.dp ? "" : "fail"}"` : ""}>⌀${g(r.dp)} мм
+          <small>${done("a", "dp") ? f(r.Ts, 0) + " Н·м" : "?"}</small></button>`).join(""),
+      pick: (k, st) => {
+        const v = +k, r = A.rows.find(x => Math.abs(x.dp - v) < 1e-9);
+        st.tries++; aTried = aTried || new Set(); aTried.add(v);
+        if (!r.ok_lo)
+          { st.cls = "bad"; st.msg = `Штифт ⌀${g(v)} мм замалий: він зрізався б уже при ${f(r.Ts, 1)} Н·м, а робочий максимум з пусковим піком — T_р = ${f(A.Tr, 1)} Н·м. Муфта спрацьовувала б на кожному пуску.`; }
+        else if (!r.ok_hi)
+          { st.cls = "bad"; st.msg = `Штифт ⌀${g(v)} мм завеликий: він зрізався б аж при ${f(r.Ts, 1)} Н·м, а привід тримає лише T_доп = ${f(A.Tdop, 1)} Н·м. Захист не спрацює вчасно.`; }
+        else if (v > A.dp + 1e-9)
+          { st.cls = "bad"; st.msg = `Штифт ⌀${g(v)} мм у вікно потрапляє, але в ряду є менший, який теж потрапляє. Що менший штифт, то раніше спрацює захист і то менше навантаження встигне дійти до привода.`; }
+        else { st.done = true; st.cls = "ok"; st.msg = ""; }
+      } },
+    { id: "Ts", short: "T_спр, Н·м", lbl: "Фактичний момент спрацювання T_спр, Н·м",
+      form: "T_спр = (π·d_шт²/4)·τ_в·D₀ / 2000 — момент, за якого штифт зрізається",
+      ref: () => A.Ts, show: () => `T_спр = ${f(A.Ts, 1)} Н·м (вікно ${f(A.Tr, 1)}…${f(A.Tdop, 1)})` },
+    { id: "sm", short: "σ_зм, МПа", lbl: "Напруження зминання втулки під штифтом σ_зм, МПа",
+      form: "F_зр = π·d_шт²·τ_в/4;  σ_зм = F_зр / (d_шт·l_в) ≤ [σ_зм] = 150 МПа",
+      ref: () => A.sig_sm, show: () => `σ_зм = ${f(A.sig_sm, 1)} МПа (запас ${f(A.k_sm, 2)})` },
+  ];
+
+  /* схема: вікно моменту спрацювання */
+  function schemeA() {
+    if (!A) return;
+    const W = 320, H = 150, x0 = 26, y0 = 104, w = 268, p = [];
+    const vis = done("a", "Tr");
+    const hi = Math.max(A.Tdop * 1.25, A.Ts * 1.1);
+    const sx = v => x0 + w * Math.min(1, v / hi);
+    p.push(`<line x1="${x0}" y1="${y0}" x2="${x0 + w}" y2="${y0}" stroke="currentColor" stroke-width="1.1" ${NS}/>`);
+    p.push(`<polygon points="${x0 + w + 7},${y0} ${x0 + w},${y0 - 3.5} ${x0 + w},${y0 + 3.5}" fill="currentColor"/>`);
+    p.push(`<text x="${x0 + w}" y="${y0 + 17}" font-size="9" text-anchor="end" class="svg-muted">момент на валу, Н·м</text>`);
+    if (vis) {
+      p.push(`<rect x="${sx(A.Tr)}" y="${y0 - 46}" width="${sx(A.Tdop) - sx(A.Tr)}" height="46" fill="var(--ok)" fill-opacity=".16" stroke="var(--ok)" stroke-width="1" ${NS}/>`);
+      p.push(`<text x="${(sx(A.Tr) + sx(A.Tdop)) / 2}" y="${y0 - 52}" font-size="9" text-anchor="middle" fill="var(--ok)">вікно спрацювання</text>`);
+      [[A.T, "T", "currentColor"], [A.Tr, "T_р", "var(--pin)"], [A.Tdop, "T_доп", "var(--bad)"]]
+        .forEach(([v, t, c], k) => {
+          p.push(`<line x1="${sx(v)}" y1="${y0}" x2="${sx(v)}" y2="${y0 - 56 - k * 0}" stroke="${c}" stroke-width="1.2" stroke-dasharray="4 3" ${NS}/>`);
+          p.push(`<text x="${sx(v)}" y="${y0 + 30 + (k % 2) * 13}" font-size="9" text-anchor="middle" fill="${c}">${t} = ${f(v, 0)}</text>`);
+        });
+      if (done("a", "dp")) {
+        p.push(`<circle cx="${sx(A.Ts)}" cy="${y0 - 23}" r="4.5" fill="var(--pin)" ${NS}/>`);
+        p.push(`<text x="${sx(A.Ts)}" y="${y0 - 31}" font-size="9" text-anchor="middle" fill="var(--pin)">T_спр = ${f(A.Ts, 0)}</text>`);
+      }
+    } else {
+      p.push(`<text x="${x0 + w / 2}" y="${y0 - 26}" font-size="10" text-anchor="middle" class="svg-muted">порахуйте T_р — і вікно з'явиться</text>`);
+    }
+    $("aScheme").setAttribute("viewBox", `0 0 ${W} ${H}`);
+    $("aScheme").innerHTML = p.join("");
+  }
+
+  function calcA() {
+    const i = { T: val("aT"), nr: val("aN"), Kp: val("aKp"), Kz: val("aKz"),
+                d: val("aD"), mat: SIM.PIN_MATS[+$("aMat").value] };
+    if (!(i.T > 0 && i.nr > 0 && i.Kp > 0 && i.Kz > 0 && i.d > 0 && i.mat)) return;
+    A = SIM.fuse(i);
+    drawSolve("a", specA());
+    gate("a", done("a", "dp"));
+    schemeA();
+    $("aHint").innerHTML = done("a", "Tr")
+      ? `D₀ = ${g(A.D0)} мм, втулка l_в = ${g(A.lv)} мм; вікно ${f(A.Tr, 1)}…${f(A.Tdop, 1)} Н·м` +
+        (done("a", "dp") ? `; прийнято штифт ⌀${g(A.dp)} мм.` : "; далі — пункти 2 і 3 нижче.")
+      : `Конструктивні розміри: D₀ = ${g(A.D0)} мм, довжина втулки l_в = ${g(A.lv)} мм, ` +
+        `габарит D × L = ${g(A.D)} × ${g(A.L)} мм. Межі вікна порахуйте самі — пункт 1 нижче.`;
+    if (!done("a", "dp")) return;
+
+    const qt = x => mk("a", "Ts", x), qs = x => mk("a", "sm", x);
+    $("aKpis").innerHTML =
+      kpi("Штифт", "⌀" + g(A.dp) + " мм, " + A.mat) +
+      kpi("T_спр", qt(f(A.Ts, 1) + " Н·м")) +
+      kpi("Вікно", f(A.Tr, 0) + "…" + f(A.Tdop, 0) + " Н·м") +
+      kpi("σ_зм", qs(f(A.sig_sm, 1) + " / 150 МПа"));
+    $("aTab").innerHTML = "<tbody>" +
+      `<tr><th>d<sub>шт</sub>, мм</th><th>Площа зрізу, мм²</th><th>F<sub>зр</sub>, Н</th>` +
+      `<th>T<sub>спр</sub>, Н·м</th><th>Висновок</th></tr>` +
+      A.rows.map(r => `<tr class="${r.ok ? "good" : "no"}"><td class="num">${g(r.dp)}</td>` +
+        `<td class="num">${f(Math.PI * r.dp * r.dp / 4, 1)}</td>` +
+        `<td class="num">${qt(f(r.F, 0))}</td><td class="num">${qt(f(r.Ts, 1))}</td>` +
+        `<td>${r.ok ? "у вікні" : !r.ok_lo ? "зріжеться в роботі" : "спрацює запізно"}</td></tr>`).join("") +
+      "</tbody>";
+    $("aOut").innerHTML =
+      row("Номінальний момент T, Н·м", g(A.T)) +
+      row("Робочий максимум T<sub>р</sub> = K<sub>п</sub>·T, Н·м", f(A.Tr, 1)) +
+      row("Межа привода T<sub>доп</sub> = K<sub>з</sub>·T, Н·м", f(A.Tdop, 1)) +
+      row("Діаметр розташування штифта D₀, мм", g(A.D0)) +
+      row("Розрахунковий діаметр штифта, мм", f(A.d_req, 3)) +
+      row("Прийнятий штифт, мм", "⌀" + g(A.dp) + " (" + A.mat + ", τ_в = " + g(A.tau) + " МПа)") +
+      row("Сила зрізу F<sub>зр</sub>, Н", qt(f(A.F, 0))) +
+      row("Момент спрацювання T<sub>спр</sub>, Н·м", qt(f(A.Ts, 1))) +
+      row("Запас до нижньої межі T<sub>спр</sub>/T<sub>р</sub>", qt(f(A.k_lo, 2))) +
+      row("Запас до верхньої межі T<sub>доп</sub>/T<sub>спр</sub>", qt(f(A.k_hi, 2))) +
+      row("Зминання втулки σ<sub>зм</sub> / [σ<sub>зм</sub>], МПа", qs(f(A.sig_sm, 1) + " / 150")) +
+      row("Габарити муфти D × L, мм", g(A.D) + " × " + g(A.L));
+    const aWait = [!done("a", "Ts"), !done("a", "Ts"), !done("a", "sm")];
+    $("aChk").innerHTML = chk(A.checks.map((c, k) =>
+      [c[0], aWait[k] ? c[1].replace(/=\s*[-\d.,e+]+/g, "= ?") : c[1], aWait[k]]));
+    $("aMot").textContent =
+      `Joint 1: Revolute — ліва півмуфта відносно корпусу (вісь Z)\n` +
+      `Joint 2: Revolute — права півмуфта відносно тієї самої осі\n` +
+      `Motion Link: Joint 1 ↔ Joint 2, співвідношення 1 : 1 — поки штифт цілий\n` +
+      `Contact Set: штифт ↔ отвори обох півмуфт\n` +
+      `Крок 1: обертання 1 об/с, обидві півмуфти йдуть разом\n` +
+      `Крок 2: вимкніть Motion Link — так показують стан після зрізу штифта\n` +
+      `Що записати: кут повороту лівої півмуфти, за якого права зупинилася`;
+    $("aFp").textContent =
+      `D_muf  = ${d(A.D, 2)} mm\nL_muf  = ${d(A.L, 2)} mm\nl_half = ${d(A.l_pm, 2)} mm\n` +
+      `d_bore = ${d(A.d, 2)} mm\nD_0    = ${d(A.D0, 2)} mm\nd_pin  = ${d(A.dp, 2)} mm\n` +
+      `l_bush = ${d(A.lv, 2)} mm\nD_bush = ${d(A.d_vt, 2)} mm\nd_flan = ${d(A.d_fl, 2)} mm`;
+    unitA(); chipsA(); protoA();
+  }
+
+  /* креслення муфти: вид з торця і розріз */
+  function unitA() {
+    if (!A || !$("aSvg")) return;
+    const W = 560, H = 250, cy = H / 2, p = [];
+    const R = Math.min(96, cy - 28), s = 2 * R / A.D;
+    const cx = 118, r0 = A.D0 * s / 2, rp = Math.max(2.5, A.dp * s / 2);
+    p.push(`<circle cx="${cx}" cy="${cy}" r="${R}" fill="var(--surface-2)" stroke="currentColor" stroke-width="1.3" ${NS}/>`);
+    p.push(`<circle cx="${cx}" cy="${cy}" r="${r0}" fill="none" stroke="currentColor" stroke-width=".7" stroke-dasharray="6 4" ${NS}/>`);
+    p.push(`<circle cx="${cx}" cy="${cy}" r="${A.d * s / 2}" fill="var(--surface)" stroke="currentColor" stroke-width="1.2" ${NS}/>`);
+    const ax = cx, ay = cy - r0;
+    p.push(`<circle cx="${ax}" cy="${ay}" r="${rp * 2.1}" fill="var(--pin)" fill-opacity=".14" stroke="var(--pin)" stroke-width=".9" stroke-dasharray="3 2" ${NS}/>`);
+    p.push(`<circle cx="${ax}" cy="${ay}" r="${rp}" fill="var(--bad)" fill-opacity=".55" stroke="var(--bad)" stroke-width="1.1" ${NS}/>`);
+    p.push(`<text x="${ax + rp * 2.5 + 3}" y="${ay - 2}" font-size="10" fill="var(--bad)" class="svg-halo">штифт ⌀${g(A.dp)}</text>`);
+    p.push(`<text x="${ax + rp * 2.5 + 3}" y="${ay + 10}" font-size="9" fill="var(--pin)" class="svg-halo">втулка ⌀${g(A.d_vt)}</text>`);
+    p.push(`<text x="${cx}" y="${cy + R + 18}" font-size="10" text-anchor="middle" class="svg-muted">вид з торця: D = ${g(A.D)} мм, D₀ = ${g(A.D0)} мм</text>`);
+    /* розріз */
+    const x0 = 268, sl = Math.min((W - x0 - 46) / A.L, s), hw = A.D * sl / 2;
+    const lh = A.L * sl / 2, xm = x0 + lh;
+    const rect = (x, y, w, h, fill, stroke, op) =>
+      `<rect x="${x}" y="${y}" width="${w}" height="${h}" fill="${fill}"${op ? ` fill-opacity="${op}"` : ""} stroke="${stroke}" stroke-width="1.2" ${NS}/>`;
+    [[x0, "ведуча"], [xm, "ведена"]].forEach(([xl, nm], k) => {
+      p.push(rect(xl, cy - hw, lh, 2 * hw, "var(--surface-2)", "currentColor"));
+      p.push(`<text x="${xl + lh / 2}" y="${cy - hw - 8}" font-size="9" text-anchor="middle" class="svg-muted">${nm} півмуфта</text>`);
+    });
+    p.push(rect(x0 - 24, cy - A.d * sl / 2, A.L * sl + 48, A.d * sl, "var(--surface)", "currentColor"));
+    const rpl = Math.max(2.5, A.dp * sl / 2);
+    [1, -1].forEach(sg => {
+      const y = cy + sg * r0 * sl / s;
+      p.push(rect(xm - A.lv * sl / 2, y - rpl * 2.1, A.lv * sl, rpl * 4.2, "var(--pin)", "var(--pin)", ".25"));
+      p.push(rect(xm - A.lv * sl / 2 - 3, y - rpl, A.lv * sl + 6, 2 * rpl, "var(--bad)", "var(--bad)", ".5"));
+    });
+    p.push(`<line x1="${xm}" y1="${cy - hw - 4}" x2="${xm}" y2="${cy + hw + 14}" stroke="var(--bad)" stroke-width="1.1" stroke-dasharray="4 3" ${NS}/>`);
+    p.push(`<text x="${xm}" y="${cy + hw + 26}" font-size="9" text-anchor="middle" fill="var(--bad)">площина зрізу</text>`);
+    p.push(`<text x="${x0 + A.L * sl / 2}" y="${cy + hw + 40}" font-size="10" text-anchor="middle" class="svg-muted">розріз: L = ${g(A.L)} мм, втулка l_в = ${g(A.lv)} мм</text>`);
+    p.push(`<text x="6" y="14" font-size="9" class="svg-muted">момент спрацювання T_спр = ${mk("a", "Ts", f(A.Ts, 1))} Н·м · штифт зі сталі «${A.mat}»</text>`);
+    $("aSvg").setAttribute("viewBox", `0 0 ${W} ${H}`);
+    $("aSvg").innerHTML = p.join("");
+  }
+
+  const A_KZ = [1.6, 1.9, 2.2, 2.5, 3.0];
+
+  function chipsA() {
+    if (!A) return;
+    $("aChips").innerHTML = A_KZ.map(Kz => {
+      const r = SIM.fuse({ T: A.T, nr: A.nr, Kp: A.Kp, Kz: Kz, d: A.d,
+                           mat: [A.mat, A.tau] });
+      const vis = done("a", "Ts") && done("a", "sm");
+      return `<button type="button" data-k="${Kz}" aria-pressed="${Math.abs(Kz - A.Kz) < 1e-9}">K_з = ${g(Kz)}
+        <small>${vis ? (r.found ? `⌀${g(r.dp)} · ${f(r.Ts, 0)} Н·м` : "немає у ряду") : "?"}</small></button>`;
+    }).join("");
+  }
+
+  function protoA() {
+    if (!A) return;
+    const tt = x => mkt("a", "Ts", x), ts = x => mkt("a", "sm", x);
+    $("aPr").textContent = head("А (запобіжна муфта зі зрізним штифтом)") + `
+0. ЩО СТУДЕНТ ПОРАХУВАВ САМ
+${sol0("a", specA, 18)}
+
+1. ВХІДНІ ДАНІ
+   T = ${f(A.T, 1)} Н·м      n = ${f(A.nr, 0)} об/хв
+   K_п = ${g(A.Kp)} (пускове перевантаження)   K_з = ${g(A.Kz)} (межа міцності привода)
+   діаметр вала d = ${g(A.d)} мм
+   штифт: ${A.mat}, границя міцності на зріз τ_в = ${g(A.tau)} МПа
+   конструктивно: D_0 = ${g(A.D0)} мм, втулка l_в = ${g(A.lv)} мм, D × L = ${g(A.D)} × ${g(A.L)} мм
+
+2. ВІКНО СПРАЦЮВАННЯ
+   робочий максимум  T_р = K_п·T = ${f(A.Tr, 2)} Н·м  (нижче нього штифт зрізатися не має)
+   межа привода      T_доп = K_з·T = ${f(A.Tdop, 2)} Н·м  (вище неї захист спізнився)
+   розрахунковий діаметр штифта d_розр = ${f(A.d_req, 3)} мм
+
+3. ДОБІР ШТИФТА (ISO 2338)
+${A.rows.map(r => `   ⌀${String(g(r.dp)).padStart(4)} мм:  A_зр = ${String(f(Math.PI * r.dp * r.dp / 4, 1)).padStart(6)} мм²   F_зр = ${tt(f(r.F, 0)).padStart(6)} Н   T_спр = ${tt(f(r.Ts, 1)).padStart(7)} Н·м   ${r.ok ? "у вікні" : !r.ok_lo ? "зріжеться в роботі" : "спрацює запізно"}`).join("\n")}
+   прийнято штифт ⌀${g(A.dp)} мм
+
+4. ПЕРЕВІРКИ
+   T_спр = ${tt(f(A.Ts, 2))} Н·м ≥ T_р = ${f(A.Tr, 2)} Н·м — ${okw(A.checks[0][0])} (запас ${tt(f(A.k_lo, 2))})
+   T_спр = ${tt(f(A.Ts, 2))} Н·м ≤ T_доп = ${f(A.Tdop, 2)} Н·м — ${okw(A.checks[1][0])} (запас ${tt(f(A.k_hi, 2))})
+   зминання втулки σ_зм = F_зр/(d_шт·l_в) = ${ts(f(A.sig_sm, 2))} МПа ≤ 150 МПа — ${okw(A.checks[2][0])}
+
+5. ДИНАМІЧНА СИМУЛЯЦІЯ (MOTION STUDY)
+${$("aMot").textContent.split("\n").map(s => "   " + s).join("\n")}
+
+6. ПАРАМЕТРИ ДЛЯ FUSION
+${$("aFp").textContent.split("\n").map(s => "   " + s).join("\n")}
+
+7. ДОСЛІД: КОЕФІЦІЄНТ ЗАХИСТУ
+${A_KZ.map(Kz => {
+      const r = SIM.fuse({ T: A.T, nr: A.nr, Kp: A.Kp, Kz: Kz, d: A.d, mat: [A.mat, A.tau] });
+      const z = x => mkt2("a", "Ts", "sm", x);
+      return `   K_з = ${g(Kz)}:  T_доп = ${String(f(r.Tdop, 1)).padStart(7)} Н·м   ` +
+             (r.found ? `штифт ⌀${String(g(r.dp)).padStart(4)} мм   T_спр = ${z(f(r.Ts, 1))} Н·м`
+                      : "у стандартному ряду придатного штифта немає");
+    }).join("\n")}
+`;
+  }
+
+  ["aT", "aN", "aKp", "aKz", "aD"].forEach(id =>
+    $(id).addEventListener("input", () => { solReset("a"); aTried = null; calcA(); }));
+  $("aMat").addEventListener("change", () => { solReset("a"); aTried = null; calcA(); });
+  $("aChips").addEventListener("click", e => {
+    const b = e.target.closest("button");
+    if (b) { $("aKz").value = b.dataset.k; solReset("a"); aTried = null; calcA(); }
+  });
+  solBind("a", specA, calcA);
+  copy($("aCopy"), $("aPr"));
+  $("aSave").addEventListener("click", () => saveTxt("ЛР8_протокол_А.txt", $("aPr").textContent));
+
+  /* ====================================================================== Б. КОРПУСНА ДЕТАЛЬ */
+  $("bHt").innerHTML = SIM.HTYPES.map((h, k) =>
+    `<option value="${k}">${h[0]} — δ = ${g(h[1])}·a_w + ${g(h[2])}, не менше ${g(h[3])} мм</option>`).join("");
+  $("bCl").innerHTML = SIM.BOLT_CL.map((c, k) =>
+    `<option value="${k}">клас ${c[0]} — σ_в = ${g(c[1])}, σ_т = ${g(c[2])} МПа</option>`).join("");
+
+  let B = null, bTried = null;
+
+  const specB = () => [
+    { id: "dl", short: "δ, мм", lbl: "Товщина стінки корпусу δ, мм",
+      form: "ливарний: δ = 0,025·a_w + 1, не менше 8 мм; зварний: δ = 0,040·a_w + 2, не менше 6 мм. Округлюють до цілих",
+      ref: () => B.dl, show: () => `δ = ${g(B.dl)} мм (${B.ht} корпус)` },
+    { id: "d1r", short: "d₁,розр, мм", atol: 0.005,
+      lbl: "Розрахунковий діаметр фундаментного болта d₁, мм",
+      form: "d₁ = 0,036·a_w + 12 — конструктивне співвідношення (табл. А4.10)",
+      ref: () => B.d1_req, show: () => `d₁,розр = ${f(B.d1_req, 3)} мм` },
+    { id: "thr", short: "добір різьби", lbl: "Яку різьбу фундаментних болтів беремо?",
+      form: "найменша метрична різьба з ряду (табл. А2.8), у якої зовнішній діаметр не менший за d₁,розр. Натискайте: симулятор скаже, чи годиться",
+      ref: () => B.d1, show: () => `${B.name} (A_s = ${g(B.As)} мм², крок ${g(B.P)} мм)`,
+      chips: () => B.rows.map(r =>
+        `<button type="button" data-k="${r.d}"${bTried && bTried.has(r.d) ? ` class="${r.d === B.d1 ? "" : "fail"}"` : ""}>${r.name}
+          <small>A_s = ${g(r.As)}</small></button>`).join(""),
+      pick: (k, st) => {
+        const v = +k, r = B.rows.find(x => Math.abs(x.d - v) < 1e-9);
+        st.tries++; bTried = bTried || new Set(); bTried.add(v);
+        if (!r.ok)
+          { st.cls = "bad"; st.msg = `${r.name} замала: її зовнішній діаметр ${g(r.d)} мм менший за розрахунковий d₁ = ${f(B.d1_req, 2)} мм.`; }
+        else if (v > B.d1 + 1e-9)
+          { st.cls = "bad"; st.msg = `${r.name} проходить, але в ряду є менша різьба, яка теж не менша за d₁. Більший болт — це більша лапа, більший припуск під ключ і зайва маса корпусу.`; }
+        else { st.done = true; st.cls = "ok"; st.msg = ""; }
+      } },
+    { id: "Fv", short: "F_в, Н", lbl: "Відривна сила на найнавантаженіший болт F_в, Н",
+      form: "момент T₂ тримає пара сил на двох рядах болтів: F_в = 2000·T₂ / (L_б·z_б)",
+      ref: () => B.Fv, show: () => `F_в = ${f(B.Fv, 1)} Н (L_б = ${g(B.Lb)} мм, z_б = ${g(B.zb)})` },
+    { id: "Fz", short: "F_зат, Н", lbl: "Сила затягування болта F_зат, Н",
+      form: "F_зат = 0,6·σ_т·A_s — затягують на 60 % границі текучості",
+      ref: () => B.Fzat, show: () => `F_зат = ${f(B.Fzat, 0)} Н, момент затягування ${f(B.M_zat, 1)} Н·м` },
+  ];
+
+  /* схема: пара сил на двох рядах болтів */
+  function schemeB() {
+    if (!B) return;
+    const W = 320, H = 160, p = [];
+    const cx = 160, cy = 74, hw = 96, hh = 40;
+    p.push(`<rect x="${cx - hw}" y="${cy - hh}" width="${2 * hw}" height="${2 * hh}" rx="4" fill="var(--surface-2)" stroke="currentColor" stroke-width="1.3" ${NS}/>`);
+    p.push(`<rect x="${cx - hw - 14}" y="${cy + hh}" width="${2 * hw + 28}" height="10" fill="var(--surface)" stroke="currentColor" stroke-width="1.1" ${NS}/>`);
+    for (let k = -3; k <= 3; k++)
+      p.push(`<line x1="${cx + k * 26}" y1="${cy + hh + 10}" x2="${cx + k * 26 - 7}" y2="${cy + hh + 19}" stroke="currentColor" stroke-width=".7" ${NS}/>`);
+    [[-1, "var(--pin)", "відрив"], [1, "var(--ok)", "притиск"]].forEach(([sg, c, t]) => {
+      const x = cx + sg * (hw - 16);
+      p.push(`<line x1="${x}" y1="${cy + hh - 4}" x2="${x}" y2="${cy + hh + 12}" stroke="${c}" stroke-width="2.2" ${NS}/>`);
+      p.push(`<line x1="${x}" y1="${cy + hh - 6}" x2="${x}" y2="${cy + hh - 6 - 26 * (sg < 0 ? 1 : -1) * (sg < 0 ? 1 : 1)}" stroke="${c}" stroke-width="0" ${NS}/>`);
+      const yy = sg < 0 ? cy + hh - 34 : cy + hh + 34;
+      p.push(`<line x1="${x}" y1="${cy + hh + (sg < 0 ? -6 : 6)}" x2="${x}" y2="${yy}" stroke="${c}" stroke-width="1.6" ${NS}/>`);
+      p.push(`<polygon points="${x},${yy + (sg < 0 ? -6 : 6)} ${x - 4},${yy} ${x + 4},${yy}" fill="${c}"/>`);
+      p.push(`<text x="${x + (sg < 0 ? -6 : 6)}" y="${yy + (sg < 0 ? 2 : -2)}" font-size="9" text-anchor="${sg < 0 ? "end" : "start"}" fill="${c}">${t}</text>`);
+    });
+    p.push(`<circle cx="${cx}" cy="${cy}" r="15" fill="none" stroke="var(--bad)" stroke-width="1.4" ${NS}/>`);
+    p.push(`<path d="M ${cx - 15} ${cy} A 15 15 0 0 1 ${cx} ${cy - 15}" fill="none" stroke="var(--bad)" stroke-width="2" ${NS}/>`);
+    p.push(`<polygon points="${cx + 3},${cy - 18} ${cx - 4},${cy - 16} ${cx - 1},${cy - 9}" fill="var(--bad)"/>`);
+    p.push(`<text x="${cx}" y="${cy + 5}" font-size="10" text-anchor="middle" fill="var(--bad)">T₂</text>`);
+    p.push(`<line x1="${cx - hw + 16}" y1="${cy + hh + 26}" x2="${cx + hw - 16}" y2="${cy + hh + 26}" stroke="currentColor" stroke-width=".8" ${NS}/>`);
+    p.push(`<text x="${cx}" y="${cy + hh + 38}" font-size="9" text-anchor="middle" class="svg-muted">L_б = ${g(B.Lb)} мм, болтів z_б = ${g(B.zb)}</text>`);
+    $("bScheme").setAttribute("viewBox", `0 0 ${W} ${H}`);
+    $("bScheme").innerHTML = p.join("");
+  }
+
+  function calcB() {
+    const i = { aw: val("bAw"), T2: val("bT2"), ht: SIM.HTYPES[+$("bHt").value],
+                cl: SIM.BOLT_CL[+$("bCl").value] };
+    if (!(i.aw > 0 && i.T2 > 0 && i.ht && i.cl)) return;
+    B = SIM.housing(i);
+    drawSolve("b", specB());
+    gate("b", done("b", "thr"));
+    schemeB();
+    $("bHint").innerHTML = done("b", "dl")
+      ? `δ = ${g(B.dl)} мм; L_б = ${g(B.Lb)} мм, z_б = ${g(B.zb)}` +
+        (done("b", "thr") ? `; прийнято болти ${B.name}.` : "; далі — пункти 2 і 3 нижче.")
+      : `Корпус ${B.ht}; болтів z_б = ${g(B.zb)}, відстань між рядами L_б = ${g(B.Lb)} мм. ` +
+        `Товщину стінки порахуйте самі — пункт 1 нижче.`;
+    if (!done("b", "thr")) return;
+
+    const qv = x => mk("b", "Fv", x), qz = x => mk("b", "Fz", x);
+    $("bKpis").innerHTML =
+      kpi("Корпус", B.ht + ", δ = " + g(B.dl) + " мм") +
+      kpi("Болти", B.name + " × " + g(B.zb)) +
+      kpi("F_в", qv(f(B.Fv, 0) + " Н")) +
+      kpi("Момент затягування", qz(f(B.M_zat, 1) + " Н·м"));
+    $("bTab").innerHTML = "<tbody>" +
+      `<tr><th>Різьба</th><th>d, мм</th><th>Крок P, мм</th><th>d₁, мм</th>` +
+      `<th>A<sub>s</sub>, мм²</th><th>Висновок</th></tr>` +
+      B.rows.map(r => `<tr class="${r.ok ? "good" : "no"}"><td>${r.name}</td>` +
+        `<td class="num">${g(r.d)}</td><td class="num">${g(r.P)}</td>` +
+        `<td class="num">${f(r.d1, 3)}</td><td class="num">${g(r.As)}</td>` +
+        `<td>${r.ok ? "проходить" : "менша за d₁"}</td></tr>`).join("") +
+      "</tbody>";
+    $("bOut").innerHTML =
+      row("Міжосьова відстань a<sub>w</sub>, мм", g(B.aw)) +
+      row("Тип корпусу", B.ht) +
+      row("Товщина стінки δ, мм", g(B.dl)) +
+      row("Розрахунковий діаметр болта d₁, мм", f(B.d1_req, 3)) +
+      row("Прийнята різьба", B.name + " (клас " + B.cl + ", σ_т = " + g(B.sig_t) + " МПа)") +
+      row("Розрахункова площа A<sub>s</sub>, мм²", g(B.As)) +
+      row("Відривна сила F<sub>в</sub>, Н", qv(f(B.Fv, 1))) +
+      row("Потрібно для нерозкриття стику, Н", qv(f(B.Fmin, 1))) +
+      row("Сила затягування F<sub>зат</sub>, Н", qz(f(B.Fzat, 0))) +
+      row("Момент затягування M<sub>зат</sub>, Н·м", qz(f(B.M_zat, 1))) +
+      row("Напруження в болті σ<sub>р</sub> / 0,8·σ<sub>т</sub>, МПа",
+          qz(f(B.sig_r, 1) + " / " + g(B.sig_lim))) +
+      row("Запас за нерозкриттям стику", qz(f(B.k_st, 1)));
+    const bWait = [!done("b", "Fz"), !done("b", "Fz"), false];
+    $("bChk").innerHTML = chk(B.checks.map((c, k) =>
+      [c[0], bWait[k] ? c[1].replace(/=\s*[-\d.,e+]+/g, "= ?") : c[1], bWait[k]]));
+    $("bGeo").innerHTML =
+      row("Товщина стінки кришки δ₁ = 0,9·δ, мм", g(B.dl1)) +
+      row("Товщина фланця корпусу b = 1,5·δ, мм", g(B.b)) +
+      row("Товщина фланця кришки b₁ = 1,35·δ, мм", g(B.b1)) +
+      row("Товщина лапи p = 2,35·δ, мм", g(B.p)) +
+      row("Болти біля підшипників d₂ ≈ 0,7·d₁", B.d2) +
+      row("Болти кришки d₃ ≈ 0,6·d₁", B.d3) +
+      row("Штифти для фіксації кришки, мм", "⌀" + g(B.d_pin)) +
+      row("Орієнтовна висота корпусу H, мм", g(B.H));
+    $("bFp").textContent =
+      `a_w     = ${d(B.aw, 2)} mm\ndelta   = ${d(B.dl, 2)} mm\ndelta_1 = ${d(B.dl1, 2)} mm\n` +
+      `b_fl    = ${d(B.b, 2)} mm\nb_cov   = ${d(B.b1, 2)} mm\np_foot  = ${d(B.p, 2)} mm\n` +
+      `L_b     = ${d(B.Lb, 2)} mm\nz_b     = ${g(B.zb)}\nd_bolt  = ${d(B.d1, 2)} mm\n` +
+      `d_pin   = ${d(B.d_pin, 2)} mm\nH_body  = ${d(B.H, 2)} mm`;
+    unitB(); chipsB(); protoB();
+  }
+
+  /* креслення корпусу в розрізі */
+  function unitB() {
+    if (!B || !$("bSvg")) return;
+    const W = 580, H = 290, p = [];
+    const inner = B.aw + 2.6 * B.dl + 90;              /* умовна ширина корпусу, мм */
+    const s = Math.min((W - 150) / Math.max(inner, B.Lb + 90), (H - 90) / (B.H + 60));
+    const cx = W / 2, yb = H - 44;                     /* рівень рами */
+    const t = Math.max(3.5, B.dl * s), t1 = Math.max(3, B.dl1 * s);
+    const fl = Math.max(4.5, B.b * s), fl1 = Math.max(4, B.b1 * s);
+    const ft = Math.max(5, B.p * s);
+    const wid = Math.max(B.Lb * s * 0.86, (B.aw + 70) * s);
+    const ysp = yb - ft - Math.max(44, B.H * s * 0.52);   /* площина роз'єму */
+    const rect = (x, y, w, h, fill, stroke, op) =>
+      `<rect x="${x}" y="${y}" width="${w}" height="${h}" fill="${fill}"${op ? ` fill-opacity="${op}"` : ""} stroke="${stroke}" stroke-width="1.1" ${NS}/>`;
+
+    /* рама */
+    p.push(rect(cx - wid * 0.78, yb, wid * 1.56, 10, "var(--surface)", "currentColor"));
+    for (let k = -6; k <= 6; k++)
+      p.push(`<line x1="${cx + k * (wid * 0.12)}" y1="${yb + 10}" x2="${cx + k * (wid * 0.12) - 7}" y2="${yb + 19}" stroke="currentColor" stroke-width=".7" ${NS}/>`);
+    /* лапи й основа корпусу */
+    p.push(rect(cx - wid / 2 - 20, yb - ft, wid + 40, ft, "var(--surface-2)", "currentColor"));
+    /* бічні стінки */
+    [-1, 1].forEach(sg => {
+      const x = sg < 0 ? cx - wid / 2 : cx + wid / 2 - t;
+      p.push(rect(x, ysp, t, yb - ft - ysp, "var(--surface-2)", "currentColor"));
+    });
+    /* фланець корпусу */
+    [-1, 1].forEach(sg => {
+      const x = sg < 0 ? cx - wid / 2 - 7 : cx + wid / 2 - t - 7;
+      p.push(rect(x, ysp - fl, t + 14, fl, "var(--pin)", "var(--pin)", ".22"));
+    });
+    /* кришка: фланець + стінки + дах */
+    const htop = Math.max(34, B.H * s * 0.34);
+    [-1, 1].forEach(sg => {
+      const x = sg < 0 ? cx - wid / 2 - 7 : cx + wid / 2 - t1 - 7;
+      p.push(rect(x, ysp - fl - fl1, t1 + 14, fl1, "var(--pin)", "var(--pin)", ".22"));
+    });
+    p.push(`<path d="M ${cx - wid / 2} ${ysp - fl - fl1} L ${cx - wid / 2} ${ysp - fl - fl1 - htop * 0.45} Q ${cx} ${ysp - fl - fl1 - htop * 1.35} ${cx + wid / 2} ${ysp - fl - fl1 - htop * 0.45} L ${cx + wid / 2} ${ysp - fl - fl1} Z" fill="var(--surface)" stroke="currentColor" stroke-width="1.1" ${NS}/>`);
+    p.push(`<path d="M ${cx - wid / 2 + t1} ${ysp - fl - fl1} L ${cx - wid / 2 + t1} ${ysp - fl - fl1 - htop * 0.42} Q ${cx} ${ysp - fl - fl1 - htop * 1.18} ${cx + wid / 2 - t1} ${ysp - fl - fl1 - htop * 0.42} L ${cx + wid / 2 - t1} ${ysp - fl - fl1}" fill="var(--surface-2)" stroke="currentColor" stroke-width=".9" ${NS}/>`);
+    /* гнізда підшипників на площині роз'єму */
+    const rb = Math.max(9, 0.17 * B.aw * s), dx = B.aw * s / 2;
+    [-1, 1].forEach(sg => {
+      p.push(`<circle cx="${cx + sg * dx}" cy="${ysp - fl}" r="${rb}" fill="var(--surface)" stroke="currentColor" stroke-width="1.1" ${NS}/>`);
+      p.push(`<line x1="${cx + sg * dx - rb - 5}" y1="${ysp - fl}" x2="${cx + sg * dx + rb + 5}" y2="${ysp - fl}" stroke="currentColor" stroke-width=".7" stroke-dasharray="7 3 2 3" ${NS}/>`);
+    });
+    p.push(`<line x1="${cx - dx}" y1="${ysp - fl - rb - 14}" x2="${cx + dx}" y2="${ysp - fl - rb - 14}" stroke="var(--ok)" stroke-width=".9" ${NS}/>`);
+    p.push(`<text x="${cx}" y="${ysp - fl - rb - 18}" font-size="9" text-anchor="middle" fill="var(--ok)">a_w = ${g(B.aw)} мм</text>`);
+    /* болти кришки */
+    [-1, 1].forEach(sg => {
+      const x = cx + sg * (wid / 2 - t / 2);
+      p.push(`<line x1="${x}" y1="${ysp - fl - fl1 - 5}" x2="${x}" y2="${ysp + 3}" stroke="var(--pin)" stroke-width="2" stroke-linecap="round" ${NS}/>`);
+    });
+    /* фундаментні болти */
+    [-1, 1].forEach(sg => {
+      const x = cx + sg * (B.Lb * s / 2);
+      p.push(`<line x1="${x}" y1="${yb - ft - 9}" x2="${x}" y2="${yb + 11}" stroke="var(--bad)" stroke-width="${Math.max(2.5, B.d1 * s * 0.75)}" stroke-linecap="round" ${NS}/>`);
+      p.push(`<rect x="${x - Math.max(4, B.d1 * s * 0.75)}" y="${yb - ft - 13}" width="${2 * Math.max(4, B.d1 * s * 0.75)}" height="5" fill="var(--bad)" fill-opacity=".6" stroke="none" ${NS}/>`);
+    });
+    p.push(`<line x1="${cx - B.Lb * s / 2}" y1="${yb + 24}" x2="${cx + B.Lb * s / 2}" y2="${yb + 24}" stroke="var(--bad)" stroke-width=".9" ${NS}/>`);
+    p.push(`<text x="${cx}" y="${yb + 36}" font-size="9" text-anchor="middle" fill="var(--bad)">L_б = ${g(B.Lb)} мм · болти ${B.name} × ${g(B.zb)}</text>`);
+    /* підписи товщин */
+    p.push(`<text x="${cx - wid / 2 - 24}" y="${(ysp + yb - ft) / 2}" font-size="9" text-anchor="end" class="svg-halo">δ = ${g(B.dl)}</text>`);
+    p.push(`<line x1="${cx - wid / 2 - 22}" y1="${(ysp + yb - ft) / 2 - 3}" x2="${cx - wid / 2 + t}" y2="${(ysp + yb - ft) / 2 - 3}" stroke="currentColor" stroke-width=".6" ${NS}/>`);
+    p.push(`<text x="${cx + wid / 2 + 12}" y="${ysp - fl + 3}" font-size="9" class="svg-halo">фланець b = ${g(B.b)}</text>`);
+    p.push(`<text x="${cx + wid / 2 + 12}" y="${ysp - fl - fl1 - 6}" font-size="9" class="svg-halo">кришка δ₁ = ${g(B.dl1)}</text>`);
+    p.push(`<text x="${cx - wid / 2 - 24}" y="${yb - ft / 2 + 3}" font-size="9" text-anchor="end" class="svg-halo">лапа p = ${g(B.p)}</text>`);
+    p.push(`<text x="6" y="14" font-size="9" class="svg-muted">${B.ht} корпус редуктора; розріз по площині осей валів, висота H ≈ ${g(B.H)} мм</text>`);
+    $("bSvg").setAttribute("viewBox", `0 0 ${W} ${H}`);
+    $("bSvg").innerHTML = p.join("");
+  }
+
+  const bAwList = () => {
+    const k = SIM.AW.indexOf(B.aw), o = [];
+    for (let j = Math.max(0, k - 2); j <= Math.min(SIM.AW.length - 1, k + 2); j++) o.push(SIM.AW[j]);
+    return o;
+  };
+
+  function chipsB() {
+    if (!B) return;
+    $("bChips").innerHTML = bAwList().map(aw => {
+      const r = SIM.housing({ aw: aw, T2: B.T2, ht: SIM.HTYPES[+$("bHt").value],
+                              cl: SIM.BOLT_CL[+$("bCl").value] });
+      const vis = done("b", "Fv") && done("b", "Fz");
+      return `<button type="button" data-k="${aw}" aria-pressed="${aw === B.aw}">a_w = ${aw}
+        <small>${vis ? `δ ${g(r.dl)} · ${r.name}` : "?"}</small></button>`;
+    }).join("");
+  }
+
+  function protoB() {
+    if (!B) return;
+    const tv = x => mkt("b", "Fv", x), tz = x => mkt("b", "Fz", x);
+    $("bPr").textContent = head("Б (корпусна деталь редуктора)") + `
+0. ЩО СТУДЕНТ ПОРАХУВАВ САМ
+${sol0("b", specB, 18)}
+
+1. ВХІДНІ ДАНІ
+   міжосьова відстань a_w = ${g(B.aw)} мм
+   момент на тихохідному валу T₂ = ${f(B.T2, 1)} Н·м
+   тип корпусу: ${B.ht}
+   болти класу ${B.cl}: σ_в = ${g(B.sig_v)} МПа, σ_т = ${g(B.sig_t)} МПа
+   конструктивно: L_б = ${g(B.Lb)} мм, число фундаментних болтів z_б = ${g(B.zb)}
+
+2. ТОВЩИНИ Й РОЗМІРИ КОРПУСУ
+   товщина стінки корпусу    δ  = ${g(B.dl)} мм
+   товщина стінки кришки     δ₁ = 0,9·δ  = ${g(B.dl1)} мм
+   фланець корпусу           b  = 1,5·δ  = ${g(B.b)} мм
+   фланець кришки            b₁ = 1,35·δ = ${g(B.b1)} мм
+   лапа                      p  = 2,35·δ = ${g(B.p)} мм
+   орієнтовна висота корпусу H  = ${g(B.H)} мм
+
+3. ДОБІР РІЗЬБИ ФУНДАМЕНТНИХ БОЛТІВ
+   розрахунковий діаметр d₁ = 0,036·a_w + 12 = ${f(B.d1_req, 3)} мм
+${B.rows.map(r => `   ${r.name.padEnd(4)}: d = ${String(g(r.d)).padStart(2)} мм   крок ${String(g(r.P)).padStart(4)}   d₁ = ${String(f(r.d1, 3)).padStart(6)}   A_s = ${String(g(r.As)).padStart(5)} мм²   ${r.ok ? "проходить" : "менша за d₁"}`).join("\n")}
+   прийнято ${B.name}; болти біля підшипників ${B.d2}, болти кришки ${B.d3}, штифти ⌀${g(B.d_pin)} мм
+
+4. ФУНДАМЕНТНІ БОЛТИ
+   відривна сила на болт  F_в = 2000·T₂/(L_б·z_б) = ${tv(f(B.Fv, 2))} Н
+   потрібно для нерозкриття стику K_зат·(1−χ)·F_в = ${tv(f(B.Fmin, 2))} Н  (K_зат = 1,5, χ = 0,25)
+   сила затягування       F_зат = 0,6·σ_т·A_s = ${tz(f(B.Fzat, 0))} Н — ${okw(B.checks[0][0])}
+   момент затягування     M_зат = 0,2·d·F_зат = ${tz(f(B.M_zat, 2))} Н·м
+   напруження в болті     σ_р = 1,3·(F_зат + χ·F_в)/A_s = ${tz(f(B.sig_r, 2))} МПа
+                          при 0,8·σ_т = ${g(B.sig_lim)} МПа — ${okw(B.checks[1][0])}
+   запас за нерозкриттям стику F_зат/F_min = ${tz(f(B.k_st, 1))}
+
+5. ПАРАМЕТРИ ДЛЯ FUSION
+${$("bFp").textContent.split("\n").map(s => "   " + s).join("\n")}
+
+6. ДОСЛІД: МІЖОСЬОВА ВІДСТАНЬ
+${bAwList().map(aw => {
+      const r = SIM.housing({ aw: aw, T2: B.T2, ht: SIM.HTYPES[+$("bHt").value],
+                              cl: SIM.BOLT_CL[+$("bCl").value] });
+      const z = x => mkt2("b", "Fv", "Fz", x);
+      return `   a_w = ${String(aw).padStart(3)} мм:  δ = ${String(g(r.dl)).padStart(2)} мм   болти ${r.name.padEnd(4)}   F_в = ${z(f(r.Fv, 0))} Н`;
+    }).join("\n")}
+`;
+  }
+
+  ["bAw", "bT2"].forEach(id =>
+    $(id).addEventListener("input", () => { solReset("b"); bTried = null; calcB(); }));
+  ["bHt", "bCl"].forEach(id =>
+    $(id).addEventListener("change", () => { solReset("b"); bTried = null; calcB(); }));
+  $("bChips").addEventListener("click", e => {
+    const b = e.target.closest("button");
+    if (b) { $("bAw").value = b.dataset.k; solReset("b"); bTried = null; calcB(); }
+  });
+  solBind("b", specB, calcB);
+  copy($("bCopy"), $("bPr"));
+  $("bSave").addEventListener("click", () => saveTxt("ЛР8_протокол_Б.txt", $("bPr").textContent));
+
+  /* ====================================================================== варіант за номером */
+  $("vGo").addEventListener("click", () => {
+    const n = Math.round(parseFloat($("vNo").value));
+    if (!(n >= 1 && n <= 40)) { $("vBadge").textContent = "Введіть номер від 1 до 40."; return; }
+    stuNo = n;
+    const i = SIM.inputs(n), odd = n % 2 === 1;
+    $("vBadge").innerHTML = `№ ${n} — <b>варіант ${odd ? "А (запобіжна муфта)" : "Б (корпусна деталь)"}</b>: ` +
+      (odd ? `T = ${g(i.T)} Н·м, n = ${g(i.nr)} об/хв, K<sub>п</sub> = ${g(i.Kp)}, K<sub>з</sub> = ${g(i.Kz)}, вал d = ${g(i.d)} мм, штифт — ${i.mat[0]}.`
+           : `a<sub>w</sub> = ${g(i.aw)} мм, T₂ = ${g(i.T2)} Н·м, корпус ${i.ht[0]}, болти класу ${i.cl[0]}.`);
+    $("vBadge").classList.add("set");
+    $("aT").value = i.T; $("aN").value = i.nr; $("aKp").value = i.Kp;
+    $("aKz").value = i.Kz; $("aD").value = i.d; $("aMat").value = i.mi;
+    $("bAw").value = i.aw; $("bT2").value = i.T2; $("bHt").value = i.hi; $("bCl").value = i.ci;
+    solReset("a"); solReset("b"); aTried = null; bTried = null;
+    calcA(); calcB(); show(odd ? "a" : "b");
+  });
+  $("vNo").addEventListener("keydown", e => { if (e.key === "Enter") $("vGo").click(); });
+
+  calcA(); calcB();
+
+})();
+</script>
+</body>
+</html>
