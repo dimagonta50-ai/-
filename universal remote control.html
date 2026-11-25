@@ -93,12 +93,17 @@
   [hidden]:not([hidden=until-found i]) { display: none !important; }
 
   .wrap {
+    /* Боковий відступ живе в одній змінній: шапка тягнеться на всю ширину
+       від'ємними margin, і якщо числа розійдуться — з'явиться горизонтальна
+       прокрутка на 2 пікселі. Саме це й було в режимі геймпада. */
+    --gut-l: max(14px, env(safe-area-inset-left, 0px));
+    --gut-r: max(14px, env(safe-area-inset-right, 0px));
     max-width: 660px;
     margin: 0 auto;
     padding-top: env(safe-area-inset-top, 0px);
     padding-bottom: max(28px, env(safe-area-inset-bottom, 0px));
-    padding-left: max(14px, env(safe-area-inset-left, 0px));
-    padding-right: max(14px, env(safe-area-inset-right, 0px));
+    padding-left: var(--gut-l);
+    padding-right: var(--gut-r);
     display: flex;
     flex-direction: column;
     gap: 12px;
@@ -113,20 +118,28 @@
     backdrop-filter: blur(10px);
     -webkit-backdrop-filter: blur(10px);
     border-bottom: 1px solid var(--line-soft);
-    margin-left: calc(-1 * max(14px, env(safe-area-inset-left, 0px)));
-    margin-right: calc(-1 * max(14px, env(safe-area-inset-right, 0px)));
-    padding-left: max(14px, env(safe-area-inset-left, 0px));
-    padding-right: max(14px, env(safe-area-inset-right, 0px));
+    margin-left: calc(-1 * var(--gut-l));
+    margin-right: calc(-1 * var(--gut-r));
+    padding-left: var(--gut-l);
+    padding-right: var(--gut-r);
     padding-block: 9px;
     display: flex;
+    flex-wrap: wrap;
     align-items: center;
     gap: 8px;
+    row-gap: 7px;
   }
   h1 {
     font-size: 16px; font-weight: 700; letter-spacing: -0.015em;
-    margin: 0; flex: 1; min-width: 0;
+    margin: 0; flex: 1 1 130px; min-width: 0;
     white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
   }
+  /* Плашки телеметрії не мають з'їдати назву: на вузькому екрані
+     вони переносяться на власний рядок. */
+  .chips { order: 9; }
+  @media (max-width: 600px) { .chips { flex-basis: 100%; } }
+  .telem-badge { display: none; }
+  @media (min-width: 680px) { .telem-badge { display: inline-block; } }
   .telem-badge {
     font-family: var(--font-mono); font-size: 11px; font-weight: 600;
     padding: 3px 8px; border-radius: 999px;
@@ -368,8 +381,8 @@
     height: 100dvh;
     padding-top: max(4px, env(safe-area-inset-top, 0px));
     padding-bottom: max(6px, env(safe-area-inset-bottom, 0px));
-    padding-left: max(12px, env(safe-area-inset-left, 0px));
-    padding-right: max(12px, env(safe-area-inset-right, 0px));
+    --gut-l: max(12px, env(safe-area-inset-left, 0px));
+    --gut-r: max(12px, env(safe-area-inset-right, 0px));
     gap: 6px;
   }
   body.gamepad header {
@@ -404,9 +417,12 @@
   body.gamepad .console.dual-stick {
     grid-template-columns: minmax(110px, 1fr) minmax(190px, 1.45fr) minmax(110px, 1fr);
   }
-  body.gamepad .console.dual-stick > .stick-cell:nth-of-type(1) { grid-column: 1; grid-row: 1; }
-  body.gamepad .console.dual-stick > .con-right { grid-column: 2; grid-row: 1; }
-  body.gamepad .console.dual-stick > .stick-cell:nth-of-type(2) { grid-column: 3; grid-row: 1; }
+  /* Раніше тут стояв :nth-of-type, який рахує всі div підряд. У панелях
+     FNK0053 і PiCar перед джойстиками йде блок відеопотоку, тому рахунок
+     збивався і стіки мінялися місцями. Тепер комірки позначені класами. */
+  body.gamepad .console.dual-stick > .cell-drive { grid-column: 1; grid-row: 1; }
+  body.gamepad .console.dual-stick > .con-right  { grid-column: 2; grid-row: 1; }
+  body.gamepad .console.dual-stick > .cell-arm   { grid-column: 3; grid-row: 1; }
 
   /* Консолі з 1 джойстиком у режимі геймпада мають 2 колонки */
   body.gamepad .console.single-stick {
@@ -414,15 +430,15 @@
   }
 
   body.gamepad .stick {
-    width: min(100%, 38dvh, 26vw);
+    width: min(100%, 46dvh, 25vw);
   }
   body.gamepad .pads.cols6 {
     grid-template-columns: repeat(3, 1fr);
     gap: 6px;
   }
   body.gamepad .pad {
-    max-width: min(50px, 13dvh);
-    font-size: 15px;
+    max-width: min(58px, 15dvh);
+    font-size: 16px;
   }
   body.gamepad .pad small { font-size: 7.5px; }
   body.gamepad .pills button { padding: 5px 4px; font-size: 10.5px; }
@@ -430,6 +446,56 @@
   body.gamepad .details,
   body.gamepad #logCard,
   body.gamepad .hide-in-pad { display: none !important; }
+
+  /* ---------- Плашки телеметрії в шапці ---------- */
+  .chips { display: flex; gap: 5px; align-items: center; flex: none; }
+  .chip {
+    font-family: var(--font-mono); font-size: 11px; font-weight: 600;
+    padding: 3px 7px; border-radius: 7px; white-space: nowrap;
+    background: var(--surface-2); border: 1px solid var(--line); color: var(--fg-dim);
+    display: inline-flex; gap: 4px; align-items: center;
+  }
+  .chip b { color: var(--fg); font-weight: 700; font-variant-numeric: tabular-nums; }
+  .chip[data-level="low"]  { color: var(--danger); border-color: color-mix(in srgb, var(--danger) 50%, transparent); }
+  .chip[data-level="good"] { color: var(--ok);     border-color: color-mix(in srgb, var(--ok) 45%, transparent); }
+  body.gamepad .telem-badge { display: none; }
+
+  /* ---------- Сповіщення ---------- */
+  #toasts {
+    position: fixed; left: 50%; transform: translateX(-50%);
+    bottom: max(16px, env(safe-area-inset-bottom, 0px));
+    z-index: 50; display: flex; flex-direction: column; gap: 7px;
+    width: min(430px, calc(100vw - 28px)); pointer-events: none;
+  }
+  .toast {
+    background: var(--con-bg); color: var(--con-fg);
+    border: 1px solid var(--con-rim); border-left: 3px solid var(--con-live);
+    border-radius: 11px; padding: 9px 13px; font-size: 13px; font-weight: 500;
+    box-shadow: 0 8px 22px rgba(8,12,24,.42);
+    animation: toastIn .18s ease-out; transition: opacity .25s ease;
+  }
+  .toast.err  { border-left-color: var(--con-stop); }
+  .toast.warn { border-left-color: var(--con-warn); }
+  /* У режимі геймпада низ екрана зайнятий кнопками — сповіщення йдуть угору */
+  body.gamepad #toasts {
+    top: max(6px, env(safe-area-inset-top, 0px)); bottom: auto;
+    width: min(360px, 62vw);
+  }
+  body.gamepad .toast { padding: 7px 11px; font-size: 12px; }
+  @keyframes toastIn { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: none; } }
+
+  /* ---------- Вкладка не та, до якої підключено робота ---------- */
+  .mismatch {
+    border-left: 3px solid var(--danger);
+    background: color-mix(in srgb, var(--danger) 11%, var(--surface));
+    padding: 11px 13px; border-radius: 0 11px 11px 0; font-size: 13px;
+    display: flex; flex-wrap: wrap; gap: 9px; align-items: center;
+  }
+  .mismatch > span { flex: 1 1 180px; min-width: 0; }
+  .mismatch button { padding: 6px 11px; font-size: 12px; }
+
+  /* Коли зв'язок є — консоль світиться живим контуром */
+  body.linked .console { border-color: color-mix(in srgb, var(--con-live) 38%, var(--con-rim)); }
 
   @media (max-width: 390px) {
     .seg button { font-size: 11px; }
@@ -446,6 +512,11 @@
 <div class="wrap">
   <header>
     <h1>Спільний пульт роботів</h1>
+    <span class="chips" id="chipsRow" hidden>
+      <span class="chip" id="chipBat" hidden title="Заряд акумулятора">⚡<b>--</b></span>
+      <span class="chip" id="chipDist" hidden title="Відстань до перешкоди">📏<b>--</b></span>
+      <span class="chip" id="chipPad" hidden title="Підключено зовнішній геймпад">🎮</span>
+    </span>
     <span class="telem-badge" id="telemBadge" hidden title="Остання телеметрія">📡 --</span>
     <span class="status" id="status" data-state="off"><span class="dot"></span><span id="statusText">не підключено</span></span>
     <button class="icon-btn" id="btnTheme" title="Змінити тему" aria-label="Змінити тему">◐</button>
@@ -472,14 +543,20 @@
     <div id="noBleUa" style="margin-top:12px;font-size:11px;line-height:1.45;opacity:.55;word-break:break-all"></div>
   </div>
 
+  <div class="mismatch hide-in-pad" id="tabMismatch" hidden>
+    <span id="tabMismatchText"></span>
+    <button id="btnGoBoundTab">Відкрити вкладку робота</button>
+    <button id="btnUnlock">Все одно надсилати</button>
+  </div>
+
   <!-- ================= 1. МАНІПУЛЯТОР (KS0523) ================= -->
   <section class="panel" id="panel-arm" role="tabpanel" aria-labelledby="tab-arm">
     <div class="console dual-stick">
-      <div class="stick-cell">
+      <div class="stick-cell cell-drive">
         <div class="stick" data-stick="drive"><div class="knob"><span>✛</span></div></div>
         <span class="stick-cap">Шасі <span class="stick-vec">S</span></span>
       </div>
-      <div class="stick-cell">
+      <div class="stick-cell cell-arm">
         <div class="stick" data-stick="arm"><div class="knob"><span>⌖</span></div></div>
         <span class="stick-cap">Стріла й основа <span class="stick-vec">s</span></span>
       </div>
@@ -514,7 +591,7 @@
   <!-- ================= 2. ТАНК (KS0555) ================= -->
   <section class="panel" id="panel-tank" role="tabpanel" aria-labelledby="tab-tank" hidden>
     <div class="console single-stick">
-      <div class="stick-cell">
+      <div class="stick-cell cell-drive">
         <div class="stick" data-stick="drive"><div class="knob"><span>✛</span></div></div>
         <span class="stick-cap">Рух танка <span class="stick-vec">S</span></span>
       </div>
@@ -569,11 +646,11 @@
         <div class="cam-msg" id="espCamMsg" hidden>Не вдалося завантажити потік. Перевірте підключення до Wi-Fi <code>Sunshine</code>.</div>
       </div>
 
-      <div class="stick-cell">
+      <div class="stick-cell cell-drive">
         <div class="stick" data-stick="drive"><div class="knob"><span>✛</span></div></div>
         <span class="stick-cap">Шасі 4WD <span class="stick-vec">S</span></span>
       </div>
-      <div class="stick-cell">
+      <div class="stick-cell cell-arm">
         <div class="stick" data-stick="arm"><div class="knob"><span>◎</span></div></div>
         <span class="stick-cap">Голова з камерою <span class="stick-vec">s</span></span>
       </div>
@@ -638,11 +715,11 @@
       <div class="cam-preview" id="picarCamBox" hidden>
         <img id="picarCamImg" alt="Потік камери PiCar">
       </div>
-      <div class="stick-cell">
+      <div class="stick-cell cell-drive">
         <div class="stick" data-stick="drive"><div class="knob"><span>✛</span></div></div>
         <span class="stick-cap">Машина <span class="stick-vec">S</span></span>
       </div>
-      <div class="stick-cell">
+      <div class="stick-cell cell-arm">
         <div class="stick" data-stick="arm"><div class="knob"><span>⌖</span></div></div>
         <span class="stick-cap">Голова й стріла <span class="stick-vec">s</span></span>
       </div>
@@ -682,7 +759,7 @@
   <!-- ================= 5. Makeblock mBot Ranger (Me Auriga) ================= -->
   <section class="panel" id="panel-ranger" role="tabpanel" aria-labelledby="tab-ranger" hidden>
     <div class="console single-stick">
-      <div class="stick-cell">
+      <div class="stick-cell cell-drive">
         <div class="stick" data-stick="drive"><div class="knob"><span>✛</span></div></div>
         <span class="stick-cap">Шасі Ranger <span class="stick-vec">S</span></span>
       </div>
@@ -753,6 +830,7 @@
   <section class="card" id="logCard">
     <div class="row" style="justify-content:space-between">
       <h2 style="flex:1">Журнал обміну та ручна команда</h2>
+      <button id="btnCopyLog" style="padding:4px 9px;font-size:11.5px">Копіювати</button>
       <button id="btnClearLog" style="padding:4px 9px;font-size:11.5px">Очистити</button>
     </div>
     <div id="log" aria-live="polite"></div>
@@ -760,9 +838,11 @@
       <input type="text" id="customCmd" class="grow" maxlength="24" placeholder="Введіть команду (напр. F, S, D, THELLO#)">
       <button id="btnSendCustom">Надіслати</button>
     </div>
-    <p class="note"><code>→</code> надіслано, <code>←</code> відповідь робота (дистанція, заряд батареї, нахил гіроскопа).</p>
+    <p class="note"><code>→</code> надіслано, <code>←</code> відповідь робота (дистанція, заряд батареї, нахил гіроскопа). Повтори команди руху в журналі не показуються, щоб не засмічувати його.</p>
   </section>
 </div>
+
+<div id="toasts" aria-live="polite"></div>
 
 <script>
 (function () {
@@ -789,6 +869,32 @@
 
   function pad2(n) { return n < 10 ? '0' + n : '' + n; }
 
+  // ---------- Пам'ять налаштувань ----------
+  // Телефон студента може перезавантажити сторінку посеред заняття,
+  // тому тема, режим геймпада, адреси камер і повзунки запам'ятовуються.
+  var LS = 'robolab-';
+  function store(k, v) { try { localStorage.setItem(LS + k, v); } catch (e) {} }
+  function load(k, dflt) {
+    try { var v = localStorage.getItem(LS + k); return v === null ? dflt : v; }
+    catch (e) { return dflt; }
+  }
+
+  // ---------- Сповіщення ----------
+  // Журнал студент не читає, а повідомлення про зникнення зв'язку
+  // чи сідаючий акумулятор має побачити одразу.
+  var toastsEl = document.getElementById('toasts');
+  function toast(msg, cls, ms) {
+    var d = document.createElement('div');
+    d.className = 'toast' + (cls ? ' ' + cls : '');
+    d.textContent = msg;
+    toastsEl.appendChild(d);
+    while (toastsEl.childElementCount > 4) toastsEl.removeChild(toastsEl.firstChild);
+    setTimeout(function () {
+      d.style.opacity = '0';
+      setTimeout(function () { if (d.parentNode) d.parentNode.removeChild(d); }, 280);
+    }, ms || 2600);
+  }
+
   function log(msg, cls) {
     var d = document.createElement('div');
     if (cls) d.className = cls;
@@ -812,19 +918,32 @@
   }
 
   // ---------- низький рівень: передача байтів ----------
-  function writeRaw(data, label) {
+  // pending обмежує чергу. Якщо зв'язок просідає, запити накопичуються
+  // і робот починає виконувати команди із запізненням на секунди —
+  // краще відкинути зайве, ніж керувати минулим.
+  var pending = 0;
+  var PENDING_MAX = 10;
+
+  function writeRaw(data, label, quiet) {
     if (!chara) {
-      log("немає зв'язку, " + label + " не пішло", "err");
+      if (!quiet) log("немає зв'язку, " + label + " не пішло", "err");
       return;
     }
+    if (pending > PENDING_MAX) {
+      if (!quiet) log("черга передачі переповнена, «" + label + "» відкинуто", "err");
+      return;
+    }
+    pending++;
     queue = queue.then(function () {
       return chara.writeValueWithoutResponse
         ? chara.writeValueWithoutResponse(data)
         : chara.writeValue(data);
     }).catch(function (e) {
-      log("помилка передачі: " + e.message, "err");
+      log("помилка передачі: " + (e && e.message ? e.message : e), "err");
+    }).then(function () {
+      pending--;
     });
-    log("→ " + label);
+    if (!quiet) log("→ " + label);
   }
 
   // ================= ДІАЛЕКТ MAKEBLOCK =================
@@ -852,16 +971,16 @@
     if (v < 0) v += 65536;
     return [v & 0xFF, (v >> 8) & 0xFF];
   }
-  function mbSend(frame, label) {
-    writeRaw(new Uint8Array(frame), label + "  [" + hex(frame) + "]");
+  function mbSend(frame, label, quiet) {
+    writeRaw(new Uint8Array(frame), label + "  [" + hex(frame) + "]", quiet);
   }
 
-  function mbMotor(slot, speed) {          // енкодерні мотори: пристрій 61, порт 0
-    mbSend(mbFrame(2, 61, [0, slot].concat(mbInt16(speed))), "мотор " + slot + " = " + speed);
+  function mbMotor(slot, speed, quiet) {   // енкодерні мотори: пристрій 61, порт 0
+    mbSend(mbFrame(2, 61, [0, slot].concat(mbInt16(speed))), "мотор " + slot + " = " + speed, quiet);
   }
-  function mbDrive(left, right) {
-    mbMotor(1, left);
-    mbMotor(2, MB.mirror ? -right : right);
+  function mbDrive(left, right, quiet) {
+    mbMotor(1, left, quiet);
+    mbMotor(2, MB.mirror ? -right : right, quiet);
   }
   function mbRGB(r, g, b) {                // кільце: пристрій 8, порт 0, слот 2, індекс 0 = всі
     mbSend(mbFrame(2, 8, [0, 2, 0, r, g, b]), "кільце rgb(" + r + "," + g + "," + b + ")");
@@ -871,17 +990,18 @@
   }
   function mbGet(device, port, what) {     // запит значення датчика
     MB.idx = (MB.idx % 200) + 1;
+    MB.lastAsk = what;                     // щоб знати, куди покласти відповідь
     mbSend(mbFrame(1, device, [port]), "запит: " + what);
   }
 
-  function sendRanger(str) {
+  function sendRanger(str, quiet) {
     var s = MB.speed;
     switch (str) {
-      case 'F': mbDrive( s,  s); break;
-      case 'B': mbDrive(-s, -s); break;
-      case 'L': mbDrive(-s,  s); break;
-      case 'R': mbDrive( s, -s); break;
-      case 'S': mbDrive( 0,  0); break;
+      case 'F': mbDrive( s,  s, quiet); break;
+      case 'B': mbDrive(-s, -s, quiet); break;
+      case 'L': mbDrive(-s,  s, quiet); break;
+      case 'R': mbDrive( s, -s, quiet); break;
+      case 'S': mbDrive( 0,  0, quiet); break;
 
       case 'a': MB.speed = Math.min(255, MB.speed + 25); log("швидкість " + MB.speed, "sys"); break;
       case 'd': MB.speed = Math.max(50,  MB.speed - 25); log("швидкість " + MB.speed, "sys"); break;
@@ -907,15 +1027,104 @@
     }
   }
 
-  function isRanger() {
-    var t = document.getElementById('tab-ranger');
-    return !!t && t.getAttribute('aria-selected') === 'true';
+  // ================= ПРИВ'ЯЗКА ЗВ'ЯЗКУ ДО ВКЛАДКИ =================
+  // Роботи говорять двома різними мовами: чотири — літерами, Ranger —
+  // бінарними кадрами. Якщо підключитися до танка й перемкнути вкладку на
+  // Ranger, панель почне сипати в танк кадри Makeblock. Тому вкладка, на
+  // якій зроблено підключення, запам'ятовується і діалект береться з неї.
+
+  var ROBOTS = {
+    'tab-arm':    'Маніпулятор KS0523',
+    'tab-tank':   'Танк KS0555',
+    'tab-esp':    'Машинка FNK0053',
+    'tab-picar':  'PiCar ADR019',
+    'tab-ranger': 'mBot Ranger'
+  };
+
+  var boundTab = null;      // вкладка, на якій встановлено зв'язок
+  var unlocked = false;     // студент наполіг надсилати попри невідповідність
+  var mmWarned = false;
+
+  function activeTabId() {
+    var t = document.querySelector('[role="tab"][aria-selected="true"]');
+    return t ? t.id : 'tab-arm';
+  }
+  function dialectTab() {
+    return (chara && boundTab) ? boundTab : activeTabId();
+  }
+  function isRanger() { return dialectTab() === 'tab-ranger'; }
+
+  var mmBox  = document.getElementById('tabMismatch');
+  var mmText = document.getElementById('tabMismatchText');
+
+  function tabMismatched() {
+    return !!(chara && boundTab && !unlocked && activeTabId() !== boundTab);
+  }
+  function refreshMismatch() {
+    if (!tabMismatched()) { mmBox.hidden = true; return; }
+    mmText.innerHTML = 'Зв\'язок встановлено з <b>' + ROBOTS[boundTab] +
+      '</b>, а відкрита вкладка <b>' + ROBOTS[activeTabId()] +
+      '</b>. Її команди цьому роботові нічого не дадуть.';
+    mmBox.hidden = false;
   }
 
-  // ---------- єдина точка відправки ----------
-  function send(str) {
-    if (isRanger()) { sendRanger(str); return; }
-    writeRaw(new TextEncoder().encode(str), str);
+  document.getElementById('btnGoBoundTab').addEventListener('click', function () {
+    if (boundTab) selectTab(boundTab);
+  });
+  document.getElementById('btnUnlock').addEventListener('click', function () {
+    unlocked = true;
+    refreshMismatch();
+    toast('Захист знято, команди йдуть як є', 'warn');
+    log('захист від невідповідності вкладки знято вручну', 'sys');
+  });
+
+  // ================= ЄДИНА ТОЧКА ВІДПРАВКИ =================
+  function send(str, quiet) {
+    if (tabMismatched()) {
+      if (!mmWarned) {
+        mmWarned = true;
+        toast('Відкрита вкладка — не той робот, що підключений', 'err', 3600);
+        log('команду не надіслано: вкладка не відповідає підключеному роботові', 'err');
+      }
+      return;
+    }
+    if (isRanger()) { sendRanger(str, quiet); return; }
+    writeRaw(new TextEncoder().encode(str), str, quiet);
+  }
+
+  // ================= ПОВТОР КОМАНДИ РУХУ =================
+  // Прошивка FNK0053 має запобіжник: тиша довше 1.5 с — зупинка. А джойстик
+  // шле команду лише в момент зміни напрямку, тому при рівному утриманні
+  // машинка проїжджала секунду з половиною і ставала. Заодно це страхує від
+  // втраченого пакета: якщо перше «F» не дійшло, дійде наступне.
+  var holdCmd = null, holdTimer = null;
+  var KEEPALIVE_MS = 450;
+
+  function isDriveCmd(c) { return c === 'F' || c === 'B' || c === 'L' || c === 'R'; }
+
+  function holdStart(cmd) {
+    holdCmd = cmd;
+    if (holdTimer) clearInterval(holdTimer);
+    holdTimer = setInterval(function () {
+      if (!holdCmd || !chara) { holdStop(); return; }
+      send(holdCmd, true);               // true — не писати в журнал
+    }, KEEPALIVE_MS);
+  }
+  function holdStop() {
+    holdCmd = null;
+    if (holdTimer) { clearInterval(holdTimer); holdTimer = null; }
+  }
+
+  // ================= АВАРІЙНА ЗУПИНКА =================
+  function emergencyStop(reason) {
+    holdStop();
+    resetAllSticks();
+    // в обхід перевірки вкладки: зупинка має пройти завжди
+    if (chara) {
+      if (isRanger()) mbDrive(0, 0, true);
+      else writeRaw(new TextEncoder().encode('S'), 'S', true);
+    }
+    log('аварійна зупинка: ' + reason, 'err');
   }
 
   // Ручне введення команди
@@ -1015,6 +1224,39 @@
   document.getElementById('btnRecheck').addEventListener('click', function () { bleDiagnose(); });
   bleDiagnose();
 
+  // ================= РОЗБІР ТЕЛЕМЕТРІЇ =================
+  // Роботи відповідають рядками на кшталт "bat=7.42V" або "dist=23".
+  // Витягуємо з них числа у плашки в шапці, щоб студент бачив заряд
+  // і відстань, не читаючи журнал.
+  var chipsRow = document.getElementById('chipsRow');
+  var chipBat  = document.getElementById('chipBat');
+  var chipDist = document.getElementById('chipDist');
+  var batWarned = false;
+
+  function showChip(el) { el.hidden = false; chipsRow.hidden = false; }
+
+  function showBattery(v) {
+    showChip(chipBat);
+    chipBat.querySelector('b').textContent = v.toFixed(2) + ' В';
+    chipBat.dataset.level = v < 6.8 ? 'low' : (v > 7.6 ? 'good' : '');
+    if (v < 6.8 && !batWarned) {
+      batWarned = true;
+      toast('Акумулятор майже сів: ' + v.toFixed(2) + ' В', 'warn', 5000);
+    }
+    if (v >= 7.0) batWarned = false;
+  }
+  function showDistance(cm) {
+    showChip(chipDist);
+    chipDist.querySelector('b').textContent = Math.round(cm) + ' см';
+  }
+
+  function telemetry(line) {
+    var m;
+    if ((m = /bat\w*\s*[=:]?\s*([\d.]+)\s*v/i.exec(line))) { showBattery(parseFloat(m[1])); return true; }
+    if ((m = /(?:dist\w*|відстань)\s*[=:]?\s*([\d.]+)/i.exec(line))) { showDistance(parseFloat(m[1])); return true; }
+    return false;
+  }
+
   // Відповіді Makeblock приходять бінарними кадрами, а не текстом:
   //   ff 55 <лічильник> <тип> <дані…> 0d 0a
   // тип: 1 — байт, 2 — число з комою, 3 — ціле, 4 — рядок.
@@ -1031,7 +1273,9 @@
     }
     if (val === null) { log("← кадр " + hex(frame), "rx"); return; }
     var txt = String(Math.round(val * 100) / 100);
-    log("← " + txt, "rx");
+    log("← " + (MB.lastAsk ? MB.lastAsk + ": " : "") + txt, "rx");
+    // Ranger не підписує відповіді, тому йдемо за останнім запитом
+    if (MB.lastAsk === 'відстань' && val > 0 && val < 500) showDistance(val);
     telemBadge.hidden = false;
     telemBadge.textContent = "📡 " + txt;
   }
@@ -1069,6 +1313,7 @@
       var clean = line.trim();
       if (clean) {
         log("← " + clean, "rx");
+        telemetry(clean);
         telemBadge.hidden = false;
         telemBadge.textContent = "📡 " + clean.slice(0, 22);
       }
@@ -1098,8 +1343,65 @@
     return null;
   }
 
+  // Спільний хвіст для першого підключення і для автовідновлення
+  async function finishLink(ch) {
+    chara = ch.write;
+    if (ch.notify) {
+      try {
+        await ch.notify.startNotifications();
+        ch.notify.addEventListener('characteristicvaluechanged', onNotify);
+      } catch (e) {
+        log("відповіді робота недоступні, працюємо в один бік", "sys");
+      }
+    } else {
+      log("робот не шле відповідей, працюємо в один бік", "sys");
+    }
+
+    boundTab = boundTab || activeTabId();   // при відновленні лишається стара
+    unlocked = false;
+    mmWarned = false;
+    refreshMismatch();
+
+    setStatus("on", device.name || "підключено");
+    document.body.classList.add('linked');
+    btnDisconnect.disabled = false;
+    btnConnect.disabled = true;
+    log("зв'язок встановлено, робот: " + ROBOTS[boundTab], "sys");
+    toast('Підключено: ' + ROBOTS[boundTab]);
+    buzz(30);
+    keepAwake();
+  }
+
+  // Якщо зв'язок обірвався сам — пробуємо відновити без вікна вибору:
+  // об'єкт пристрою ще живий, тому дозвіл повторно не потрібен.
+  var reconnecting = false, manualDisconnect = false;
+
+  async function tryReconnect() {
+    if (!device || reconnecting) return;
+    reconnecting = true;
+    for (var i = 1; i <= 3; i++) {
+      setStatus('busy', 'відновлення ' + i + '/3…');
+      log("спроба відновити зв'язок: " + i + " з 3", 'sys');
+      try {
+        var server = await device.gatt.connect();
+        var ch = await pickChannel(server);
+        if (ch) {
+          reconnecting = false;
+          await finishLink(ch);
+          toast("Зв'язок відновлено");
+          return;
+        }
+      } catch (e) { /* пробуємо далі */ }
+      await new Promise(function (r) { setTimeout(r, 1400); });
+    }
+    reconnecting = false;
+    setStatus('off', "зв'язок втрачено");
+    toast("Не вдалося відновити зв'язок. Увімкніть робота й натисніть «Підключити»", 'err', 5000);
+  }
+
   btnConnect.addEventListener('click', async function () {
     setStatus("busy", "пошук…");
+    boundTab = null;                        // нове підключення — нова прив'язка
     try {
       var d = await navigator.bluetooth.requestDevice({
         acceptAllDevices: true,
@@ -1120,25 +1422,7 @@
         return;
       }
 
-      chara = ch.write;
-      if (ch.notify) {
-        try {
-          await ch.notify.startNotifications();
-          ch.notify.addEventListener('characteristicvaluechanged', onNotify);
-        } catch (e) {
-          log("відповіді робота недоступні, працюємо в один бік", "sys");
-        }
-      } else {
-        log("робот не шле відповідей, працюємо в один бік", "sys");
-      }
-
-      setStatus("on", device.name || "підключено");
-      document.body.classList.add('linked');
-      btnDisconnect.disabled = false;
-      btnConnect.disabled = true;
-      log("зв'язок встановлено", "sys");
-      buzz(30);
-      keepAwake();
+      await finishLink(ch);
 
     } catch (e) {
       setStatus("off", "не підключено");
@@ -1168,20 +1452,33 @@
 
   function onDrop() {
     chara = null;
+    holdStop();
     document.body.classList.remove('linked');
     setStatus("off", "зв'язок втрачено");
     btnDisconnect.disabled = true;
     btnConnect.disabled = false;
+    mmBox.hidden = true;
+
+    if (manualDisconnect) {           // від'єднав сам студент — не чіпаємо
+      manualDisconnect = false;
+      return;
+    }
     log("робот від'єднався", "err");
+    toast("Зв'язок із роботом втрачено", 'err');
+    tryReconnect();
   }
 
   btnDisconnect.addEventListener('click', function () {
+    manualDisconnect = true;
+    holdStop();
     if (device && device.gatt.connected) device.gatt.disconnect();
     chara = null;
+    boundTab = null;
     document.body.classList.remove('linked');
     setStatus("off", "не підключено");
     btnDisconnect.disabled = true;
     btnConnect.disabled = false;
+    mmBox.hidden = true;
     log("від'єднано", "sys");
   });
 
@@ -1224,11 +1521,19 @@
         el.classList.toggle('live', !!dir);
         var cmd = dir ? map[dir] : map.release;
         if (vecEl) vecEl.textContent = cmd;
-        if (dir) { buzz(10); send(cmd); }
-        else send(map.release);
+        if (dir) {
+          buzz(10);
+          send(cmd);
+          // поки стік тримають у напрямку руху — повторюємо команду
+          if (isDriveCmd(cmd)) holdStart(cmd); else holdStop();
+        } else {
+          holdStop();
+          send(map.release);
+        }
       }
     }
     function release(silent) {
+      holdStop();
       if (!active && !cur) {
         knob.style.transform = '';
         el.classList.remove('live');
@@ -1320,6 +1625,8 @@
       if (panel) panel.hidden = !on;
     });
     resetAllSticks();
+    mmWarned = false;
+    refreshMismatch();
     try { localStorage.setItem(TAB_KEY, tabId); } catch (e) {}
   }
 
@@ -1352,20 +1659,26 @@
     ledBtn.classList.toggle('on', ledState);
   });
 
-  function bindSlider(slider, valueEl, prefix, suffix) {
+  function bindSlider(slider, valueEl, prefix, suffix, key) {
+    if (key) {
+      var saved = load('sl-' + key, null);
+      if (saved !== null) slider.value = saved;
+    }
+    valueEl.textContent = slider.value + (suffix || '');
     var timer = null;
     slider.addEventListener('input', function () {
       valueEl.textContent = slider.value + (suffix || '');
+      if (key) store('sl-' + key, slider.value);
       clearTimeout(timer);
       timer = setTimeout(function () { send(prefix + slider.value + '#'); }, 120);
     });
   }
-  bindSlider(document.getElementById('spdL'), document.getElementById('valL'), 'u', '');
-  bindSlider(document.getElementById('spdR'), document.getElementById('valR'), 'v', '');
+  bindSlider(document.getElementById('spdL'), document.getElementById('valL'), 'u', '', 'spdL');
+  bindSlider(document.getElementById('spdR'), document.getElementById('valR'), 'v', '', 'spdR');
 
   // ---------- FNK0053 ----------
-  bindSlider(document.getElementById('espPan'), document.getElementById('valEspPan'), 'X', '°');
-  bindSlider(document.getElementById('espTilt'), document.getElementById('valEspTilt'), 'Y', '°');
+  bindSlider(document.getElementById('espPan'), document.getElementById('valEspPan'), 'X', '°', 'espPan');
+  bindSlider(document.getElementById('espTilt'), document.getElementById('valEspTilt'), 'Y', '°', 'espTilt');
 
   var camUrl = document.getElementById('camUrl');
   var camLink = document.getElementById('camLink');
@@ -1375,8 +1688,12 @@
   var btnToggleEspCam = document.getElementById('btnToggleEspCam');
   var espCamOn = false;
 
+  camUrl.value = load('camEsp', camUrl.value);
+  camLink.href = camUrl.value.trim();
+
   camUrl.addEventListener('input', function () {
     camLink.href = camUrl.value.trim();
+    store('camEsp', camUrl.value.trim());
     if (espCamOn) espCamImg.src = camUrl.value.trim();
   });
 
@@ -1408,8 +1725,12 @@
   var btnTogglePicarCam = document.getElementById('btnTogglePicarCam');
   var picarCamOn = false;
 
+  picarCam.value = load('camPicar', picarCam.value);
+  picarCamLink.href = picarCam.value.trim();
+
   picarCam.addEventListener('input', function () {
     picarCamLink.href = picarCam.value.trim();
+    store('camPicar', picarCam.value.trim());
     if (picarCamOn) picarCamImg.src = picarCam.value.trim();
   });
 
@@ -1426,31 +1747,45 @@
   var rUltra = document.getElementById('rangerUltra');
   var rLine = document.getElementById('rangerLine');
   if (rUltra) {
+    rUltra.value = load('mbUltra', rUltra.value);
+    MB.ultraPort = parseInt(rUltra.value, 10);
+    document.getElementById('valUltra').textContent = rUltra.value;
     rUltra.addEventListener('input', function () {
       MB.ultraPort = parseInt(rUltra.value, 10);
       document.getElementById('valUltra').textContent = rUltra.value;
+      store('mbUltra', rUltra.value);
     });
   }
   if (rLine) {
+    rLine.value = load('mbLine', rLine.value);
+    MB.linePort = parseInt(rLine.value, 10);
+    document.getElementById('valLine').textContent = rLine.value;
     rLine.addEventListener('input', function () {
       MB.linePort = parseInt(rLine.value, 10);
       document.getElementById('valLine').textContent = rLine.value;
+      store('mbLine', rLine.value);
     });
   }
 
   // ---------- Тема оформлення ----------
   var btnTheme = document.getElementById('btnTheme');
+  var savedTheme = load('theme', null);
+  if (savedTheme === 'dark' || savedTheme === 'light')
+    document.documentElement.setAttribute('data-theme', savedTheme);
+
   btnTheme.addEventListener('click', function () {
     var root = document.documentElement;
     var cur = root.getAttribute('data-theme');
     var next = cur === 'dark' ? 'light' : 'dark';
     root.setAttribute('data-theme', next);
+    store('theme', next);
   });
 
   // ---------- Режим геймпада ----------
   var btnPad = document.getElementById('btnPad');
   var mq = window.matchMedia('(orientation: landscape) and (max-height: 600px)');
-  var manual = null;
+  var savedPad = load('pad', 'auto');
+  var manual = savedPad === 'auto' ? null : (savedPad === '1');
 
   function applyLayout() {
     var on = manual === null ? mq.matches : manual;
@@ -1460,13 +1795,78 @@
     resetAllSticks();
   }
   if (mq.addEventListener) {
-    mq.addEventListener('change', function () { manual = null; applyLayout(); });
+    mq.addEventListener('change', function () {
+      manual = null; store('pad', 'auto'); applyLayout();
+    });
   }
   btnPad.addEventListener('click', function () {
     manual = !document.body.classList.contains('gamepad');
+    store('pad', manual ? '1' : '0');
     applyLayout();
   });
   applyLayout();
+
+  // ---------- Копіювання журналу ----------
+  // Щоб студент міг переслати журнал викладачеві, а не переписувати з екрана.
+  document.getElementById('btnCopyLog').addEventListener('click', function () {
+    var txt = Array.prototype.map.call(logEl.children, function (d) { return d.textContent; }).join('\n');
+    if (!txt) { toast('Журнал порожній', 'warn'); return; }
+    txt = navigator.userAgent + '\n\n' + txt;
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(txt).then(
+        function () { toast('Журнал скопійовано'); },
+        function () { toast('Не вдалося скопіювати', 'err'); }
+      );
+    } else {
+      toast('Копіювання в цьому браузері недоступне', 'err');
+    }
+  });
+
+  // ---------- Зовнішній геймпад ----------
+  // Якщо до телефона чи комп'ютера підключено джойстик, керувати можна ним:
+  // лівий стік — рух, будь-яка з нижніх кнопок — зупинка.
+  var chipPad = document.getElementById('chipPad');
+  var padDir = null, padRunning = false, padStopHeld = false;
+
+  function padLoop() {
+    var pads = navigator.getGamepads ? navigator.getGamepads() : [];
+    var gp = null, i;
+    for (i = 0; i < pads.length; i++) if (pads[i] && pads[i].connected) { gp = pads[i]; break; }
+    if (gp) showChip(chipPad); else chipPad.hidden = true;
+
+    if (gp && chara) {
+      var x = gp.axes[0] || 0, y = gp.axes[1] || 0;
+      var len = Math.sqrt(x * x + y * y), dir = null;
+      if (len > 0.45) {
+        if (Math.abs(x) > Math.abs(y)) dir = x > 0 ? 'right' : 'left';
+        else dir = y > 0 ? 'down' : 'up';
+      }
+      if (dir !== padDir) {
+        padDir = dir;
+        var cmd = dir ? STICK_MAP.drive[dir] : STICK_MAP.drive.release;
+        send(cmd);
+        if (dir && isDriveCmd(cmd)) holdStart(cmd); else holdStop();
+      }
+      var anyBtn = false;
+      for (i = 0; i < Math.min(gp.buttons.length, 4); i++)
+        if (gp.buttons[i] && gp.buttons[i].pressed) anyBtn = true;
+      if (anyBtn && !padStopHeld) { padStopHeld = true; emergencyStop('кнопка геймпада'); }
+      if (!anyBtn) padStopHeld = false;
+    }
+    requestAnimationFrame(padLoop);
+  }
+
+  window.addEventListener('gamepadconnected', function (e) {
+    toast('Геймпад підключено: ' + String(e.gamepad.id).slice(0, 26));
+    log('геймпад: ' + e.gamepad.id, 'sys');
+    if (!padRunning) { padRunning = true; padLoop(); }
+  });
+  window.addEventListener('gamepaddisconnected', function () {
+    chipPad.hidden = true;
+    padDir = null;
+    holdStop();
+    log("геймпад від'єднано", 'sys');
+  });
 
   // ---------- Wake Lock ----------
   var wakeLock = null;
@@ -1478,7 +1878,16 @@
     }).catch(function () {});
   }
   document.addEventListener('visibilitychange', function () {
-    if (document.visibilityState === 'visible' && !wakeLock && chara) keepAwake();
+    if (document.visibilityState === 'visible') {
+      if (!wakeLock && chara) keepAwake();
+    } else if (chara && holdCmd) {
+      // Студент згорнув вікно або перемкнувся в інший додаток, а робот їде.
+      // Без цього він продовжить рух, поки не вріжеться.
+      emergencyStop('вікно згорнуто');
+    }
+  });
+  window.addEventListener('pagehide', function () {
+    if (chara) emergencyStop('сторінку закрито');
   });
 
   // ---------- Клавіатура ----------
@@ -1493,18 +1902,22 @@
     if (k && !keyHeld[e.code]) {
       keyHeld[e.code] = true;
       send(k);
+      if (isDriveCmd(k)) holdStart(k);
       e.preventDefault();
     }
-    if (e.key === ' ') { send('S'); e.preventDefault(); }
+    if (e.key === ' ') { emergencyStop('пробіл'); e.preventDefault(); }
+    if (e.key === 'Escape') { emergencyStop('Escape'); }
   });
   window.addEventListener('keyup', function (e) {
     if (keyHeld[e.code]) {
       delete keyHeld[e.code];
+      holdStop();
       send('S');
     }
   });
 
   log("панель готова (5 роботів), оберіть вкладку й натисніть «Підключити»", "sys");
+  log("пробіл або Escape — зупинка. Команди руху повторюються кожні " + KEEPALIVE_MS + " мс", "sys");
 }());
 </script>
 </body>
