@@ -466,8 +466,10 @@
   </div>
 
   <div class="warn hide-in-pad" id="noBle" hidden>
-    <strong>Браузер не підтримує Web Bluetooth.</strong>
-    Відкрийте сторінку в Chrome на Android або в Chrome/Edge на комп'ютері. На iPhone використовуйте браузер <strong>Bluefy</strong>.
+    <strong id="noBleTitle">Bluetooth недоступний</strong>
+    <div id="noBleBody" style="margin-top:6px"></div>
+    <button id="btnRecheck" style="margin-top:12px">Перевірити ще раз</button>
+    <div id="noBleUa" style="margin-top:12px;font-size:11px;line-height:1.45;opacity:.55;word-break:break-all"></div>
   </div>
 
   <!-- ================= 1. МАНІПУЛЯТОР (KS0523) ================= -->
@@ -928,12 +930,90 @@
     if (e.key === 'Enter') { e.preventDefault(); sendCustom(); }
   });
 
-  // ---------- Web Bluetooth ----------
-  if (!navigator.bluetooth) {
-    document.getElementById('noBle').hidden = false;
-    btnConnect.disabled = true;
-    log("Web Bluetooth у цьому браузері недоступний", "err");
+  // ---------- Перевірка, чи взагалі можливий Bluetooth ----------
+  // Раніше тут була одна перевірка на всі випадки, і студент бачив
+  // "браузер не підтримує" без жодної підказки, що робити. Причин
+  // насправді чотири різні, і лікуються вони по-різному.
+
+  var noBleBox   = document.getElementById('noBle');
+  var noBleTitle = document.getElementById('noBleTitle');
+  var noBleBody  = document.getElementById('noBleBody');
+  var bleIsAndroid = false;
+
+  async function bleDiagnose() {
+    var ua = navigator.userAgent;
+    document.getElementById('noBleUa').textContent = ua;
+
+    function fail(t, html) {
+      noBleTitle.textContent = t;
+      noBleBody.innerHTML = html;
+      noBleBox.hidden = false;
+      btnConnect.disabled = true;
+      log(t, "err");
+      return false;
+    }
+    function pass() {
+      noBleBox.hidden = true;
+      btnConnect.disabled = false;
+      return true;
+    }
+
+    var isIOS = /iPad|iPhone|iPod/.test(ua) ||
+                (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+    bleIsAndroid = /Android/i.test(ua);
+
+    // Вбудований браузер застосунку: саме так відкривається посилання,
+    // якщо QR-код сканувати камерою Viber, Telegram, Instagram чи Facebook.
+    var inApp = /;\s*wv\)|FBAN|FBAV|FB_IAB|Instagram|Line\/|Viber|Telegram|TikTok|MicroMessenger|VKAndroidWebView|OKApp|GSA\//i.test(ua);
+
+    if (!window.isSecureContext)
+      return fail('Сторінку відкрито не через HTTPS',
+        'Bluetooth у браузері працює лише на захищених сторінках. ' +
+        'Адреса має починатися з <b>https://</b> — перевірте посилання.');
+
+    if (!navigator.bluetooth) {
+      if (inApp)
+        return fail('Сторінка відкрита у вбудованому браузері застосунку',
+          'Так буває, коли QR-код сканують камерою Viber, Telegram, Instagram або Facebook: ' +
+          'посилання відкривається всередині того застосунку, а там Bluetooth заборонений.<br><br>' +
+          'Натисніть <b>⋮</b> або <b>⋯</b> у куті екрана й виберіть <b>Відкрити в Chrome</b>. ' +
+          'Або скопіюйте адресу і вставте її в Chrome вручну.');
+
+      if (isIOS)
+        return fail('На iPhone та iPad цього не вміє жоден звичайний браузер',
+          'Apple не дає сторінкам доступ до Bluetooth, і це стосується і Safari, і Chrome на iOS — ' +
+          'вони всі працюють на одному рушії.<br><br>' +
+          'Робочий шлях: встановіть з App Store браузер <b>Bluefy</b> (є безкоштовна версія) ' +
+          'або <b>WebBLE</b> і відкрийте цю сторінку в ньому.');
+
+      if (/Firefox|FxiOS/i.test(ua))
+        return fail('Firefox не підтримує Web Bluetooth',
+          'Це принципова позиція розробників Firefox, і вона не зміниться. ' +
+          'Відкрийте цю сторінку в <b>Chrome</b>.');
+
+      return fail('Цей браузер не має Web Bluetooth',
+        'Потрібен <b>Chrome</b> на Android або Chrome чи Edge на комп\'ютері. ' +
+        'Не підходять: Opera Mini, UC Browser, фірмові браузери Xiaomi, Huawei та Realme, ' +
+        'а також старі версії Samsung Internet.');
+    }
+
+    // API є. Тепер питання, чи увімкнений сам адаптер.
+    if (navigator.bluetooth.getAvailability) {
+      try {
+        var avail = await navigator.bluetooth.getAvailability();
+        if (!avail)
+          return fail('Bluetooth вимкнено',
+            'Увімкніть Bluetooth у налаштуваннях' +
+            (bleIsAndroid ? ', а разом з ним і <b>Місцезнаходження</b> — без нього Android не дає шукати пристрої' : '') +
+            ', потім натисніть «Перевірити ще раз».');
+      } catch (e) { /* не всі збірки реалізують getAvailability */ }
+    }
+
+    return pass();
   }
+
+  document.getElementById('btnRecheck').addEventListener('click', function () { bleDiagnose(); });
+  bleDiagnose();
 
   // Відповіді Makeblock приходять бінарними кадрами, а не текстом:
   //   ff 55 <лічильник> <тип> <дані…> 0d 0a
@@ -1062,8 +1142,27 @@
 
     } catch (e) {
       setStatus("off", "не підключено");
-      if (e && e.name === 'NotFoundError') log("вибір скасовано", "sys");
-      else log("не вдалось підключитись: " + (e && e.message ? e.message : e), "err");
+      var name = e && e.name, msg = (e && e.message) ? e.message : String(e);
+
+      if (name === 'NotFoundError') {
+        log("вибір пристрою скасовано", "sys");
+        // Найчастіша скарга "не працює" — це порожній список у вікні вибору.
+        // На Android пошук BLE вимагає увімкненого місцезнаходження.
+        if (bleIsAndroid)
+          log("якщо список був порожній: увімкніть Місцезнаходження в налаштуваннях і дозвольте Chrome доступ до пристроїв поблизу", "sys");
+        else
+          log("якщо список був порожній: перевірте, чи ввімкнено живлення робота", "sys");
+
+      } else if (name === 'SecurityError' || name === 'NotAllowedError') {
+        log("браузеру заборонено доступ до Bluetooth", "err");
+        log("Android 12 і новіші: Налаштування → Додатки → Chrome → Дозволи → Пристрої поблизу", "sys");
+
+      } else if (name === 'NetworkError') {
+        log("робот знайдений, але з'єднання обірвалось. Найчастіше це сідаючий акумулятор або робот уже зайнятий іншим телефоном", "err");
+
+      } else {
+        log("не вдалось підключитись: " + msg, "err");
+      }
     }
   });
 
