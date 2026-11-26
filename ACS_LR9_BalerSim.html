@@ -1,0 +1,1593 @@
+<!DOCTYPE html>
+<html lang="uk"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Симулятор тюкового прес-підбирача — ЛР №9</title>
+<style>
+:root{--bg:#ECEFE8;--pn:#FFFFFF;--pn2:#F5F7F2;--ink:#1C231D;--sub:#56635A;--ln:#D3DBD0;--ac:#2F6B3A;--aci:#FFFFFF;--wn:#B4412C;--am:#A66A00;--sky:#DDEAF0;--trk:#3F7D49;--trk2:#2C5B34;--stl:#59646B;--tyre:#22262A;--rim:#C9CFC6;--gls:#A9C9D6;--db:#14180F;--df:#FFB000;--dd:#8A6300;
+ --soil:#A98763;--soil2:#8A6A4C;--hay:#D7B65C;--hay2:#A8853A;--hayl:#F0E2B4;--bale:#C9A23F;--net:#4A5159;--steel:#5A646B;--leaf:#5E8A3F;--wet:#2F7FA8;--wet2:#1B5A7A;--dry:#C07C2A;--hot:#C94A2E;--warn2:#8E44AD;--done:#6F9C58;--idle:#CFD6CA;--windrow:#BFA054;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#12150F;--pn:#1C2118;--pn2:#161A12;--ink:#ECEFE7;--sub:#A5AF9F;--ln:#343D2D;--ac:#77B76B;--aci:#0E130B;--wn:#E3705A;--am:#E2A93B;--sky:#18222A;--trk:#5E9E62;--trk2:#3F7446;--stl:#8C979D;--tyre:#0B0D0E;--rim:#7E877C;--gls:#3C5B68;--db:#0B0D08;--df:#FFC233;--dd:#6E4E00;
+ --soil:#5C4733;--soil2:#44341F;--hay:#E0C06A;--hay2:#B8923F;--hayl:#3A3524;--bale:#D4AC4A;--net:#8C979D;--steel:#8C979D;--leaf:#6E9A4F;--wet:#6FB5D6;--wet2:#8CC6E0;--dry:#D8A24C;--hot:#E3705A;--warn2:#B573D0;--done:#5E8A4A;--idle:#3A4237;--windrow:#9E8544}}
+:root[data-theme="dark"]{--bg:#12150F;--pn:#1C2118;--pn2:#161A12;--ink:#ECEFE7;--sub:#A5AF9F;--ln:#343D2D;--ac:#77B76B;--aci:#0E130B;--wn:#E3705A;--am:#E2A93B;--sky:#18222A;--trk:#5E9E62;--trk2:#3F7446;--stl:#8C979D;--tyre:#0B0D0E;--rim:#7E877C;--gls:#3C5B68;--db:#0B0D08;--df:#FFC233;--dd:#6E4E00;--soil:#5C4733;--soil2:#44341F;--hay:#E0C06A;--hay2:#B8923F;--hayl:#3A3524;--bale:#D4AC4A;--net:#8C979D;--steel:#8C979D;--leaf:#6E9A4F;--wet:#6FB5D6;--wet2:#8CC6E0;--dry:#D8A24C;--hot:#E3705A;--warn2:#B573D0;--done:#5E8A4A;--idle:#3A4237;--windrow:#9E8544}
+html{scroll-padding-top:env(safe-area-inset-top,0px);height:100%}*{box-sizing:border-box}
+body{margin:0;min-height:100%;background:var(--bg);color:var(--ink);font:15px/1.5 -apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;-webkit-text-size-adjust:100%}
+.w{max-width:1240px;margin:0 auto;padding:14px 14px 48px}
+.top{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:10px}
+.top h1{font-size:1.12rem;line-height:1.25;margin:0;font-weight:700;letter-spacing:-.01em}.top h1 small{display:block;font-weight:400;font-size:.8rem;color:var(--sub);letter-spacing:0}
+.tools{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.chip{font-size:.78rem;border:1px solid var(--ln);border-radius:99px;padding:3px 10px;color:var(--sub);background:var(--pn)}
+.bn{border:1px solid var(--am);background:color-mix(in srgb,var(--am) 12%,var(--pn));border-radius:10px;padding:10px 14px;margin-bottom:12px;font-size:.9rem;display:flex;gap:10px 16px;align-items:center;justify-content:space-between;flex-wrap:wrap}
+.lay{display:grid;grid-template-columns:218px minmax(0,1fr) 232px;gap:14px;align-items:start}
+@media(max-width:1020px){.lay{grid-template-columns:206px minmax(0,1fr)}aside{grid-column:1/-1;position:static!important}}
+@media(max-width:760px){.lay{grid-template-columns:minmax(0,1fr)}}
+nav{display:flex;flex-direction:column;gap:4px;position:sticky;top:10px}
+@media(max-width:760px){nav{flex-direction:row;overflow-x:auto;position:static;padding-bottom:4px}}
+nav button{border:1px solid var(--ln);background:var(--pn);color:var(--sub);padding:7px 9px;border-radius:8px;font:inherit;font-size:.8rem;text-align:left;cursor:pointer;white-space:nowrap;display:flex;gap:7px;align-items:center}
+nav button i{flex:none;width:9px;height:9px;border-radius:50%;border:1.5px solid var(--sub);display:block}
+nav button i.ok{background:var(--ac);border-color:var(--ac)}nav button i.pt{background:linear-gradient(90deg,var(--am) 50%,transparent 50%);border-color:var(--am)}
+nav button.on{border-color:var(--ac);color:var(--ink);font-weight:700;box-shadow:inset 3px 0 0 var(--ac)}nav button:disabled{opacity:.4;cursor:not-allowed}
+nav button.lab{margin-top:8px;border-style:dashed}
+main{background:var(--pn);border:1px solid var(--ln);border-radius:12px;padding:18px 20px;min-height:340px;min-width:0}
+@media(max-width:760px){main{padding:14px 12px}}
+main h2{margin:0 0 4px;font-size:1.1rem;line-height:1.3}main h3{font-size:.98rem;margin:20px 0 6px}
+.hint,.note{color:var(--sub);font-size:.86rem;margin:4px 0 12px}.note{margin:6px 0}
+label{display:block;font-size:.84rem;margin:11px 0 3px;color:var(--sub)}
+input[type=text],input[type=number],select{width:100%;padding:8px 10px;border:1px solid var(--ln);border-radius:8px;background:var(--pn2);color:var(--ink);font:inherit;font-size:.95rem}
+input[type=range]{width:100%;accent-color:var(--ac);margin:2px 0}
+input[type=checkbox]{accent-color:var(--ac);width:16px;height:16px}
+:focus-visible{outline:2px solid var(--ac);outline-offset:2px}
+.r2{display:grid;grid-template-columns:1fr 1fr;gap:12px}.r3{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+@media(max-width:560px){.r3{grid-template-columns:1fr 1fr}.r2{grid-template-columns:minmax(0,1fr)}}
+@media(max-width:420px){.r3{grid-template-columns:minmax(0,1fr)}}
+button.p,button.g{border:1px solid var(--ac);border-radius:8px;padding:8px 14px;font:inherit;font-size:.9rem;cursor:pointer;margin:4px 4px 4px 0}
+button.p{background:var(--ac);color:var(--aci);font-weight:600}button.g{background:none;color:var(--ac)}button:disabled{opacity:.4;cursor:not-allowed}
+button.sm{padding:4px 10px;font-size:.8rem;margin:0}button.g.on{background:color-mix(in srgb,var(--ac) 16%,transparent);font-weight:600}
+.nb{display:flex;justify-content:space-between;margin-top:20px}
+aside{background:var(--db);border-radius:12px;padding:13px 15px;font:.8rem/1.6 ui-monospace,SFMono-Regular,Consolas,monospace;color:var(--df);position:sticky;top:10px}
+aside .d{display:flex;justify-content:space-between;gap:8px;border-bottom:1px dashed var(--dd);padding:2px 0}aside .t{color:var(--dd);font-size:.7rem;margin-bottom:6px;letter-spacing:.04em}
+aside .d span:last-child{text-align:right}aside .al{color:#FF7A5C}
+.t2{width:100%;border-collapse:collapse;font-size:.86rem;margin:8px 0}.t2 th,.t2 td{border:1px solid var(--ln);padding:6px 8px;text-align:left;vertical-align:top}.t2 th{width:32%;background:var(--pn2);font-weight:600}
+.t2.c td,.t2.c th{text-align:center;width:auto}.tw{overflow-x:auto}
+.rb{border:1px dashed var(--ac);border-radius:8px;padding:9px 12px;margin-top:14px;font-size:.86rem}
+.bd{display:inline-block;padding:2px 9px;border-radius:99px;font-size:.78rem;font-weight:600;background:color-mix(in srgb,var(--ac) 18%,transparent);color:var(--ac)}.bd.w{background:color-mix(in srgb,var(--wn) 18%,transparent);color:var(--wn)}.bd.a{background:color-mix(in srgb,var(--am) 20%,transparent);color:var(--am)}
+.big{font-size:1.5rem;font-weight:700;color:var(--ac);font-variant-numeric:tabular-nums}
+.sx{overflow-x:auto}.fig .sx>svg,.sx>svg{min-width:540px}
+.fig{background:var(--pn2);border:1px solid var(--ln);border-radius:10px;margin:8px 0;overflow:hidden}.fig svg{display:block;width:100%;height:auto}
+.cap{font-size:.78rem;color:var(--sub);padding:5px 10px 7px;border-top:1px solid var(--ln)}
+.ch{position:relative;margin:8px 0;background:var(--pn2);border:1px solid var(--ln);border-radius:10px;touch-action:pan-y}.ch svg{display:block;width:100%;cursor:crosshair}
+.ch text,.fig text{font-family:inherit}
+.tip{position:absolute;top:6px;pointer-events:none;background:var(--pn);border:1px solid var(--ln);border-radius:6px;padding:4px 8px;font-size:.74rem;line-height:1.35;white-space:nowrap;box-shadow:0 2px 8px rgba(0,0,0,.15);display:none;z-index:2}
+.gs{display:grid;grid-template-columns:repeat(auto-fit,minmax(144px,1fr));gap:8px;margin:0 0 8px}@media(max-width:420px){.gs{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.gt{border:1px solid var(--ln);border-radius:8px;padding:6px 8px;background:var(--pn2);min-width:0}.gt b{display:block;font-size:1.05rem;font-variant-numeric:tabular-nums;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.gt span{display:block;font-size:.7rem;color:var(--sub);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mt{position:relative;height:7px;background:var(--ln);border-radius:4px;margin-top:4px;overflow:hidden}.mt i{position:absolute;top:0;bottom:0;left:0;background:var(--ac);border-radius:4px}.mt u{position:absolute;top:0;bottom:0;width:2px;background:var(--ink)}.mt s{position:absolute;top:0;bottom:0;background:color-mix(in srgb,var(--ac) 35%,transparent)}
+.pvw{display:grid;grid-template-columns:320px minmax(0,1fr);gap:10px;align-items:start}.pvw .fig{margin:0}@media(max-width:760px){.pvw{grid-template-columns:minmax(0,1fr)}.pvw .fig.lp{max-width:360px}}
+.pc{display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin:6px 0}.pc input[type=range]{flex:1;min-width:120px}.pc select{width:auto;padding:4px 8px;font-size:.82rem}
+.bar{display:flex;align-items:center;gap:8px;font-size:.84rem;margin:3px 0}.bar i{display:block;height:9px;background:var(--ac);border-radius:5px}.bar span{width:186px;flex:none}@media(max-width:560px){.bar span{width:120px}}
+details{margin-bottom:10px;font-size:.86rem}summary{cursor:pointer;color:var(--ac)}
+.inf{border-left:3px solid var(--ac);background:var(--pn2);border-radius:0 8px 8px 0;padding:6px 14px;margin:10px 0 14px;font-size:.87rem}.inf summary{font-weight:700;color:var(--ac);margin-bottom:4px}.inf p,.inf ul{margin:6px 0}.inf ul{padding-left:20px}
+.gg{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin:10px 0}@media(max-width:700px){.gg{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.gc{border:1px solid var(--ln);border-radius:10px;padding:8px;background:var(--pn2);text-align:center}.gc svg{width:100%;height:auto;display:block}.gc b{font-size:.84rem;display:block;margin:2px 0}.gc small{color:var(--sub);display:block;font-size:.74rem;margin-bottom:6px}.gc select{font-size:.84rem;padding:5px 6px}
+.lab-g{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:4px 18px}@media(max-width:620px){.lab-g{grid-template-columns:minmax(0,1fr)}}
+.lab-g label{margin:6px 0 0}.kv{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin:10px 0}@media(max-width:620px){.kv{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.kv div{border:1px solid var(--ln);border-radius:8px;padding:6px 8px;background:var(--pn2)}.kv b{display:block;font-size:1.05rem;font-variant-numeric:tabular-nums}.kv span{font-size:.72rem;color:var(--sub)}.kv em{font-style:normal;font-size:.74rem;display:block}.up{color:var(--wn)}.dn{color:var(--ac)}
+.concl{border-radius:8px;padding:9px 12px;background:color-mix(in srgb,var(--ac) 10%,var(--pn));border:1px solid color-mix(in srgb,var(--ac) 40%,var(--ln));font-size:.9rem;margin:8px 0}.concl ul{margin:4px 0;padding-left:18px}
+.ok{color:var(--ac);font-weight:700}.no{color:var(--wn);font-weight:700}
+.sta{display:inline-block;min-width:118px;text-align:center;padding:2px 8px;border-radius:6px;font-weight:700;font-size:.82rem;color:#fff}
+.hs{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(0,1fr);gap:10px;align-items:start}@media(max-width:700px){.hs{grid-template-columns:minmax(0,1fr)}}
+.sen{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:8px 0}@media(max-width:560px){.sen{grid-template-columns:minmax(0,1fr)}}
+.sen button{border:1.5px solid var(--ln);border-radius:10px;background:var(--pn2);color:var(--ink);font:inherit;font-size:.8rem;padding:6px;cursor:pointer;text-align:center}.sen button.on{border-color:var(--ac);box-shadow:inset 0 0 0 1.5px var(--ac)}.sen button svg{display:block;width:100%;height:auto;max-width:210px;margin:0 auto}.sen button b{display:block;font-size:.88rem}.sen button small{color:var(--sub);display:block}
+.tlg{display:flex;flex-wrap:wrap;gap:4px 14px;font-size:.78rem;color:var(--sub);padding:4px 10px 8px}.tlg i{display:inline-block;width:11px;height:11px;border-radius:2px;margin-right:4px;vertical-align:-1px}
+.rows{display:grid;grid-template-columns:repeat(auto-fit,minmax(104px,1fr));gap:6px;margin:8px 0}
+.rw{border:1px solid var(--ln);border-radius:8px;padding:5px 7px;background:var(--pn2);font-size:.78rem;cursor:pointer;text-align:left}
+.rw.al{border-color:var(--wn);background:color-mix(in srgb,var(--wn) 12%,var(--pn2))}.rw.se{outline:2px solid var(--ink);outline-offset:1px}
+.rw b{display:block;font-size:.84rem}.rw span{color:var(--sub);font-size:.72rem;display:block}
+.sg{display:flex;gap:4px;flex-wrap:wrap;margin:6px 0}.sg button{flex:1 1 56px;border:1px solid var(--ln);border-radius:6px;background:var(--pn2);color:var(--ink);font:inherit;font-size:.76rem;padding:4px 2px;cursor:pointer}
+.sg button.on{border-color:var(--ac);background:color-mix(in srgb,var(--ac) 18%,var(--pn2));font-weight:700}.sg button.off{border-color:var(--wn);background:color-mix(in srgb,var(--wn) 18%,var(--pn2))}
+.wm{display:none}
+@media print{nav,.nb,aside,.np,.top .tools,.bn{display:none!important}.tw,.sx{overflow:visible}.tw svg,.sx>svg,.fig .sx>svg{min-width:0!important}.lay{display:block}main{border:0;padding:0}body{background:#fff;color:#000}.wm{display:block;font-size:1.3rem;font-weight:700;color:#B4412C;border:2px solid #B4412C;padding:6px 12px;margin:0 0 10px;text-align:center}.ch,.fig,.tw,.bar,tr{break-inside:avoid}h2,h3{break-after:avoid}*{-webkit-print-color-adjust:exact;print-color-adjust:exact}details>summary{list-style:none}}
+@media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important}}
+</style></head><body><div class="w">
+<header class="top"><h1>Симулятор тюкового прес-підбирача<small>Формування тюка, вологість, зважування, автозупинка й облік сухої речовини. Лабораторна робота №9</small></h1>
+<div class="tools"><span class="chip" id="chip"></span><button class="g sm" id="thb" onclick="theme()" title="Перемкнути тему">Тема: авто</button></div></header>
+<div id="bn"></div>
+<div class="lay"><nav id="nv" aria-label="Кроки роботи"></nav><main id="mn"></main><aside id="ds" aria-label="Термінал прес-підбирача в кабіні"></aside></div></div>
+
+<script>
+/* Симулятор до лабораторної роботи №9.
+   Автоматичні системи керування машинами для заготівлі кормів:
+   тюковий прес-підбирач — формування тюка, вологість, зважування, автозупинка, облік.
+   Один файл, без зовнішніх бібліотек і шрифтів; працює без мережі. */
+const KEY='lr9v1',TKEY='lr9theme';
+/* ===== Модель тюкового прес-підбирача (ЛР №9) =====
+   Основа — чотири співвідношення, які виводяться в методичці:
+     V   = π·D²·W/4                 об’єм круглого тюка, м³
+     m   = ρ·V,  ρ = ρ_СР/(1−w/100) маса тюка; суха речовина ущільнюється, воду возять «задарма»
+     m_СР= m·(1−w/100)              маса сухої речовини тюка
+     ΔL  = v/3,6·T_затр + v²/(2a)   шлях до зупинки після сигналу «тюк готовий»
+   Решта (похибка на схилі, цикл, облік) побудована на них. */
+const cl=(x,a,b)=>Math.max(a,Math.min(b,x)),f1=x=>Math.round(x*10)/10,f2=x=>Math.round(x*100)/100,
+      f3=x=>Math.round(x*1000)/1000,
+      /* Приймаємо і кому, і крапку, і типографський мінус «−», який сам-таки виводить симулятор */
+      n=x=>{const v=parseFloat(String(x).replace(',','.').replace(/[\u2212\u2013\u2014]/g,'-').replace(/\s/g,''));
+            return isNaN(v)?null:v};
+function hash(s){let h=2166136261;for(const c of s){h^=c.charCodeAt(0);h=Math.imul(h,16777619)}return h>>>0}
+function rng(a){return()=>{a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
+const gs=r=>(r()+r()+r()-1.5)*2;            /* наближено нормальний розподіл, одинична дисперсія */
+
+/* --- Культури: густина сухої речовини, безпечна вологість, ціна --- */
+/* rhoDM — скільки кілограмів сухої речовини вміщується в кубометр тюка за повного тиску;
+   wSafe — верхня межа вологості, за якої корм зберігається без самонагрівання;
+   wField — типова вологість матеріалу у валку на момент пресування. */
+const CROP=[{c:'сіно (злакові трави)', rhoDM:[150,172],wSafe:17,wField:[12,22],Cdm:5.2,net:[2.2,2.8]},
+            {c:'сіно (люцерна)',        rhoDM:[142,164],wSafe:16,wField:[12,22],Cdm:6.4,net:[2.4,3.0]},
+            {c:'сінаж (прив’ялені трави)',rhoDM:[200,238],wSafe:55,wField:[38,52],Cdm:4.6,net:[2.6,3.2]},
+            {c:'солома пшенична',       rhoDM:[ 96,118],wSafe:18,wField:[10,18],Cdm:1.9,net:[2.0,2.6]}];
+/* --- Прес-підбирачі зі змінною камерою --- */
+const BALER=[{p:'Fendt Rotana 160 V Xtra',W:1.20,Dmin:0.90,Dmax:1.60,Mm:3250,cells:3,price:2.85e6},
+             {p:'Claas Variant 480 RC',   W:1.20,Dmin:0.90,Dmax:1.55,Mm:3100,cells:3,price:2.60e6},
+             {p:'Krone Comprima V 150 XC',W:1.20,Dmin:1.00,Dmax:1.50,Mm:3380,cells:3,price:2.95e6},
+             {p:'John Deere V461R',       W:1.21,Dmin:0.90,Dmax:1.60,Mm:3250,cells:3,price:2.80e6},
+             {p:'New Holland Roll-Belt 150',W:1.22,Dmin:0.90,Dmax:1.50,Mm:3000,cells:3,price:2.45e6}];
+const TRK=['Fendt 516 Vario','John Deere 6120M','New Holland T6.160','Case IH Maxxum 145','Deutz-Fahr 6135 C'];
+
+/* --- Базові співвідношення --- */
+const volOf=(D,W)=>Math.PI*D*D*W/4;                      /* об’єм тюка, м³ */
+const rhoWet=(rhoDM,w)=>rhoDM/(1-w/100);                 /* густина за вологою масою, кг/м³ */
+const dmOf=(m,w)=>m*(1-w/100);                           /* маса сухої речовини, кг */
+/* густина сухої речовини залежно від тиску в камері, швидкості й культури */
+function rhoDMof(V,Q){const p=cl(Q.press??80,30,100),v=Q.v??V.vp;
+ /* тиск: від 30 % до 100 % уставки густина росте майже лінійно, але з насиченням */
+ const kp=0.58+0.42*Math.pow((p-30)/70,0.78);
+ /* зависока швидкість — нерівна подача, матеріал гірше вкладається */
+ const kv=1-0.010*Math.max(0,v-V.vOpt);
+ return V.rhoDM*kp*kv}
+/* маса тюка за поточних налаштувань */
+function baleMass(V,Q){const D=cl(Q.D??V.Dset,V.a.Dmin,V.a.Dmax),w=Q.w??V.wAvg,
+ Vb=volOf(D,V.a.W),rdm=rhoDMof(V,Q),r=rhoWet(rdm,w);
+ return{D,V:f3(Vb),rhoDM:f1(rdm),rho:f1(r),m:f1(r*Vb),mDM:f1(rdm*Vb)}}
+/* погонна маса валка, кг/м: з урожайності вологої маси й ширини смуги, що згрібається у валок */
+const lamOf=(U,b)=>U*b/10000;
+
+/* --- Зважування --- */
+/* Тензодатчики вимірюють складову ваги вздовж своєї осі. На схилі θ машина нахиляється
+   разом із датчиками, тому показ зменшується у cos θ разів.
+   Абсолютний метод: від показання на схилі віднімають масу порожньої машини, зважену на рівному,
+   тому похибка стосується всієї маси. Різницевий: обидва показання зняті на тому самому місці,
+   тому нахил скорочується з усього, крім маси самого тюка. */
+const wAbs=(V,m,th)=>(V.a.Mm+m)*Math.cos(th*Math.PI/180)-V.a.Mm;   /* показ абсолютного методу, кг */
+const wDif=(m,th)=>m*Math.cos(th*Math.PI/180);                      /* показ різницевого методу, кг */
+/* Якщо підбирач не піднято, частина ваги машини спирається на ґрунт через копіювальні колеса
+   і до тензодатчиків не доходить. В абсолютному методі це пряме заниження показання.
+   У різницевому обидва зважування роблять на тому самому місці за кілька секунд, тому
+   опора здебільшого скорочується — лишається тільки те, на скільки вона встигла змінитися. */
+/* Саму опору знімає тарування: масу порожньої машини теж вимірювали з опущеним підбирачем.
+   Лишається те, на скільки опора змінилася — через нерівності, вібрацію й інше місце тарування. */
+const pickBias=(V,m)=>0.35*V.pickK*(V.a.Mm+m);         /* абсолютний: тарували в іншому місці */
+const pickNoise=(V,m,seed)=>0.15*V.pickK*(V.a.Mm+m)*gs(rng(seed));  /* розкид від нерівностей */
+
+/* --- Зупинка після сигналу «тюк готовий» --- */
+const stopLen=(v,T,a)=>v/3.6*T+Math.pow(v/3.6,2)/(2*a);  /* шлях до повної зупинки, м */
+const overMass=(lam,dL)=>lam*dL;                          /* матеріал, що встигає зайти в камеру, кг */
+
+/* --- Цикл --- */
+function cycle(V,Q,m){const lam=V.lam,v=Q.v??V.vp,
+ Lb=m/lam,                                               /* метрів валка на один тюк */
+ Tform=Lb/(v/3.6),                                       /* час формування, с */
+ Twrap=V.Twrap0+V.TwrapN*(Q.turns??V.turns),             /* обв’язування сіткою */
+ Tdoor=(Q.autoDoor??1)?V.Tdoor:V.Tdoor+V.TdoorMan,       /* відчинити–зачинити задні двері */
+ Tstop=(Q.tim??0)?V.Tstop:V.Tstop+V.TstopMan,            /* зупинка й рушання */
+ Tc=Tform+Twrap+Tdoor+Tstop;
+return{Lb:f1(Lb),Tform:f1(Tform),Twrap:f1(Twrap),Tdoor:f1(Tdoor),Tstop:f1(Tstop),Tc:f1(Tc),
+ bph:f1(3600/Tc),haph:f2(3600/Tc*m/V.U)}}
+
+/* --- Карта вологості поля ---
+   Уздовж поля вологість плавно гуляє (рельєф, нерівномірність підсихання), а поперек
+   є смуга, що підсихає гірше: низина або затінок від лісосмуги вздовж краю. Саме вона
+   дає вологі тюки, бо цілі валки в ній лишаються сирими. */
+function wField(V,x,y){const{wa,wb,wc,wd,we,wy,wr,wamp}=V.wMap;
+ return V.wAvg+wa*Math.sin(wb*x+wc)+wd*Math.cos(we*y)+wamp*Math.exp(-Math.pow((y-wy)/wr,2))}
+/* Тюк набирається з Lb метрів валка, тому його вологість — середня по цій ділянці,
+   а не в одній точці: довгий тюк «усереднює» дрібні вологі плями. */
+function wBale(V,x,Lb,y){let s=0;const K=7;
+ for(let i=0;i<K;i++)s+=wField(V,x+Lb*(i+0.5)/K,y);
+ return s/K}
+
+/* --- Генерація варіанта --- */
+function mkV(r_){const R=rng(hash([r_.group,r_.name,r_.num].join('|').toLowerCase().replace(/\s+/g,' '))),
+ pk=a=>a[Math.floor(R()*a.length)],ri=(a,b)=>Math.round(a+R()*(b-a)),rf=(a,b)=>a+R()*(b-a);
+const a=pk(BALER),cr=pk(CROP),trk=pk(TRK);
+const V={a,trk,crop:cr.c,wSafe:cr.wSafe,Cdm:cr.Cdm,
+ rhoDM:f1(rf(cr.rhoDM[0],cr.rhoDM[1])),               /* потенціал ущільнення за повного тиску */
+ /* Пресувати починають, коли основна маса підсохла до безпечної межі. Тому середня
+    вологість у валку лежить трохи нижче wSafe, а окремі низини ще не встигли підсохнути. */
+ wAvg:f1(cl(cr.wSafe-rf(1.6,4.8),cr.wField[0],cr.wField[1])),
+ turnsOpt:Math.round(rf(cr.net[0],cr.net[1])*10)/10,  /* потрібні витки сітки */
+ S:ri(28,90),                                         /* площа поля, га */
+ U:ri(26,62)*100,                                     /* урожайність вологої маси, кг/га */
+ b:f1(rf(5.4,9.0)),                                   /* ширина смуги, згорнутої в один валок, м */
+ vp:f1(rf(7,12)),                                     /* планова швидкість підбирання, км/год */
+ vOpt:0,                                              /* швидкість рівної подачі — нижче */
+ theta:f1(rf(3,11)),                                  /* нахил робочої ділянки, градуси */
+ Tr:f2(rf(0.9,1.6)),                                  /* запізнення реакції оператора, с */
+ TrTim:f2(rf(0.10,0.22)),                             /* запізнення автозупинки TIM, с */
+ acc:f1(rf(1.2,2.0)),                                 /* уповільнення агрегату, м/с² */
+ Twrap0:f1(rf(3.0,4.5)),TwrapN:f1(rf(1.6,2.4)),       /* обв’язування: стала й на один виток */
+ Tdoor:f1(rf(4.5,6.5)),TdoorMan:f1(rf(5,9)),          /* двері: авто й вручну */
+ Tstop:f1(rf(2.0,3.0)),TstopMan:f1(rf(3.5,6.5)),      /* зупинка–рушання: TIM і вручну */
+ pickK:f2(rf(0.035,0.075)),                           /* частка ваги машини на непіднятому підбирачі */
+ Csez:ri(9,26)*100,                                   /* обсяг заготівлі за сезон, т вологої маси */
+ Chour:ri(1400,2600),                                 /* вартість машино-години агрегату, грн */
+ Csys:ri(170,340)*1000,                               /* вартість комплекту автоматики, грн */
+ id:'В-'+(hash(r_.group+r_.name+r_.num+'#id')%9000+1000)};
+/* карта вологості */
+V.wMap={wa:f2(rf(0.9,2.0)),wb:f3(rf(0.008,0.020)),wc:f2(rf(0,6.2)),
+ wd:f2(rf(0.6,1.6)),we:f3(rf(0.010,0.026)),wy:0,wr:0,wamp:0};
+/* Смуга має підняти вологість вище безпечної межі навіть у найсухішій фазі решти карти,
+   інакше сигналізація нічого не покаже */
+V.wMap.wamp=f1((cr.wSafe-V.wAvg)+V.wMap.wa+V.wMap.wd+rf(1.0,4.0));
+/* геометрія поля: витягнутий прямокутник площею S */
+V.FL=Math.round(Math.sqrt(V.S*1e4*2.2)/10)*10;          /* довжина гону, м */
+V.FW=Math.round(V.S*1e4/V.FL/10)*10;                    /* ширина поля, м */
+V.vOpt=f1(V.vp-rf(0,1.2));                              /* вище цієї швидкості подача гіршає */
+/* Частка тюків, що за сезон потрапляють під пресування з вологістю понад безпечну:
+   окремі загінки, вечірній покіс, низини. Це сезонна величина, а не результат одного проходу. */
+V.pSez=f1(rf(3,8));
+/* Еталонна маса для контрольного зважування: мішки чи вантаж із відомою масою */
+V.ctrlM=ri(20,60)*10;
+V.lam=f2(lamOf(V.U,V.b));                               /* погонна маса валка, кг/м */
+/* Смуга, що гірше підсихає, лежить на краю поля — там, де йде пробний прохід.
+   Її середина збігається з одним із валків, а ширина — менша за крок валків, тому
+   сирими виходять тюки з одного-двох крайніх валків, а не з усієї загінки. */
+V.wMap.wy=f1((ri(0,1)+0.5)*V.b);
+V.wMap.wr=f1(rf(0.45,0.75)*V.b);
+V.nPass=Math.max(2,Math.round(V.FW/V.b));               /* проходів (валків) по полю */
+/* Цільова маса тюка. Зверху її обмежує не тільки діаметр камери, а й те, що тюк мають
+   підняти навантажувачем і вивезти: важчий за mLim тюк господарству не потрібен. */
+V.mLim=ri(62,92)*10;
+{const mFull=rhoWet(V.rhoDM,V.wAvg)*volOf(V.a.Dmax,V.a.W),
+   mMin=rhoWet(V.rhoDM*0.62,V.wAvg)*volOf(V.a.Dmin+0.15,V.a.W);
+ V.mSet=Math.round(cl(Math.min(mFull*0.90,V.mLim),mMin,mFull)/10)*10}
+V.turns=V.turnsOpt;
+V.ideal=idealQ(V);
+/* приховані несправності */
+/* Приховані несправності. Вологомір завжди має зсув: його повіряють за лабораторною
+   пробою на початку кожного сезону, і саме з цього починається робота. */
+const fl={wCal:f1(rf(2.2,6.5))*(R()<.5?-1:1),            /* зсув вологоміра, % абс. */
+          cellDrift:R()<.60?f1(rf(6,22))*(R()<.5?-1:1):0,/* дрейф нуля тензодатчиків, кг */
+          pickDown:R()<.55?1:0,                          /* підбирач не піднімається при зважуванні */
+          netLow:R()<.45?1:0};                           /* занижене число витків сітки */
+if(!fl.cellDrift&&!fl.pickDown)fl[R()<.5?'cellDrift':'pickDown']=R()<.5?f1(rf(8,20)):1;
+if(fl.cellDrift===1)fl.cellDrift=f1(rf(8,20));
+V.fl=fl;
+return V}
+
+/* --- Еталонні (рекомендовані) налаштування варіанта --- */
+function idealQ(V){
+ /* діаметр підбираємо так, щоб маса тюка була якнайближчою до цільової */
+ let best=null;
+ for(let D=V.a.Dmin;D<=V.a.Dmax+1e-9;D+=0.05){
+  for(const press of [70,75,80,85,90,95,100]){
+   const b=baleMass(V,{D:f2(D),press,v:V.vOpt,w:V.wAvg}),
+    e=Math.abs(b.m-V.mSet)/V.mSet+Math.abs(press-88)/700;
+   if(!best||e<best.e)best={D:f2(D),press,e,m:b.m}}}
+ return{D:best.D,press:best.press,v:V.vOpt,method:'різницевий',pick:1,tim:1,autoDoor:1,
+  turns:V.turnsOpt,wThr:V.wSafe,m:best.m}}
+
+/* --- Поточні налаштування з полів студента --- */
+function Qs(S_,V,o){return Object.assign({
+ D:n(S_.D)??V.ideal.D,press:n(S_.press)??V.ideal.press,v:n(S_.v)??V.vp,
+ method:S_.method||'абсолютний',pick:S_.pick??0,tim:S_.tim??0,autoDoor:S_.autoDoor??0,
+ turns:n(S_.turns)??V.turns,wThr:n(S_.wThr)??99,theta:n(S_.theta)??V.theta,
+ preStop:n(S_.preStop)??0,calW:!!S_.calW,calCell:!!S_.calCell,w:V.wAvg},o||{})}
+
+/* --- Показання вологоміра (з урахуванням зсуву, якщо не відкалібровано) --- */
+const wShow=(V,Q,wTrue)=>f1(wTrue+((Q.calW)?0:V.fl.wCal));
+
+/* --- Зважування одного тюка --- */
+function weigh(V,Q,m,seed,th_){const th=th_??Q.theta??V.theta,sd=seed||1,
+ dif=Q.method=='різницевий',
+ drift=(Q.calCell?0:V.fl.cellDrift),
+ pickErr=Q.pick?0:(pickNoise(V,m,sd*31)-(dif?0:pickBias(V,m))),
+ base=dif?wDif(m,th):wAbs(V,m,th),
+ noise=1.2*gs(rng(sd*7919));
+return{show:f1(base+drift+pickErr+noise),true:f1(m),
+ errSlope:f1(m-wDif(m,th)),errAbs:f1(m-wAbs(V,m,th)),drift,pickErr:f1(pickErr)}}
+
+/* --- Пробний прохід полем ---
+   Прохід роблять не по всьому полю, а по загінці: кілька валків підряд.
+   Площу беруть не з паспорта поля, а з фактично пройденого шляху — так її рахує Task Doc за GNSS.
+   Маса тюка в камері зі змінним об’ємом визначається не вагами, а діаметром: машина
+   набирає заданий D, а маса виходить така, яку дасть густина за місцевої вологості. */
+/* Загінка пробного проходу: щонайменше NW валків і NMIN тюків, але не більше NMAX.
+   Менше валків — і вся вибірка потрапить в одну смугу вологості; менше тюків — і
+   статистика маси нічого не покаже. */
+const NW=4,NMIN=16,NMAX=40;
+function pass(V,Q){
+const seed=hash(V.id+'p'+Q.D+Q.press+Q.v+Q.method+(Q.tim?1:0)+Q.turns+Q.preStop+
+  (Q.calW?1:0)+(Q.calCell?1:0)+(Q.pick?1:0)+Q.wThr),
+ R=rng(seed),bales=[],lam=V.lam,v=Q.v,
+ dL=stopLen(v,Q.tim?V.TrTim:V.Tr,V.acc),
+ dm=overMass(lam,dL),
+ Vb=volOf(cl(Q.D,V.a.Dmin,V.a.Dmax),V.a.W),
+ rdm=rhoDMof(V,Q),
+ mNom=rhoWet(rdm,V.wAvg)*Vb;                             /* маса за середньої вологості */
+let x=0,y=V.b/2,np=0,Ldrive=0;
+for(let i=0;i<NMAX;i++){
+ if(i>=NMIN&&np>=NW)break;
+ /* вологість у точці, де формувався тюк */
+ const Lb0=rhoWet(rdm,V.wAvg)*Vb/lam,                     /* попередня довжина тюка, м */
+  wTrue=f1(cl(wBale(V,x,Lb0,y)+0.5*gs(R),3,72)),
+  kflow=1+0.022*gs(R),                                   /* нерівність подачі валка */
+  mSet=rhoWet(rdm*kflow,wTrue)*Vb,                       /* маса за заданого діаметра */
+  mAim=mSet-(Q.preStop||0),
+  m=f1(cl(mAim+dm,40,mSet*1.4)),
+  /* локальний схил: рівнина переважає, крутий бік трапляється рідше */
+  th=f1(V.theta*Math.pow(R(),1.8)),
+  wgt=weigh(V,Q,m,hash(V.id+'b'+i),th),
+  wSh=wShow(V,Q,wTrue),
+  Lb=m/lam;
+ bales.push({i:i+1,x:f1(x+Lb/2),y:f1(y),pass:np+1,m,w:wTrue,wShow:wSh,theta:th,
+  show:wgt.show,mDM:f1(dmOf(m,wTrue)),mDMshow:f1(wgt.show*(1-wSh/100)),
+  flag:wSh>Q.wThr,wet:wTrue>V.wSafe,rho:f1(m/Vb)});
+ x+=Lb;Ldrive+=Lb;
+ if(x>V.FL-1){x=0;np++;y+=V.b;if(y>V.FW)y=V.b/2}}
+const N=bales.length,
+ mm=bales.map(b=>b.m),sh=bales.map(b=>b.show),
+ mu=mm.reduce((a,b)=>a+b,0)/N,
+ sd=Math.sqrt(mm.reduce((a,b)=>a+(b-mu)*(b-mu),0)/Math.max(1,N-1)),
+ cv=f1(100*sd/mu),
+ errM=f1(100*(sh.reduce((a,b)=>a+b,0)/N-mu)/mu),
+ /* площа загінки — з пройденого шляху й ширини смуги */
+ area=Ldrive*V.b/1e4,
+ sumDM=bales.reduce((a,b)=>a+b.mDM,0),
+ sumDMshow=bales.reduce((a,b)=>a+b.mDMshow,0),
+ dmGa=f2(sumDM/1000/area),dmGaShow=f2(sumDMshow/1000/area),
+ errDM=f1(100*(sumDMshow-sumDM)/sumDM),
+ wet=bales.filter(b=>b.wet).length,
+ flagged=bales.filter(b=>b.flag).length,
+ caught=bales.filter(b=>b.wet&&b.flag).length,
+ falseAl=bales.filter(b=>!b.wet&&b.flag).length,
+ cyc=cycle(V,Q,mu),
+ turnsOk=Q.turns>=V.turnsOpt-0.05,
+ burst=turnsOk?0:f1(cl(14*(V.turnsOpt-Q.turns),0,60));
+return{bales,N,mu:f1(mu),sd:f1(sd),cv,errM,dmGa,dmGaShow,errDM,
+ sumDM:Math.round(sumDM),sumDMshow:Math.round(sumDMshow),area:f2(area),Ldrive:Math.round(Ldrive),
+ wet,flagged,caught,falseAl,miss:wet-caught,burst,turnsOk,
+ dL:f2(dL),dm:f1(dm),mNom:f1(mNom),over:f1(mu-mNom),mTarget:f1(mNom),...cyc}}
+
+/* --- Економіка ---
+   Два джерела, які можна порахувати чесно:
+   1) збережений корм — вологі тюки, які система встигає позначити, не доходять до псування;
+   2) виграний час — коротший цикл дає менше машино-годин на той самий обсяг.
+   Точність обліку в гроші не переводимо (див. пояснення в методичці), а показуємо
+   окремо — у відсотках похибки й у спірних тоннах сухої речовини за сезон. */
+const KREC=0.55;    /* частка вартості, яку вдається повернути з вчасно позначеного тюка */
+function econ(V,p1,p2){
+ const Msez=V.Csez*1000,                                  /* сезонний обсяг, кг вологої маси */
+  dmFrac=1-V.wAvg/100,
+  /* частка вологих тюків, які система НЕ позначила: вимірюється самим студентом на проході */
+  det=p=>p.wet>0?p.caught/p.wet:(p.flagged>0?1:0),
+  /* що псується за сезон: невиявлені вологі тюки плюс ті, що втратили форму через сітку */
+  sp=p=>V.pSez/100*(1-det(p))+0.35*p.burst/100,
+  s1=sp(p1),s2=sp(p2),
+  /* Позначений тюк не рятується сам собою: його відкладають окремо, згодовують першим
+     або загортають у плівку. Повернути вдається не всю вартість, а приблизно KREC від неї. */
+  Ekorm=Math.round(KREC*Math.max(0,s1-s2)*Msez*dmFrac*V.Cdm),
+  /* машино-години на сезонний обсяг */
+  hrs=p=>Msez/(p.mu*p.bph||1),
+  h1=hrs(p1),h2=hrs(p2),
+  Echas=Math.round(Math.max(0,h1-h2)*V.Chour),
+  Cex=Math.round(.10*V.Csys),
+  E=Ekorm+Echas,Enet=E-Cex,
+  dErr=f1(Math.abs(p1.errDM)-Math.abs(p2.errDM)),
+  tDisp=Math.round(Math.abs(dErr)/100*Msez*dmFrac/1000);   /* спірні тонни СР за сезон */
+return{KREC,det1:f1(100*det(p1)),det2:f1(100*det(p2)),s1:f1(100*s1),s2:f1(100*s2),Ekorm,
+ h1:f1(h1),h2:f1(h2),Echas,Cex,E,Enet,dErr,tDisp,
+ T:Enet>0?f2(V.Csys/Enet):null}}
+function ecRef(S_,V){const h=S_.hist||[];if(h.length<1)return null;
+ return econ(V,h[0],h[h.length-1])}
+
+/* --- Бали: 16 + 20 + 20 + 22 + 22 = 100 --- */
+const pen=(e,t,s)=>e<=t?0:Math.min(1,(e-t)/s);
+const okn=(x,y,t)=>x!==''&&x!=null&&n(x)!=null&&Math.abs(n(x)-y)<=t;
+function score(S_,V){const r=[0,0,0,0,0],Q=Qs(S_,V),b=baleMass(V,Q),p=S_.tr&&S_.tr.last;
+/* 1. Датчики й калібрування — 16 */
+{let s=0;const bd=S_.bd||{};
+ s+=okn(bd.wCal,V.fl.wCal,0.6)?6:0;          /* знайдений зсув вологоміра */
+ s+=S_.calW?4:0;                              /* поправку внесено */
+ s+=S_.calCell?3:0;                           /* нуль тензодатчиків виставлено */
+ s+=S_.pick?3:0;                              /* підбирач піднімається при зважуванні */
+ r[0]=s}
+/* 2. Формування тюка — 20 */
+{const bd=S_.bd||{},V0=volOf(Q.D,V.a.W);
+ r[1]=(okn(bd.V,V0,Math.max(.01,V0*.02))?6:0)+(okn(bd.rho,b.rho,Math.max(2,b.rho*.03))?6:0)+
+      (okn(bd.m,b.m,Math.max(5,b.m*.03))?5:0)+(Math.abs(b.m-V.mSet)/V.mSet<=.06?3:0)}
+/* 3. Зважування на схилі — 20 */
+{const bd=S_.bd||{},eA=(V.a.Mm+b.m)*(1-Math.cos(Q.theta*Math.PI/180)),
+  eD=b.m*(1-Math.cos(Q.theta*Math.PI/180));
+ r[2]=(okn(bd.errAbs,eA,Math.max(1,eA*.05))?7:0)+(okn(bd.errDif,eD,Math.max(.4,eD*.05))?7:0)+
+      (Q.method=='різницевий'?4:0)+(S_.why?2:0)}
+/* 4. Зупинка, перед-зупинка, сітка — 22 */
+{const bd=S_.bd||{},dL=stopLen(Q.v,Q.tim?V.TrTim:V.Tr,V.acc),dm=overMass(V.lam,dL);
+ r[3]=(okn(bd.dL,dL,Math.max(.1,dL*.04))?6:0)+(okn(bd.dm,dm,Math.max(1,dm*.05))?6:0)+
+      (okn(S_.preStop,dm,Math.max(2,dm*.15))?5:0)+(Q.tim?3:0)+(Q.turns>=V.turnsOpt-0.05?2:0)}
+/* 5. Прохід і економіка — 22 */
+{if(p){const e=ecRef(S_,V),bd=S_.bd||{};
+ r[4]=6*(1-pen(Math.abs(p.errDM),2,8))+5*(1-pen(p.miss,0,3))
+   +(okn(bd.dmGa,p.dmGa,Math.max(.05,p.dmGa*.03))?5:0)
+   +(e?((okn((S_.ec||{}).E,e.E,Math.max(500,e.E*.03))?3:0)+(e.T!=null&&okn((S_.ec||{}).T,e.T,Math.max(.05,e.T*.08))?3:0)):0)}}
+return r.map(x=>Math.max(0,Math.round(x*10)/10))}
+/* ===== Стан, збереження, прохід, протокол ===== */
+const DEMO={group:'Приклад',name:'Приклад виконання',num:23};
+const F=(x,d)=>{if(x===''||x==null||(typeof x=='number'&&isNaN(x)))return'—';
+ const s=d==null?String(x):Number(x).toFixed(d);return s.replace('.',',').replace('-','−')};
+const r1=x=>Math.round(x*10)/10,r2=x=>Math.round(x*100)/100,r3=x=>Math.round(x*1000)/1000;
+const TH=x=>(x<0?'−':'')+String(Math.round(Math.abs(x))).replace(/\B(?=(\d{3})+(?!\d))/g,' ');
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const vs=x=>esc(String(x??'').replace('.',','));
+let S=null;try{S=JSON.parse(localStorage.getItem(KEY))}catch(e){}if(!S||!S.tr)S=null;
+const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}};
+let V=S&&S.reg?mkV(S.reg):null;
+const TT=['Реєстрація й варіант','1. Датчики й калібрування','2. Формування тюка',
+          '3. Зважування на схилі','4. Обв’язування й автозупинка','5. Прохід полем і облік',
+          'Підсумковий протокол','Досліди «що буде, якщо…»','Калькулятор'];
+const LAB=7,CALC=8,NST=6;
+const NPROB=4;                                       /* проб для повірки вологоміра */
+
+function theme(t){const o=['auto','light','dark'];let i=o.indexOf(localStorage.getItem(TKEY)||'auto');
+ if(t!==0){i=(i+1)%3;try{localStorage.setItem(TKEY,o[i])}catch(e){}}
+ const v=o[i];if(v=='auto')document.documentElement.removeAttribute('data-theme');
+ else document.documentElement.setAttribute('data-theme',v);
+ const b=document.getElementById('thb');if(b)b.textContent='Тема: '+({auto:'авто',light:'світла',dark:'темна'})[v];
+ if(t!==0&&typeof R=='function')R()}
+
+function blank(){return{reg:null,step:0,
+ probe:null,calW:0,ctrlDone:0,ctrlShow:null,calCell:0,pick:0,
+ D:'',press:'',v:'',method:'абсолютний',why:'',
+ theta:'',tim:0,autoDoor:0,turns:'',preStop:'',wThr:'',
+ bd:{wCal:'',V:'',rho:'',m:'',errAbs:'',errDif:'',dL:'',dm:'',dmGa:''},
+ ec:{E:'',T:''},tr:{n:0,last:null,sel:1},hist:[],
+ lab:{D:0,press:85,v:9,theta:6,w:0,method:'різницевий',pick:1,tim:1,turns:2.4,pin:null,log:[]},
+ calc:{D:'',W:'1,20',rho:'',m:'',w:'',U:'',b:'',v:'',Tr:'',a:'',lam:'',Mm:'',th:''}}}
+
+const QS=o=>Qs(S,V,o);
+const DnowRaw=()=>n(S.D)??V.ideal.D;
+const Dnow=()=>cl(DnowRaw(),V.a.Dmin,V.a.Dmax);
+const pressNow=()=>n(S.press)??V.ideal.press;
+const vNow=()=>n(S.v)||V.vp;
+const thNow=()=>n(S.theta)??V.theta;
+const turnsNow=()=>n(S.turns)??V.turns;
+const wThrNow=()=>n(S.wThr)??99;
+
+/* ---------- Повірка вологоміра за лабораторними пробами ---------- */
+function probeGo(){const r=rng(hash(V.id+'probe')),rows=[];
+ for(let i=1;i<=NPROB;i++){const lab=f1(cl(V.wAvg+2.2*gs(r),3,72));
+  rows.push({i,lab,term:f1(lab+V.fl.wCal+0.35*gs(r))})}
+ S.probe=rows;save();R()}
+const probeAvg=()=>{const p=S.probe;if(!p)return null;
+ return f1(p.reduce((a,b)=>a+(b.term-b.lab),0)/p.length)};
+
+/* ---------- Контрольне зважування відомої маси ---------- */
+function ctrlGo(){const m=V.ctrlM,Q=QS({method:'різницевий',theta:0});
+ S.ctrlDone=1;S.ctrlShow=weigh(V,{...Q,calCell:S.calCell,pick:S.pick},m,hash(V.id+'ctrl'),0).show;
+ save();R()}
+const ctrlErr=()=>S.ctrlShow==null?null:f1(S.ctrlShow-V.ctrlM);
+
+/* ---------- Пробний прохід ---------- */
+function runCore(){const Q=QS({}),p=pass(V,Q),t=S.tr;
+ t.last={...p,D:Q.D,press:Q.press,v:Q.v,method:Q.method,tim:Q.tim?1:0,autoDoor:Q.autoDoor?1:0,
+  turns:Q.turns,preStop:Q.preStop,wThr:Q.wThr,pick:Q.pick?1:0,
+  calW:Q.calW?1:0,calCell:Q.calCell?1:0,theta:Q.theta};
+ t.n++;t.sel=1;
+ (S.hist=S.hist||[]).push({n:t.n,mu:p.mu,cv:p.cv,errM:p.errM,errDM:p.errDM,dmGa:p.dmGa,
+  wet:p.wet,caught:p.caught,miss:p.miss,flagged:p.flagged,falseAl:p.falseAl,burst:p.burst,
+  N:p.N,Tc:p.Tc,bph:p.bph,method:Q.method,tim:Q.tim?1:0,over:p.over});
+ if(S.hist.length>12)S.hist.shift()}
+function run(){if(n(S.D)==null)return alert('Задайте діаметр тюка D (крок 2).');
+ if(n(S.press)==null)return alert('Задайте тиск у камері (крок 2).');
+ if(n(S.v)==null)return alert('Задайте робочу швидкість (крок 2).');
+ if(n(S.turns)==null)return alert('Задайте число витків сітки (крок 4).');
+ if(n(S.wThr)==null)return alert('Задайте поріг сигналізації вологості (крок 5).');
+ runCore();save();R()}
+
+/* ---------- Еталонні розрахунки для самоперевірки ---------- */
+function ref(){const D=Dnow(),Vb=volOf(D,V.a.W),b=baleMass(V,QS({})),th=thNow(),
+ dL=stopLen(vNow(),S.tim?V.TrTim:V.Tr,V.acc);
+return{V:Vb,rho:b.rho,rhoDM:b.rhoDM,m:b.m,mDM:b.mDM,
+ errAbs:(V.a.Mm+b.m)*(1-Math.cos(th*Math.PI/180)),
+ errDif:b.m*(1-Math.cos(th*Math.PI/180)),
+ dL,dm:overMass(V.lam,dL),wCal:V.fl.wCal}}
+
+/* ---------- Стан «приклад із методички» ---------- */
+function demoState(){S=blank();S.demo=1;S.reg={...DEMO};V=mkV(S.reg);const I=V.ideal;
+ /* перший прохід — машина «як приїхала»: без повірки, абсолютний метод,
+    підбирач не піднімається, без TIM і перед-зупинки, сітки замало, сигналізація вимкнена */
+ S.D=String(I.D);S.press=String(I.press);S.v=String(V.vp);S.method='абсолютний';
+ S.theta=String(V.theta);S.tim=0;S.autoDoor=0;S.pick=0;S.calW=0;S.calCell=0;
+ S.turns=String(f1(Math.max(1,V.turnsOpt-0.6)));S.preStop='0';S.wThr='99';
+ runCore();
+ /* другий — після налагодження */
+ /* спершу повірка вологоміра, потім контрольне зважування — воно й виявляє дрейф нуля,
+    і лише після цього нуль виставляють */
+ probeGo();S.calW=1;S.pick=1;ctrlGo();S.calCell=1;
+ S.v=String(I.v);S.method='різницевий';S.tim=1;S.autoDoor=1;
+ S.turns=String(V.turnsOpt);
+ const rf0=ref();S.preStop=String(f1(rf0.dm));S.wThr=String(V.wSafe);
+ runCore();
+ const rr=ref(),l=S.tr.last;
+ S.bd={wCal:F(V.fl.wCal,1),V:F(r3(rr.V),3),rho:F(r1(rr.rho),1),m:F(r1(rr.m),1),
+  errAbs:F(r1(rr.errAbs),1),errDif:F(r1(rr.errDif),1),
+  dL:F(r2(rr.dL),2),dm:F(r1(rr.dm),1),dmGa:F(l.dmGa,2)};
+ S.why='різницевий метод порівнює два показання на тому самому місці, тому нахил скорочується';
+ const e=ecRef(S,V);S.ec={E:String(e.E),T:F(e.T,2)};
+ S.lab={D:I.D,press:I.press,v:I.v,theta:V.theta,w:V.wAvg,method:'різницевий',pick:1,tim:1,
+  turns:V.turnsOpt,pin:null,log:[]};
+ S.step=0;return S}
+
+/* ---------- Рядки протоколу ---------- */
+function rec(i){const l=S.tr.last,rr=ref(),m=(x,u)=>x===''||x==null?'—':String(x).replace('.',',')+u;
+return[0,
+ `повірка вологоміра: ${NPROB} проби, середній зсув ${S.probe?F(probeAvg(),1)+' %':'—'}`+
+ `${S.calW?', поправку внесено':''}; контрольне зважування ${V.ctrlM} кг: термінал ${m(S.ctrlShow,' кг')}`+
+ `${ctrlErr()!=null?', похибка '+F(ctrlErr(),1)+' кг':''}${S.calCell?', нуль ваг виставлено':''}; `+
+ `підбирач під час зважування ${S.pick?'піднімається':'не піднімається'}`,
+ `D = ${F(Dnow(),2)} м; W = ${F(V.a.W,2)} м; V = ${m(S.bd.V,' м³')}; тиск ${F(pressNow())} %; `+
+ `ρ = ${m(S.bd.rho,' кг/м³')}; маса тюка m = ${m(S.bd.m,' кг')} (цільова ${TH(V.mSet)} кг); v = ${F(vNow(),1)} км/год`,
+ `схил θ = ${F(thNow(),1)}°; M_маш = ${TH(V.a.Mm)} кг; похибка абсолютного методу ${m(S.bd.errAbs,' кг')}, `+
+ `різницевого ${m(S.bd.errDif,' кг')}; обрано ${esc(S.method)} метод`,
+ `T_затр = ${F(S.tim?V.TrTim:V.Tr,2)} с; a = ${F(V.acc,1)} м/с²; λ = ${F(V.lam,2)} кг/м; `+
+ `ΔL = ${m(S.bd.dL,' м')}; Δm = ${m(S.bd.dm,' кг')}; поріг перед-зупинки ${m(S.preStop,' кг')}; `+
+ `TIM Auto Stop ${S.tim?'увімкнено':'вимкнено'}; автодвері ${S.autoDoor?'увімкнено':'вимкнено'}; витків сітки ${F(turnsNow(),1)}`,
+ l?`прохід №${S.tr.n}: ${l.N} тюків, загінка ${F(l.area,2)} га; середня маса ${F(l.mu,1)} кг, CV = ${F(l.cv,1)} %; `+
+   `похибка обліку маси ${F(l.errM,1)} %, сухої речовини ${F(l.errDM,1)} %; поріг вологи ${m(S.wThr,' %')}; `+
+   `вологих тюків ${l.wet}, позначено ${l.flagged}, пропущено ${l.miss}; DM = ${m(S.bd.dmGa,' т/га')}; `+
+   `економія ${m(S.ec.E,' грн/рік')}, окупність ${m(S.ec.T,' року')}`:'прохід не виконано'][i]}
+
+/* ---------- Позначки виконання ---------- */
+function done(i){const l=S.tr.last;
+ if(i==0)return S.reg?1:0;
+ if(i==1){const f=[S.probe,n(S.bd.wCal)!=null&&S.bd.wCal!=='',S.calW,S.ctrlDone,S.calCell,S.pick].filter(Boolean).length;
+  return f>=6?1:f?.5:0}
+ if(i==2){const f=[n(S.D),n(S.press),n(S.v),n(S.bd.V),n(S.bd.rho),n(S.bd.m)].filter(x=>x!=null&&x!=='').length;
+  return f>=6?1:f?.5:0}
+ if(i==3){const f=[n(S.bd.errAbs),n(S.bd.errDif),S.method=='різницевий',S.why].filter(Boolean).length;
+  return f>=4?1:f?.5:0}
+ if(i==4){const f=[n(S.bd.dL),n(S.bd.dm),n(S.preStop),S.tim,n(S.turns)].filter(x=>x!=null&&x!==''&&x!==0).length;
+  return f>=5?1:f?.5:0}
+ if(i==5){if(!l)return 0;const f=[n(S.wThr),n(S.bd.dmGa),S.ec.E,S.ec.T].filter(x=>x!==''&&x!=null).length;
+  return f>=4?1:.5}
+ if(i==6)return [1,2,3,4,5].every(k=>done(k)==1)?1:0;
+ return 0}
+const tot=()=>score(S,V).reduce((a,b)=>a+b,0);
+function pcode(){const s=score(S,V),h=hash(JSON.stringify([S.reg,s,S.tr.n])).toString(36).toUpperCase();
+ return V.id+'-'+Math.round(tot())+'-'+h.slice(0,4)}
+/* ===== Рисунки: усе малюється кодом, у масштабі, без зовнішніх бібліотек ===== */
+const C=k=>'var(--'+k+')';
+const A=o=>Object.keys(o).map(k=>k.replace(/_/g,'-')+'="'+o[k]+'"').join(' ');
+const sv=(w,h,b)=>['<svg viewBox="0 0 '+w+' '+h+'" width="'+w+'" height="'+h+'" role="img">'+(b||''),'</svg>'];
+const ln=(x1,y1,x2,y2,c,w,o)=>'<line '+A({x1:r2(x1),y1:r2(y1),x2:r2(x2),y2:r2(y2),stroke:c||C('ln'),stroke_width:w||1,...(o||{})})+'/>';
+const rc=(x,y,w,h,f,o)=>'<rect '+A({x:r2(x),y:r2(y),width:r2(Math.max(0,w)),height:r2(Math.max(0,h)),fill:f||'none',...(o||{})})+'/>';
+const ci=(x,y,r,f,o)=>'<circle '+A({cx:r2(x),cy:r2(y),r:r2(Math.max(0,r)),fill:f||'none',...(o||{})})+'/>';
+const el=(x,y,rx,ry,f,o)=>'<ellipse '+A({cx:r2(x),cy:r2(y),rx:r2(rx),ry:r2(ry),fill:f||'none',...(o||{})})+'/>';
+const pa=(d,f,o)=>'<path '+A({d,fill:f||'none',...(o||{})})+'/>';
+const pg=(p,f,o)=>'<polygon '+A({points:p.map(q=>r2(q[0])+','+r2(q[1])).join(' '),fill:f||'none',...(o||{})})+'/>';
+const pl=(p,c,w,o)=>'<polyline '+A({points:p.map(q=>r2(q[0])+','+r2(q[1])).join(' '),fill:'none',stroke:c,stroke_width:w||1,...(o||{})})+'/>';
+function T(x,y,s,o){o=o||{};return'<text '+A({x:r2(x),y:r2(y),fill:o.c||C('ink'),font_size:o.s||11,
+ text_anchor:o.a||'start',font_weight:o.b?700:400,...(o.rot?{transform:'rotate('+o.rot+' '+r2(x)+' '+r2(y)+')'}:{}),
+ ...(o.o?{opacity:o.o}:{})})+'>'+esc(s)+'</text>'}
+/* рамка з підписом */
+function blk(x,y,w,h,t,o){o=o||{};return rc(x,y,w,h,o.f||C('pn2'),{stroke:o.c||C('ln'),stroke_width:o.sw||1.2,rx:o.rx??5})+
+ (t?T(x+w/2,y+h/2+(o.ts||4),t,{a:'middle',s:o.s||11,b:o.b,c:o.tc}):'')}
+/* розмірна лінія */
+function dimH(x1,x2,y,t,c){c=c||C('sub');const d=x2>x1?1:-1;
+ return ln(x1,y,x2,y,c,1)+ln(x1,y-4,x1,y+4,c,1)+ln(x2,y-4,x2,y+4,c,1)+
+ pg([[x1,y],[x1+6*d,y-2.6],[x1+6*d,y+2.6]],c)+pg([[x2,y],[x2-6*d,y-2.6],[x2-6*d,y+2.6]],c)+
+ (t?T((x1+x2)/2,y-6,t,{a:'middle',s:10,c}):'')}
+function dimV(y1,y2,x,t,c){c=c||C('sub');
+ return ln(x,y1,x,y2,c,1)+ln(x-4,y1,x+4,y1,c,1)+ln(x-4,y2,x+4,y2,c,1)+
+ (t?T(x+4,(y1+y2)/2+3,t,{s:10,c}):'')}
+/* легенда */
+function lg(items,x,y,s){return items.map((it,i)=>rc(x,y+i*(s||15)-7,9,9,it[1],{rx:2})+T(x+13,y+i*(s||15),it[0],{s:10,c:C('sub')})).join('')}
+const dash=(a,b)=>({stroke_dasharray:a+' '+(b||a)});
+/* ---------- Кругова шкала ---------- */
+function gauge(val,lo,hi,lab,unit,bands,fx){const w=112,h=84,cx=56,cy=62,R=42,
+ a0=-175,a1=-5,f=cl((val-lo)/(hi-lo),0,1),ar=d=>(d*Math.PI)/180,
+ P=(d,r)=>[cx+r*Math.cos(ar(d)),cy+r*Math.sin(ar(d))],
+ arc=(d1,d2,r,c,w_)=>{const p1=P(d1,r),p2=P(d2,r);return pa('M'+r2(p1[0])+' '+r2(p1[1])+'A'+r+' '+r+' 0 0 1 '+r2(p2[0])+' '+r2(p2[1]),'none',{stroke:c,stroke_width:w_,stroke_linecap:'round'})};
+let s=arc(a0,a1,R,C('ln'),8);
+for(const b of bands||[]){const d1=a0+(a1-a0)*cl((b[0]-lo)/(hi-lo),0,1),d2=a0+(a1-a0)*cl((b[1]-lo)/(hi-lo),0,1);if(d2>d1+.4)s+=arc(d1,d2,R,b[2],8)}
+const d=a0+(a1-a0)*f,p=P(d,R-13),o=P(d,8);
+s+=ln(o[0],o[1],p[0],p[1],C('ink'),2.4,{stroke_linecap:'round'})+ci(cx,cy,3.4,C('ink'));
+s+=T(cx,cy-16,F(r1(val),null)+(unit?' '+unit:''),{a:'middle',s:15,b:1});
+s+=T(cx,cy+17,lab,{a:'middle',s:9.5,c:C('sub')});
+return sv(w,h)[0]+s+sv(w,h)[1]}
+
+/* ---------- Графік із наведенням ---------- */
+/* ser: [{name,color,pts:[[x,y],…],dash}] */
+function chart(id,ser,o){o=o||{};const w=o.w||640,h=o.h||200,L=o.L||46,Rr=14,Tp=o.T||14,B=30,
+ xs=[].concat(...ser.map(s=>s.pts.map(p=>p[0]))),ys=[].concat(...ser.map(s=>s.pts.map(p=>p[1])));
+ if(!xs.length)return'';
+ const x0=o.x0??Math.min(...xs),x1=o.x1??Math.max(...xs),
+ y0=o.y0??0,y1=o.y1??Math.max(1,Math.max(...ys)*1.12),
+ X=v=>L+(w-L-Rr)*(v-x0)/((x1-x0)||1),Y=v=>Tp+(h-Tp-B)*(1-(v-y0)/((y1-y0)||1));
+let s=rc(L,Tp,w-L-Rr,h-Tp-B,C('pn'),{stroke:C('ln')});
+const nyt=o.ny||4;for(let i=0;i<=nyt;i++){const v=y0+(y1-y0)*i/nyt,y=Y(v);
+ s+=ln(L,y,w-Rr,y,C('ln'),i?.6:1,i?dash(3,4):{})+T(L-5,y+3.5,o.yf?o.yf(v):F(r1(v)),{a:'end',s:9.5,c:C('sub')})}
+const nxt=o.nx||5;for(let i=0;i<=nxt;i++){const v=x0+(x1-x0)*i/nxt,x=X(v);
+ s+=ln(x,Tp,x,h-B,C('ln'),.6,dash(3,4))+T(x,h-B+13,o.xf?o.xf(v):F(r1(v)),{a:'middle',s:9.5,c:C('sub')})}
+for(const b of o.bands||[])s+=rc(L,Y(b[1]),w-L-Rr,Y(b[0])-Y(b[1]),b[2],{opacity:.16});
+(o.vl||[]).forEach((g,i)=>{s+=ln(X(g[0]),Tp,X(g[0]),h-B,g[1]||C('am'),1.4,dash(5,4))+T(X(g[0])+3,Tp+11+i*13,g[2]||'',{s:9.5,c:g[1]||C('am')})});
+for(const se of ser){if(se.pts.length<2)continue;
+ s+=pl(se.pts.map(p=>[X(p[0]),Y(p[1])]),se.color,se.w||2,se.dash?dash(5,4):{})}
+for(const se of ser)if(se.dots)for(const p of se.pts)s+=ci(X(p[0]),Y(p[1]),2.6,se.color);
+if(o.xl)s+=T(w-Rr,h-4,o.xl,{a:'end',s:10,c:C('sub')});
+if(o.yl)s+=T(4,Tp-4,o.yl,{s:10,c:C('sub')});
+if(ser.length>1&&!o.nolg){const ls=ser.filter(x=>x.name),
+ y0l=o.lgb?h-B-8-(ls.length-1)*13:Tp+12+(o.vl||[]).length*13;
+ s+=ls.map((se,i)=>{const x=L+8,y=y0l+i*13;return ln(x,y-3.5,x+16,y-3.5,se.color,2.4,se.dash?dash(5,4):{})+T(x+21,y,se.name,{s:10,c:C('sub')})}).join('')}
+const inner=s,hit={L,Rr,Tp,B,w,h,x0,x1,y0,y1};
+return'<div class="ch" id="'+id+'" data-g="'+esc(JSON.stringify(hit))+'">'+sv(w,h)[0]+inner+
+ '<g id="'+id+'_c" style="display:none"><line y1="'+Tp+'" y2="'+(h-B)+'" stroke="'+C('ink')+'" stroke-width="1"/></g>'+
+ sv(w,h)[1]+'<div class="tip" id="'+id+'_t"></div></div>'}
+/* наведення на графік */
+function chBind(id,fn){const d=document.getElementById(id);if(!d)return;const g=JSON.parse(d.dataset.g),
+ tip=document.getElementById(id+'_t'),cur=document.getElementById(id+'_c'),svg=d.querySelector('svg');
+ const mv=e=>{const b=svg.getBoundingClientRect(),px=(e.touches?e.touches[0].clientX:e.clientX)-b.left,
+  ux=px/b.width*g.w;if(ux<g.L-2||ux>g.w-g.Rr+2){out();return}
+  const v=g.x0+(g.x1-g.x0)*(ux-g.L)/(g.w-g.L-g.Rr),t=fn(v);if(!t){out();return}
+  cur.style.display='';cur.firstChild.setAttribute('x1',r2(ux));cur.firstChild.setAttribute('x2',r2(ux));
+  tip.style.display='block';tip.innerHTML=t;
+  const tw=tip.offsetWidth||120;tip.style.left=Math.max(2,Math.min(b.width-tw-2,px-tw/2))+'px'};
+ const out=()=>{cur.style.display='none';tip.style.display='none'};
+ d.onmousemove=mv;d.onmouseleave=out;d.ontouchstart=mv;d.ontouchmove=e=>{mv(e);e.preventDefault()};d.ontouchend=out}
+/* ---- додаткові примітиви ---- */
+const cvc=v=>v<=4?C('ac'):v<=7?C('am'):C('wn');
+const errc=v=>Math.abs(v)<=2?C('ac'):Math.abs(v)<=6?C('am'):C('wn');
+/* колір за вологістю: сухіше за межу — зелений, вище — синій (сире) */
+function wcol(w,safe){const d=w-safe;
+ return d<=-2?C('ac'):d<=0?C('am'):C('wet')}
+function arrow(x2,y2,a,c,L){const l=L||8;
+ return pg([[x2,y2],[x2-l*Math.cos(a-.4),y2-l*Math.sin(a-.4)],[x2-l*Math.cos(a+.4),y2-l*Math.sin(a+.4)]],c||C('ink'))}
+const AR=(x1,y1,x2,y2,c,w,o)=>ln(x1,y1,x2,y2,c||C('ink'),w||1.4,o||{})+
+ arrow(x2,y2,Math.atan2(y2-y1,x2-x1),c||C('ink'));
+
+/* ================= Камера прес-підбирача у розрізі =================
+   Вид збоку, у масштабі: 1 метр = PX пікселів. Агрегат їде праворуч, валок підходить справа.
+   Порядок малювання: ґрунт → колесо → рама → камера → тюк → підбирач → підписи.
+   st.phase: 'form' | 'signal' | 'wrap' | 'eject' | 'weigh';  st.D — діаметр тюка, м. */
+function chamberSVG(V,Q,st){st=st||{};const w=760,h=440,
+ Dmax=V.a.Dmax,
+ PX=Math.min(96,(h-176)/(Dmax+0.95)),
+ gy=h-66,                                          /* рівень ґрунту */
+ rw=0.45*PX,                                       /* радіус колеса */
+ Rmax=Dmax*PX/2,
+ cx=300,cy=gy-(0.74+Dmax/2)*PX,                    /* центр камери */
+ fy=cy+Rmax+16,                                    /* вісь рами */
+ wx=cx-Rmax*0.14,                                  /* вісь колеса */
+ D=cl(st.D??Q.D??V.ideal.D,V.a.Dmin*0.42,Dmax),
+ Rb=D*PX/2,ph=st.ph||0,phase=st.phase||'form',
+ open_=phase=='eject'?cl(ph*1.8,0,1):(phase=='weigh'?cl(1-ph*2.2,0,1):0),
+ bx=phase=='eject'?cx-Rmax*0.2-ph*(Rmax*1.8):cx,
+ P=(d,r)=>[cx+r*Math.cos(d*Math.PI/180),cy+r*Math.sin(d*Math.PI/180)],
+ hx=cx-Rmax-6,hy=cy-Rmax-4,doorA=-open_*46,
+ DR=o=>({...(o||{}),transform:'rotate('+r2(doorA)+' '+r2(hx)+' '+r2(hy)+')'}),
+ pcx=cx+Rmax+62,pcy=gy-30-((Q.pick&&phase=='weigh')?18:0),pr=23;   /* підбирач */
+let s='';
+/* ---- 1. ґрунт, стерня, валок ---- */
+s+=rc(0,gy,w,h-gy,C('soil'),{opacity:.5})+ln(0,gy,w,gy,C('soil2'),1.6);
+for(let i=0;i<58;i++)s+=ln(8+i*13,gy,10+i*13,gy-5,C('leaf'),1,{opacity:.45});
+{const wy=gy-11,x0=pcx+pr+10;
+ s+=pa('M'+w+' '+wy+' L'+(x0+22)+' '+wy+' Q'+x0+' '+wy+' '+x0+' '+(wy+11)+' L'+w+' '+(wy+11)+' Z',
+   C('windrow'),{opacity:.9});
+ const r0=rng(hash((st.base||'x')+'wr'));
+ for(let i=0;i<46;i++){const x=x0+6+r0()*(w-x0-10);
+  s+=ln(x,wy+1+r0()*9,x+5+r0()*5,wy+r0()*9,C('hay2'),1,{opacity:.7})}
+ s+=T(w-8,wy-12,'валок   λ = '+F(V.lam,2)+' кг/м',{a:'end',s:10.5,c:C('sub'),b:1})}
+/* ---- 2. колесо (позаду рами) ---- */
+s+=ci(wx,gy-rw,rw,C('idle'),{stroke:C('db'),stroke_width:7,opacity:.95});
+s+=ci(wx,gy-rw,rw*0.34,C('steel'));
+for(let a=0;a<360;a+=60)s+=ln(wx,gy-rw,wx+rw*0.62*Math.cos(a*Math.PI/180),gy-rw+rw*0.62*Math.sin(a*Math.PI/180),
+  C('steel'),2,{opacity:.55});
+/* ---- 3. рама й дишло ---- */
+s+=rc(cx-Rmax-12,fy-7,2*Rmax+28,14,C('steel'),{rx:4});
+s+=ln(cx+Rmax+10,fy-3,w-30,fy-58,C('steel'),8,{stroke_linecap:'round'});
+s+=T(w-28,fy-64,'до трактора →',{a:'end',s:10.5,c:C('sub'),b:1});
+/* ---- 4. тензодатчики на рамі, підпис у вільному полі ліворуч ---- */
+{const ys=fy-22;
+ for(const dx of [-Rmax*0.88,Rmax*0.58,Rmax*0.95]){
+  s+=ln(cx+dx,ys+13,cx+dx,fy-7,C('ac'),2.4);
+  s+=rc(cx+dx-11,ys,22,13,C('pn2'),{stroke:C('ac'),stroke_width:1.9,rx:2})}
+ s+=ln(cx-Rmax*0.85,ys+6,cx-Rmax-46,ys+6,C('ac'),1.2,dash(3,3));
+ s+=T(cx-Rmax-50,ys+3,V.a.cells+' тензо-',{a:'end',s:10,c:C('ac'),b:1});
+ s+=T(cx-Rmax-50,ys+15,'датчики',{a:'end',s:10,c:C('ac'),b:1})}
+/* ---- 5. камера: нерухома частина й задні двері ---- */
+{let d='';for(let a=-58;a<=238;a+=5){const p=P(a,Rmax+9);d+=(d?'L':'M')+r2(p[0])+' '+r2(p[1])}
+ s+=pa(d,'none',{stroke:C('steel'),stroke_width:8,stroke_linecap:'round'})}
+{let d='';for(let a=238;a<=302;a+=5){const p=P(a,Rmax+9);d+=(d?'L':'M')+r2(p[0])+' '+r2(p[1])}
+ s+=pa(d,'none',DR({stroke:C('steel'),stroke_width:8,stroke_linecap:'round'}))}
+for(let a=-60;a<300;a+=20){const back=(a>238&&a<302),p=P(a,Rmax+9);
+ s+=ci(p[0],p[1],5,C('pn2'),back?DR({stroke:C('steel'),stroke_width:1.5}):{stroke:C('steel'),stroke_width:1.5})}
+if(open_>0.1)s+=T(hx-10,hy+8,'задні двері',{a:'end',s:10,c:C('am'),b:1});
+/* ---- 6. тюк ---- */
+{const spin=ph*360*(phase=='form'?1.6:phase=='wrap'?3:phase=='eject'?2:0);
+ s+=ci(bx,cy,Rb,C('bale'),{stroke:C('hay2'),stroke_width:1.6});
+ let d='';const turns=Math.max(3,Math.round(D*5));
+ for(let t=0;t<=turns*Math.PI*2;t+=0.16){const rr=Rb*(0.14+0.86*t/(turns*Math.PI*2)),
+  xx=bx+rr*Math.cos(t+spin*Math.PI/180),yy=cy+rr*Math.sin(t+spin*Math.PI/180);
+  d+=(d?'L':'M')+r2(xx)+' '+r2(yy)}
+ s+=pa(d,'none',{stroke:C('hay2'),stroke_width:1.2,opacity:.5});
+ if(phase=='wrap'||phase=='eject'||phase=='weigh'){
+  const full=Q.turns||V.turnsOpt,nt=phase=='wrap'?cl(ph*full,0,full):full,
+   frac=cl(nt/Math.max(0.1,full),0,1);
+  for(let k=0;k<3;k++){const a0=spin+k*120,a1=a0+358*frac;let dd='';
+   for(let a=a0;a<=a1;a+=6){const q=[bx+(Rb-2)*Math.cos(a*Math.PI/180),cy+(Rb-2)*Math.sin(a*Math.PI/180)];
+    dd+=(dd?'L':'M')+r2(q[0])+' '+r2(q[1])}
+   if(dd)s+=pa(dd,'none',{stroke:C('net'),stroke_width:1.7,opacity:.9})}}
+ s+=T(bx,cy-2,'D = '+F(D,2)+' м',{a:'middle',s:12.5,b:1,c:C('db')});
+ s+=T(bx,cy+15,F(r1(baleMass(V,{...Q,D}).m))+' кг',{a:'middle',s:11,c:C('db')})}
+/* ---- 7. підбирач і канал подачі ---- */
+{const lift=(Q.pick&&phase=='weigh');
+ s+=pg([[cx+Rmax*0.50,cy+Rmax-6],[pcx-12,pcy-pr-4],[pcx+6,pcy-pr+16],[cx+Rmax*0.70,cy+Rmax+12]],
+   C('hayl'),{stroke:C('steel'),stroke_width:1.8});
+ s+=ci(pcx,pcy,pr,C('pn2'),{stroke:C('steel'),stroke_width:2.2});
+ for(let a=0;a<360;a+=30){const t=a*Math.PI/180+ph*5;
+  s+=ln(pcx+pr*Math.cos(t),pcy+pr*Math.sin(t),pcx+(pr+9)*Math.cos(t),pcy+(pr+9)*Math.sin(t),C('steel'),1.8)}
+ s+=ci(pcx+pr+12,gy-8,8,C('db'),{stroke:C('steel'),stroke_width:1.4});
+ s+=T(pcx+2,pcy-pr-22,'підбирач'+(lift?' — піднято':''),{a:'middle',s:10.5,c:lift?C('ac'):C('sub'),b:1})}
+/* ---- 8. потік матеріалу ---- */
+if(phase=='form'||phase=='signal'){
+ const ax=pcx-14,ay=pcy-pr-4,bx2=cx+Rmax*0.60,by2=cy+Rmax*0.55;
+ for(let i=0;i<7;i++){const t=((i/7)+ph)%1,xx=ax+(bx2-ax)*t,yy=ay+(by2-ay)*t;
+  s+=ln(xx,yy,xx+8,yy+2,C('hay'),2.6,{opacity:.95})}}
+/* ---- 9. підписи ---- */
+{const nm={form:'1. ФОРМУВАННЯ',signal:'2. СИГНАЛ «ТЮК ГОТОВИЙ»',wrap:'3. ОБВ’ЯЗУВАННЯ СІТКОЮ',
+   eject:'4. ВИШТОВХУВАННЯ',weigh:'5. ЗВАЖУВАННЯ І ЗАПИС'}[phase],
+  txt={form:'матеріал намотується шарами, діаметр росте',
+   signal:'діаметр досяг заданого — трактор зупиняється',
+   wrap:'подається сітка, агрегат стоїть',
+   eject:'задні двері відчиняються, тюк виходить',
+   weigh:'різниця ваги до й після виштовхування = маса тюка'}[phase];
+ s+=rc(12,12,300,44,C('pn2'),{rx:6,stroke:C('ln'),stroke_width:1.2});
+ s+=T(22,31,nm,{s:12.5,b:1,c:C('ink')})+T(22,47,txt,{s:10,c:C('sub')})}
+if(phase=='wrap'){const full=Q.turns||V.turnsOpt;
+ s+=T(12,74,'витків сітки: '+F(full,1),{s:10.5,c:C('net'),b:1})}
+s+=T(w-8,h-10,'масштаб '+F(r1(PX))+' px на 1 м',{a:'end',s:9.5,c:C('sub')});
+return'<div class="fig"><div class="sx">'+sv(w,h)[0]+s+sv(w,h)[1]+'</div>'+
+ (st.cap?'<div class="cap">'+st.cap+'</div>':'')+'</div>'}
+
+/* ================= Стрічка фаз циклу =================
+   П’ять маленьких кадрів: що відбувається в камері на кожній фазі. */
+function phasesSVG(V,Q,o){o=o||{};const n=5,cw=176,w=n*cw,h=256,
+ Dset=cl(Q.D??V.ideal.D,V.a.Dmin,V.a.Dmax),
+ PX=(cw-64)/V.a.Dmax,Rmax=V.a.Dmax*PX/2,
+ ph=['form','signal','wrap','eject','weigh'],
+ nm=['1. Формування','2. Сигнал','3. Обв’язування','4. Виштовхування','5. Зважування'],
+ tx=['діаметр росте','трактор стає','подається сітка','двері відчиняються','різниця ваги'],
+ DD=[V.a.Dmin*0.55,Dset,Dset,Dset,Dset];
+let s='';
+ph.forEach((p,i)=>{const cx=i*cw+cw/2,cy=122,Rb=DD[i]*PX/2,
+  open_=p=='eject'?0.58:0,
+  bx=p=='eject'?cx-Rmax*0.46:cx,
+  P=(d,r)=>[cx+r*Math.cos(d*Math.PI/180),cy+r*Math.sin(d*Math.PI/180)],
+  hx=cx-Rmax-5,hy=cy-Rmax-3,doorA=-open_*48,
+  DR=q=>({...(q||{}),transform:'rotate('+r2(doorA)+' '+r2(hx)+' '+r2(hy)+')'});
+ if(i)s+=ln(i*cw,14,i*cw,h-28,C('ln'),1,dash(4,4));
+ s+=T(cx,26,nm[i],{a:'middle',s:11,b:1,c:C('ink')});
+ s+=T(cx,41,tx[i],{a:'middle',s:9.5,c:C('sub')});
+ /* камера */
+ {let d='';for(let a=-58;a<=238;a+=6){const q=P(a,Rmax+7);d+=(d?'L':'M')+r2(q[0])+' '+r2(q[1])}
+  s+=pa(d,'none',{stroke:C('steel'),stroke_width:5.5,stroke_linecap:'round'})}
+ {let d='';for(let a=238;a<=302;a+=6){const q=P(a,Rmax+7);d+=(d?'L':'M')+r2(q[0])+' '+r2(q[1])}
+  s+=pa(d,'none',DR({stroke:C('steel'),stroke_width:5.5,stroke_linecap:'round'}))}
+ /* тюк */
+ s+=ci(bx,cy,Rb,C('bale'),{stroke:C('hay2'),stroke_width:1.4});
+ let dd='';const turns=Math.max(3,Math.round(DD[i]*5));
+ for(let t=0;t<=turns*Math.PI*2;t+=0.2){const rr=Rb*(0.14+0.86*t/(turns*Math.PI*2));
+  dd+=(dd?'L':'M')+r2(bx+rr*Math.cos(t))+' '+r2(cy+rr*Math.sin(t))}
+ s+=pa(dd,'none',{stroke:C('hay2'),stroke_width:1,opacity:.5});
+ if(p=='wrap'||p=='eject'||p=='weigh')
+  for(let k=0;k<3;k++){const a0=k*120,a1=a0+(p=='wrap'?250:358);let d2='';
+   for(let a=a0;a<=a1;a+=7){d2+=(d2?'L':'M')+r2(bx+(Rb-2)*Math.cos(a*Math.PI/180))+' '+r2(cy+(Rb-2)*Math.sin(a*Math.PI/180))}
+   s+=pa(d2,'none',{stroke:C('net'),stroke_width:2.1,opacity:.95})}
+ s+=T(bx,cy+3,(i?'D = ':'D → ')+F(DD[i],2),{a:'middle',s:10.5,b:1,c:C('db')});
+ /* подача матеріалу / ваги */
+ if(p=='form'||p=='signal'){const ax=cx+Rmax+18,ay=cy+Rmax+4;
+  for(let j=0;j<4;j++)s+=ln(ax-j*8,ay-j*5,ax-j*8-6,ay-j*5+2,C('hay'),2.2)}
+ if(p=='weigh'){for(const dx of [-Rmax*0.6,0,Rmax*0.6])
+   s+=rc(cx+dx-8,cy+Rmax+14,16,10,C('pn2'),{stroke:C('ac'),stroke_width:1.6,rx:2});
+  s+=T(cx,cy+Rmax+38,'ваги',{a:'middle',s:9.5,c:C('ac'),b:1})}
+ if(p=='signal')s+=T(cx,cy+Rmax+26,'СТОП',{a:'middle',s:11,b:1,c:C('hot')});
+ if(p=='eject')s+=T(cx,cy+Rmax+26,'тюк виходить',{a:'middle',s:9.5,c:C('sub')})});
+s+=T(w/2,h-10,'Між фазами 2 і 5 агрегат стоїть: саме тому зважування не залежить від руху.',
+ {a:'middle',s:10,c:C('sub')});
+return'<div class="fig"><div class="sx">'+sv(w,h)[0]+s+sv(w,h)[1]+'</div>'+
+ (o.cap?'<div class="cap">'+o.cap+'</div>':'')+'</div>'}
+
+/* ================= Зважування на схилі ================= */
+function slopeSVG(V,m,th,o){o=o||{};const w=760,h=300,PX=46;
+const cos=Math.cos(th*Math.PI/180);
+let s=rc(0,0,w,h,C('pn2'));
+/* два кадри: абсолютний і різницевий */
+const panel=(x0,title,kind)=>{let g='';
+ const bx=x0+170,by=150,L=130;
+ /* схил */
+ const rad=th*Math.PI/180;
+ g+=pa('M'+(x0+24)+' '+(by+70)+' L'+(x0+24+L*2)+' '+(by+70-L*2*Math.tan(rad))+' L'+(x0+24+L*2)+' '+(by+96)+' L'+(x0+24)+' '+(by+96)+' Z',
+   C('soil'),{opacity:.5});
+ g+=ln(x0+24,by+70,x0+24+L*2,by+70-L*2*Math.tan(rad),C('soil2'),2);
+ g+=ln(x0+24,by+70,x0+24+L*2,by+70,C('ln'),1,dash(4,4));
+ g+=pa('M'+(x0+64)+' '+(by+70)+' A40 40 0 0 0 '+(x0+64*1)+' '+(by+70)+'','none',{});
+ g+=T(x0+52,by+62,'θ = '+F(th,1)+'°',{s:10.5,b:1,c:C('sub')});
+ /* машина на схилі */
+ const mx=x0+150,my=by+70-(mx-(x0+24))*Math.tan(rad)-30,rot=-th;
+ g+='<g transform="rotate('+r2(rot)+' '+r2(mx)+' '+r2(my)+')">';
+ g+=rc(mx-54,my-26,108,30,C('steel'),{rx:5});
+ g+=ci(mx-30,my+10,11,C('db'))+ci(mx+30,my+10,11,C('db'));
+ g+=ci(mx+6,my-42,22,C('bale'),{stroke:C('hay2'),stroke_width:1.4});
+ g+=T(mx+6,my-39,'m',{a:'middle',s:11,b:1,c:C('db')});
+ /* вектори: вага вниз, вимірювана складова вздовж осі датчика */
+ g+=ln(mx,my+4,mx,my+44,C('hot'),2.2)+arrow(mx,my+46,Math.PI/2,C('hot'));
+ g+=T(mx+6,my+42,'вимірює  M·g·cos θ',{s:10,c:C('hot')});
+ g+='</g>';
+ /* справжня вертикаль */
+ g+=ln(mx,my+4,mx,my+58,C('ink'),1.4,dash(4,3))+T(mx-6,my+56,'вертикаль',{a:'end',s:9.5,c:C('sub')});
+ /* результат */
+ const Mm=V.a.Mm,
+  showAbs=(Mm+m)*cos-Mm, showDif=m*cos,
+  show=kind=='abs'?showAbs:showDif, err=m-show;
+ g+=rc(x0+16,18,330,76,C('db'),{rx:6});
+ g+=T(x0+30,38,title,{s:11.5,b:1,c:C('df')});
+ g+=T(x0+30,58,(kind=='abs'?'від показу на схилі віднімають тару з рівного:':'віднімають показ на тому самому місці:'),{s:9.5,c:C('dd')});
+ g+=T(x0+30,76,'показує '+F(r1(show),1)+' кг замість '+F(r1(m),1),{s:11,b:1,c:C('df')});
+ g+=T(x0+336,76,(err>0?'−':'+')+F(r1(Math.abs(err)),1)+' кг  ('+F(r1(100*Math.abs(err)/m),1)+' %)',
+  {a:'end',s:11.5,b:1,c:Math.abs(err)/m>0.05?'#FF7A5C':'#9FD39A'});
+ return g};
+s+=panel(8,'Абсолютний метод','abs');
+s+=panel(386,'Різницевий метод','dif');
+s+=ln(380,14,380,h-10,C('ln'),1,dash(5,4));
+return'<div class="fig"><div class="sx">'+sv(w,h)[0]+s+sv(w,h)[1]+'</div>'+
+ (o.cap?'<div class="cap">'+o.cap+'</div>':'')+'</div>'}
+
+/* ================= Зупинка після сигналу ================= */
+function stopSVG(V,Q,o){o=o||{};const w=760,h=240,
+ dL=stopLen(Q.v,Q.tim?V.TrTim:V.Tr,V.acc),
+ dm=overMass(V.lam,dL),
+ Lr=Q.v/3.6*(Q.tim?V.TrTim:V.Tr),Lb_=dL-Lr,
+ PX=cl(430/Math.max(1.2,dL),18,140),
+ x0=190,gy=150;
+let s=rc(0,0,w,h,C('pn2'));
+/* валок */
+s+=rc(0,gy-6,w,12,C('windrow'),{opacity:.85});
+{const r0=rng(hash(V.id+'st'));
+ for(let i=0;i<70;i++){const x=6+r0()*(w-12);s+=ln(x,gy-4+r0()*8,x+5,gy-5+r0()*8,C('hay2'),1,{opacity:.7})}}
+/* сигнал і зупинка */
+const xs=x0,xr=x0+Lr*PX,xe=x0+dL*PX;
+s+=rc(xs,gy-6,Math.min(xe,w)-xs,12,C('hot'),{opacity:.45});
+s+=ln(xs,gy-70,xs,gy+40,C('ac'),2)+T(xs-6,gy-74,'сигнал «тюк готовий»',{a:'end',s:10.5,b:1,c:C('ac')});
+s+=ln(xr,gy-46,xr,gy+30,C('am'),1.6,dash(4,3))+T(xr+5,gy-50,'педаль',{s:10,c:C('am')});
+s+=ln(xe,gy-70,xe,gy+40,C('ink'),2)+T(xe+6,gy-74,'агрегат зупинився',{s:10.5,b:1});
+s+=dimH(xs,xr,gy+56,'реакція  '+F(Lr,2)+' м',C('am'));
+s+=dimH(xr,xe,gy+56,'гальмування  '+F(Lb_,2)+' м',C('ink'));
+s+=dimH(xs,xe,gy+84,'ΔL = '+F(dL,2)+' м   →   Δm = λ·ΔL = '+F(dm,1)+' кг зайвого матеріалу',C('hot'));
+/* трактор з пресом */
+{const tx=cl(xe+56,xe+56,w-30);
+ s+=rc(tx-26,gy-44,46,24,C('steel'),{rx:4})+ci(tx-14,gy-16,10,C('db'))+ci(tx+10,gy-16,10,C('db'));
+ s+=ci(tx-62,gy-30,20,C('bale'),{stroke:C('hay2'),stroke_width:1.3});
+ s+=pg([[tx+22,gy-32],[tx+34,gy-38],[tx+34,gy-26]],C('steel'))}
+s+=T(12,26,'Швидкість '+F(Q.v,1)+' км/год · запізнення '+F(Q.tim?V.TrTim:V.Tr,2)+' с ('+
+ (Q.tim?'TIM Auto Stop':'оператор')+') · уповільнення '+F(V.acc,1)+' м/с²',{s:11,b:1,c:C('sub')});
+s+=T(w-10,h-8,'масштаб '+F(r1(PX))+' px на 1 м',{a:'end',s:9.5,c:C('sub')});
+return'<div class="fig"><div class="sx">'+sv(w,h)[0]+s+sv(w,h)[1]+'</div>'+
+ (o.cap?'<div class="cap">'+o.cap+'</div>':'')+'</div>'}
+
+/* ================= Карта вологості загінки ================= */
+function mapSVG(V,p,o){o=o||{};const w=760,h=318,M=46,
+ ys=[...new Set(p.bales.map(b=>b.y))].sort((a,b)=>a-b),
+ nw=ys.length,
+ fw=w-M-16,fh=Math.min(170,nw*34),
+ PXx=fw/V.FL,rowH=fh/nw;
+let s=rc(0,0,w,h,C('pn2'));
+s+=T(M,26,'Загінка: '+nw+' валки, '+p.N+' тюків, '+F(p.area,2)+' га',{s:11.5,b:1,c:C('sub')});
+/* фон — карта вологості */
+const STEP=14;
+for(let i=0;i<nw;i++){const y=48+i*rowH;
+ for(let x=0;x<V.FL;x+=STEP){const ww=wField(V,x+STEP/2,ys[i]);
+  s+=rc(M+x*PXx,y,STEP*PXx+0.6,rowH-3,wcol(ww,V.wSafe),{opacity:cl(.18+Math.abs(ww-V.wSafe)/14,.14,.72)})}
+ s+=T(M-6,y+rowH/2+3,'валок '+(i+1),{a:'end',s:9.5,c:C('sub')})}
+/* тюки */
+for(const b of p.bales){const i=ys.indexOf(b.y),y=48+i*rowH+rowH/2;
+ const x=M+b.x*PXx;
+ s+=ci(x,y,rowH*0.30,b.flag?C('wet'):C('bale'),{stroke:b.wet?C('hot'):C('hay2'),stroke_width:b.wet?2:1});
+ if(b.wet&&!b.flag)s+=T(x,y-rowH*0.42,'!',{a:'middle',s:12,b:1,c:C('hot')})}
+/* шкала довжини */
+{const yb=48+fh+10;
+ s+=ln(M,yb,M+V.FL*PXx,yb,C('sub'),1);
+ for(let i=0;i<=4;i++){const x=M+V.FL*PXx*i/4;
+  s+=ln(x,yb,x,yb+5,C('sub'),1)+T(x,yb+17,F(Math.round(V.FL*i/4))+' м',{a:'middle',s:9.5,c:C('sub')})}}
+/* легенда */
+{const lg=[['сухіше за межу',C('ac')],['біля межі',C('am')],['вологість понад '+F(V.wSafe)+' %',C('wet')]];
+ s+=lg.map((x,i)=>rc(M+i*168,h-50,11,11,x[1],{rx:2,opacity:.55})+T(M+i*168+16,h-40,x[0],{s:9.5,c:C('sub')})).join('');
+ s+=ci(M+7,h-21,6,C('wet'),{stroke:C('hot'),stroke_width:2})+T(M+18,h-17,'тюк позначено терміналом',{s:9.5,c:C('sub')});
+ s+=T(M+196,h-17,'!',{s:12,b:1,c:C('hot')})+T(M+204,h-17,'— вологий, але терміналом не позначений',{s:9.5,c:C('sub')})}
+s+=T(w-10,26,'вологість '+F(Math.min(...p.bales.map(b=>b.w)),1)+'…'+F(Math.max(...p.bales.map(b=>b.w)),1)+' %',
+ {a:'end',s:10.5,c:C('sub')});
+return'<div class="fig"><div class="sx">'+sv(w,h)[0]+s+sv(w,h)[1]+'</div>'+
+ (o.cap?'<div class="cap">'+o.cap+'</div>':'')+'</div>'}
+
+/* ================= Маси тюків ================= */
+function massSVG(V,p,o){o=o||{};const N=p.N,
+ w=Math.max(460,70+N*Math.min(20,640/N)),h=240,
+ bw=Math.min(16,(w-90)/N),gap=(w-80-N*bw)/Math.max(1,N-1),
+ base=176,top=42,mx=Math.max(...p.bales.map(b=>b.m))*1.12;
+let s=rc(0,0,w,h,C('pn2'));
+const Y=v=>base-(base-top)*cl(v/mx,0,1);
+s+=ln(62,base,w-14,base,C('ln'),1.2);
+for(let i=0;i<=4;i++){const v=mx*i/4;
+ s+=ln(62,Y(v),w-14,Y(v),C('ln'),.6,dash(3,4))+T(58,Y(v)+3.5,F(Math.round(v)),{a:'end',s:9,c:C('sub')})}
+/* ціль і допуск ±5 % */
+s+=rc(62,Y(V.mSet*1.05),w-76,Y(V.mSet*0.95)-Y(V.mSet*1.05),C('ac'),{opacity:.16});
+s+=ln(62,Y(V.mSet),w-14,Y(V.mSet),C('ac'),1.6,dash(6,4));
+s+=T(64,top-18,'цільова маса '+TH(V.mSet)+' кг, допуск ±5 %',{s:10,b:1,c:C('ac')});
+p.bales.forEach((b,i)=>{const px=66+i*(bw+gap);
+ s+=rc(px,Y(b.m),bw,base-Y(b.m),b.wet?C('wet'):C('bale'),{rx:1.5});
+ if(b.flag)s+=rc(px,Y(b.m)-5,bw,3,C('hot'),{rx:1})});
+s+=T(10,top-18,'маса, кг',{s:9.5,c:C('sub')});
+s+=T(66,base+17,'1',{s:9,c:C('sub')})+T(66+(N-1)*(bw+gap)+bw,base+17,String(N),{a:'end',s:9,c:C('sub')});
+s+=T((66+66+(N-1)*(bw+gap)+bw)/2,base+17,'номер тюка в проході',{a:'middle',s:9.5,c:C('sub')});
+s+=T(66,h-14,'середня '+F(p.mu,1)+' кг · σ = '+F(p.sd,1)+' кг · CV = '+F(p.cv,1)+' %',{s:10.5,b:1,c:cvc(p.cv)});
+s+=T(w-14,h-14,'сині — вологі, риска згори — позначені терміналом',{a:'end',s:9,c:C('sub')});
+return'<div class="fig"><div class="sx">'+sv(w,h)[0]+s+sv(w,h)[1]+'</div>'+
+ (o.cap?'<div class="cap">'+o.cap+'</div>':'')+'</div>'}
+/* ===== Екрани: спільні дрібниці ===== */
+const H=(t,k)=>'<h2>'+esc(t)+'</h2>'+(k?'<p class="hint">'+k+'</p>':'');
+const inp=(k,lab,ph,o)=>{o=o||{};const id='i_'+k.replace(/\./g,'_');
+ return(lab?'<label for="'+id+'">'+lab+'</label>':'')+
+ '<input id="'+id+'" type="text" inputmode="'+(o.im||'decimal')+'" value="'+vs(get(k))+
+ '" placeholder="'+esc(ph||'')+'" oninput="set(\''+k+'\',this.value)">'};
+const get=k=>k.split('.').reduce((o,x)=>o==null?null:o[x],S);
+function set(k,v){const p=k.split('.');let o=S;for(let i=0;i<p.length-1;i++)o=o[p[i]];
+ o[p[p.length-1]]=v;save();clearTimeout(set.t);set.t=setTimeout(R,420)}
+function setN(k,v){const p=k.split('.');let o=S;for(let i=0;i<p.length-1;i++)o=o[p[i]];
+ o[p[p.length-1]]=v;save();R()}
+function chk(val,ref,tolPct,tolAbs){const x=n(val);if(x==null||val==='')return'';
+ const t=Math.max(tolAbs??0,Math.abs(ref)*(tolPct??.02));
+ return Math.abs(x-ref)<=t?' <span class="ok" title="збігається з розрахунком">✓</span>'
+  :' <span class="no" title="перевірте розрахунок">✗</span>'}
+const sel=(k,opts,lab,cur)=>(lab?'<label>'+lab+'</label>':'')+'<select onchange="setN(\''+k+'\',this.value)">'+
+ opts.map(o=>{const v=Array.isArray(o)?o[0]:o,t=Array.isArray(o)?o[1]:o;
+ return'<option value="'+esc(v)+'"'+(String(cur)==String(v)?' selected':'')+'>'+esc(t)+'</option>'}).join('')+'</select>';
+const kvc=a=>'<div class="kv">'+a.map(x=>'<div><b'+(x[3]?' class="'+x[3]+'"':'')+'>'+x[1]+'</b><span>'+
+ esc(x[0])+'</span>'+(x[2]?'<em>'+x[2]+'</em>':'')+'</div>').join('')+'</div>';
+const gsc=a=>'<div class="gs">'+a.map(x=>'<div class="gt"><b'+(x[2]?' style="color:'+x[2]+'"':'')+'>'+x[1]+
+ '</b><span>'+esc(x[0])+'</span></div>').join('')+'</div>';
+const recBox=i=>'<div class="rb"><b>Запишіть у протокол (пункт '+i+'):</b><br>'+esc(rec(i))+'</div>';
+const nb=(a,b)=>'<div class="nb">'+(a?'<button class="g" onclick="go('+a[0]+')">← '+esc(a[1])+'</button>':'<span></span>')+
+ (b?'<button class="p" onclick="go('+b[0]+')">'+esc(b[1])+' →</button>':'<span></span>')+'</div>';
+const tr=(a,b)=>'<tr><th>'+a+'</th><td>'+b+'</td></tr>';
+const gc=(v,lo,hi,lab,u,b)=>'<div class="gc">'+gauge(v,lo,hi,lab,u,b)+'</div>';
+const fixBox=(k,t)=>'<label><input type="checkbox" '+(S[k]?'checked':'')+
+ ' onchange="setN(\''+k+'\',this.checked?1:0)"> '+esc(t)+'</label>';
+
+/* ---------- 0. Реєстрація ---------- */
+function scr0(){const d=S.reg||{};
+let s=H('Реєстрація та індивідуальний варіант',
+ 'Варіант визначається групою, прізвищем та номером у журналі. Той самий підпис завжди дає той самий варіант — його можна відтворити.');
+s+='<div class="r3">'+
+ '<div><label for="rg">Група</label><input id="rg" type="text" value="'+vs(d.group)+'" oninput="rset(\'group\',this.value)" placeholder="АІ-31"></div>'+
+ '<div><label for="rn">Прізвище та ім’я</label><input id="rn" type="text" value="'+vs(d.name)+'" oninput="rset(\'name\',this.value)" placeholder="Іваненко Іван"></div>'+
+ '<div><label for="rk">№ у журналі</label><input id="rk" type="text" inputmode="numeric" value="'+vs(d.num)+'" oninput="rset(\'num\',this.value)" placeholder="7"></div></div>';
+s+='<button class="p" onclick="mkvar()">Отримати варіант</button>'+
+   (S.reg?' <button class="g" onclick="wipe()">Очистити все й почати заново</button>':'');
+if(V){s+='<h3>Варіант '+esc(V.id)+'</h3>';
+ s+='<div class="tw"><table class="t2">'+
+  tr('Прес-підбирач',esc(V.a.p)+' — камера змінного об’єму, ширина тюка W = '+F(V.a.W,2)+
+    ' м, діаметр '+F(V.a.Dmin,2)+'…'+F(V.a.Dmax,2)+' м')+
+  tr('Маса машини','M_маш = '+TH(V.a.Mm)+' кг; '+V.a.cells+' тензодатчики; еталонний вантаж для повірки '+TH(V.ctrlM)+' кг')+
+  tr('Трактор',esc(V.trk))+
+  tr('Матеріал',esc(V.crop)+'; безпечна вологість зберігання — не вище '+F(V.wSafe)+' %')+
+  tr('Валок','урожайність вологої маси '+TH(V.U)+' кг/га; у валок згрібається смуга '+F(V.b,1)+
+    ' м → погонна маса λ = '+F(V.lam,2)+' кг/м')+
+  tr('Поле',F(V.S)+' га ('+TH(V.FL)+' × '+TH(V.FW)+' м); нахил робочої ділянки θ = '+F(V.theta,1)+'°')+
+  tr('Режим','планова швидкість '+F(V.vp,1)+' км/год; цільова маса тюка '+TH(V.mSet)+
+    ' кг (навантажувач бере до '+TH(V.mLim)+' кг)')+
+  tr('Запізнення','реакція оператора T_затр = '+F(V.Tr,2)+' с; TIM Auto Stop — '+F(V.TrTim,2)+
+    ' с; уповільнення a = '+F(V.acc,1)+' м/с²')+
+  tr('Сітка','потрібно '+F(V.turnsOpt,1)+' витка на тюк')+
+  tr('Економіка','за сезон '+TH(V.Csez)+' т вологої маси; ціна сухої речовини '+F(V.Cdm,2)+
+    ' грн/кг; машино-година '+TH(V.Chour)+' грн; комплект автоматики '+TH(V.Csys)+' грн')+
+  '</table></div>';
+ s+='<details class="inf"><summary>Що саме автоматизують у прес-підбирачі й навіщо</summary>'+
+  '<p>Тюк — це одиниця обліку й зберігання корму. Поки його не зважили й не виміряли вологість, невідомо ні скільки корму заготовлено, ні чи доживе він до зими. Облік «за кількістю тюків» нічого не говорить: тюк може важити 250 кг, а може 400.</p>'+
+  '<p>Тому автоматика прес-підбирача робить три різні речі. <b>Вимірює</b> — вологість двома датчиками в стінці камери і масу трьома тензодатчиками. <b>Керує циклом</b> — сигналізує про готовий тюк, зупиняє трактор (TIM Auto Stop), відчиняє й зачиняє задні двері. <b>Записує</b> — кожен тюк із масою, вологістю й координатою потрапляє у Task Doc у форматі ISO XML.</p>'+
+  '<p>У цій роботі ви по черзі перевірите кожну з них: спершу повірите датчики, потім налаштуєте формування тюка, розберетеся, чому на схилі треба зважувати по-різному, порахуєте шлях зупинки й нарешті проїдете загінку з обліком сухої речовини.</p></details>'}
+s+=nb(null,V?[1,'Датчики й калібрування']:null);
+return s}
+function rset(k,v){S.reg=S.reg||{};S.reg[k]=v;save()}
+function mkvar(){const d=S.reg||{};
+ if(!d.group||!d.name||!String(d.num||'').trim())return alert('Заповніть групу, прізвище та номер у журналі.');
+ const keep={...d};S=blank();S.reg=keep;V=mkV(keep);save();R()}
+function wipe(){if(!confirm('Видалити всі введені дані й результати?'))return;
+ try{localStorage.removeItem(KEY)}catch(e){}S=blank();V=null;save();R()}
+
+/* ---------- 1. Датчики й калібрування ---------- */
+function scr1(){
+let s=H('Крок 1. Повірка датчиків',
+ 'Усе, що система потім порахує — масу сухої речовини, вихід з гектара, розрахунок із підрядником — спирається на два датчики. Якщо вони брешуть, бреше і весь облік. Тому робота починається з їх повірки.');
+
+s+='<h3>1.1. Вологомір проти лабораторної проби</h3>';
+s+='<p class="hint">З різних місць валка беруть '+NPROB+' проби, сушать їх у лабораторії і порівнюють із тим, що показав термінал у момент пресування.</p>';
+s+='<button class="'+(S.probe?'g':'p')+'" onclick="probeGo()">'+(S.probe?'Повторити відбір проб':'Відібрати '+NPROB+' проби й висушити')+'</button>';
+if(S.probe){
+ s+='<div class="tw"><table class="t2 c"><tr><th>Проба</th><th>Лабораторія, %</th><th>Термінал, %</th><th>Різниця, %</th></tr>';
+ for(const p of S.probe)s+='<tr><td>'+p.i+'</td><td>'+F(p.lab,1)+'</td><td>'+F(p.term,1)+'</td>'+
+  '<td style="color:'+(Math.abs(p.term-p.lab)>1?C('wn'):C('ac'))+'">'+F(r1(p.term-p.lab),1)+'</td></tr>';
+ s+='<tr><th colspan="3" style="text-align:right">Середній зсув</th><th>'+F(probeAvg(),1)+'</th></tr></table></div>';
+ s+='<div class="r2"><div>'+inp('bd.wCal','Зсув вологоміра, % абсолютних','наприклад, 3,4')+
+  '<p class="hint">Середнє арифметичне різниць «термінал − лабораторія».'+chk(S.bd.wCal,V.fl.wCal,0,0.6)+'</p></div>'+
+  '<div><label>Поправка в терміналі</label>'+fixBox('calW','Внести поправку у вологомір')+
+  '<p class="hint">'+(S.calW?'Після поправки термінал показує вологість без зсуву.':
+   'Поки поправку не внесено, кожен тюк обліковується з похибкою '+F(V.fl.wCal,1)+' % вологості.')+'</p></div></div>';
+ {const wTest=V.wAvg,dmT=100*(1-wTest/100),dmS=100*(1-(wTest+V.fl.wCal)/100);
+  s+='<p class="note">Що це означає для обліку: при справжній вологості '+F(wTest,1)+
+   ' % у 100 кг тюка міститься '+F(r1(dmT),1)+' кг сухої речовини, а з некаліброваним вологоміром система запише '+
+   F(r1(dmS),1)+' кг — різниця '+F(r1(Math.abs(dmT-dmS)),1)+' кг на кожні 100 кг.</p>'}}
+
+s+='<h3>1.2. Контрольне зважування</h3>';
+s+='<p class="hint">На порожню машину кладуть вантаж відомої маси '+TH(V.ctrlM)+' кг і порівнюють із показом терміналу. Зважують на рівному майданчику, щоб виключити вплив схилу.</p>';
+s+='<button class="'+(S.ctrlDone?'g':'p')+'" onclick="ctrlGo()">'+(S.ctrlDone?'Повторити зважування':'Зважити еталонний вантаж')+'</button>';
+if(S.ctrlDone){const e=ctrlErr();
+ s+=kvc([['еталонний вантаж',TH(V.ctrlM)+' кг',''],
+  ['термінал показує',F(S.ctrlShow,1)+' кг',''],
+  ['похибка',F(e,1)+' кг',F(r1(100*e/V.ctrlM),1)+' % від маси вантажу',Math.abs(e)>V.ctrlM*0.02?'up':'dn']]);
+ s+='<div class="lab-g">'+
+  fixBox('calCell','Виставити нуль тензодатчиків (усунути дрейф)')+
+  fixBox('pick','Піднімати підбирач під час зважування')+'</div>';
+ s+='<p class="hint">Підбирач із опущеними копіювальними колесами частину ваги машини передає на ґрунт, і ця частина змінюється від нерівностей. Виробник піднімає підбирач на час зважування саме тому.</p>'}
+
+s+='<details class="inf"><summary>Чому вологість рахують «за вологою масою»</summary>'+
+ '<p>Вологість w — це частка води в масі тюка: w = m_води / m · 100 %. Тоді сухої речовини в тюку</p>'+
+ '<p style="text-align:center"><b>m_СР = m · (1 − w/100)</b></p>'+
+ '<p>Саме m_СР — те, що згодовують тварині й за що платять. Вода в тюку масу має, а поживності не додає: при 50 % вологості половину маси тюка становить вода.</p>'+
+ '<p>Зверніть увагу на порядок дій: спершу зсув вологоміра, потім нуль ваг. Якщо переплутати, похибка маси «затече» в розрахунок сухої речовини і зсув вологоміра визначити вже не вдасться.</p></details>';
+s+=recBox(1);
+s+=nb([0,'Реєстрація'],[2,'Формування тюка']);
+return s}
+/* ===== Анімація камери ===== */
+const PHASES=['form','signal','wrap','eject','weigh'];
+const PHDUR={form:5.0,signal:1.0,wrap:2.6,eject:2.0,weigh:1.8};
+const ANI={run:0,t:0,ip:0,last:0,Q:null,cap:''};
+function chamBox(Q,cap){ANI.Q=Q;ANI.cap=cap;
+ return'<div id="ani">'+chamberSVG(V,Q,aniSt())+'</div>'+
+ '<div class="pc"><button class="g sm" onclick="aniTog()" id="anib">'+(ANI.run?'⏸ Пауза':'▶ Пуск циклу')+'</button>'+
+ '<button class="g sm" onclick="aniStep()">Наступна фаза</button>'+
+ '<button class="g sm" onclick="aniRst()">Спочатку</button>'+
+ '<span style="font-size:.82rem;color:'+C('sub')+'" id="anit"></span></div>'}
+function aniSt(){const ph=PHASES[ANI.ip],u=cl(ANI.t/PHDUR[ph],0,1),Q=ANI.Q||QS({});
+ const Dmin=V.a.Dmin*0.45,Dset=cl(Q.D,V.a.Dmin,V.a.Dmax);
+ return{phase:ph,ph:u,base:V.id,cap:ANI.cap,
+  D:ph=='form'?Dmin+(Dset-Dmin)*u:Dset}}
+function aniTog(){ANI.run=!ANI.run;ANI.last=performance.now();
+ const b=document.getElementById('anib');if(b)b.textContent=ANI.run?'⏸ Пауза':'▶ Пуск циклу';
+ if(ANI.run)requestAnimationFrame(aniTick)}
+function aniStep(){ANI.ip=(ANI.ip+1)%PHASES.length;ANI.t=0;aniPaint()}
+function aniRst(){ANI.ip=0;ANI.t=0;aniPaint()}
+function aniPaint(){const e=document.getElementById('ani');if(e&&ANI.Q)e.innerHTML=chamberSVG(V,ANI.Q,aniSt());
+ const t=document.getElementById('anit');
+ if(t){const nm={form:'матеріал намотується шарами, діаметр росте',
+  signal:'діаметр досяг заданого — термінал подає сигнал',
+  wrap:'подається сітка, агрегат стоїть',
+  eject:'задні двері відчиняються, тюк виходить із камери',
+  weigh:'різниця ваги до й після виштовхування — це маса тюка'}[PHASES[ANI.ip]];
+  t.textContent=nm}}
+function aniTick(){if(!ANI.run)return;const e=document.getElementById('ani');if(!e||!ANI.Q){ANI.run=0;return}
+ const now=performance.now(),dt=Math.min(.12,(now-ANI.last)/1000);ANI.last=now;
+ ANI.t+=dt;
+ if(ANI.t>PHDUR[PHASES[ANI.ip]]){ANI.t=0;ANI.ip=(ANI.ip+1)%PHASES.length}
+ aniPaint();requestAnimationFrame(aniTick)}
+
+/* ---------- 2. Формування тюка ---------- */
+function scr2(){const Q=QS({}),b=baleMass(V,Q),rr=ref(),Vb=volOf(Dnow(),V.a.W);
+let s=H('Крок 2. Формування тюка: діаметр, густина, маса',
+ 'У камері зі змінним об’ємом машина набирає тюк до заданого діаметра. Маса при цьому не задається — вона виходить така, яку дасть густина матеріалу. Порахувати її наперед і є завдання цього кроку.');
+s+='<div class="r3"><div>'+inp('D','Заданий діаметр D_set, м','наприклад, '+F(V.ideal.D,2))+
+ '<p class="hint">Межі камери: '+F(V.a.Dmin,2)+'…'+F(V.a.Dmax,2)+' м.'+
+ (DnowRaw()<V.a.Dmin-1e-9||DnowRaw()>V.a.Dmax+1e-9?' <span class="no">поза межами</span>':'')+'</p></div>'+
+ '<div>'+inp('press','Тиск у камері, % уставки','наприклад, '+F(V.ideal.press))+
+ '<p class="hint">Від нього залежить, наскільки щільно вкладається матеріал.</p></div>'+
+ '<div>'+inp('v','Робоча швидкість, км/год','наприклад, '+F(V.vp,1))+
+ '<p class="hint">Вище '+F(V.vOpt,1)+' км/год подача гіршає і густина падає.</p></div></div>';
+
+s+='<h3>2.1. Розрахунок</h3>';
+s+='<div class="r3"><div>'+inp('bd.V','Об’єм тюка V, м³','')+
+ '<p class="hint">V = π·D²·W/4'+chk(S.bd.V,Vb,.02,.01)+'</p></div>'+
+ '<div>'+inp('bd.rho','Густина ρ, кг/м³','')+
+ '<p class="hint">ρ = ρ_СР/(1 − w/100), ρ_СР = '+F(b.rhoDM,1)+' кг/м³ за цього тиску'+chk(S.bd.rho,b.rho,.03,2)+'</p></div>'+
+ '<div>'+inp('bd.m','Маса тюка m, кг','')+
+ '<p class="hint">m = ρ·V'+chk(S.bd.m,b.m,.03,5)+'</p></div></div>';
+s+=gsc([['W — ширина тюка',F(V.a.W,2)+' м'],['w — вологість у валку',F(V.wAvg,1)+' %'],
+ ['цільова маса',TH(V.mSet)+' кг'],['межа навантажувача',TH(V.mLim)+' кг']]);
+s+='<details class="inf"><summary>Чому воду возять задарма, а густину рахують через суху речовину</summary>'+
+ '<p>Прес ущільнює не воду, а стебла. Скільки сухої речовини вміститься в кубометр — визначають тиск у камері, культура й швидкість подачі; позначимо це ρ_СР. Вода сидить у тих самих стеблах і просто додає масу:</p>'+
+ '<p style="text-align:center"><b>ρ = ρ_СР / (1 − w/100)</b></p>'+
+ '<p>Звідси наслідок, який дивує: за одного й того самого діаметра вологіший тюк важчий, хоча корму в ньому стільки ж. При 40 % вологості замість 15 % той самий тюк важчий у (1−0,15)/(1−0,40) = 1,42 раза — і всі ці зайві кілограми це вода.</p>'+
+ '<p>Тому облік за масою тюків без вологості нічого не варта: маса є, а скільки в ній корму — невідомо.</p></details>';
+
+s+='<h3>2.2. Що виходить</h3>';
+s+=kvc([['об’єм',F(b.V,3)+' м³','D = '+F(Dnow(),2)+' м, W = '+F(V.a.W,2)+' м'],
+ ['густина',F(b.rho,1)+' кг/м³','сухої речовини '+F(b.rhoDM,1)+' кг/м³'],
+ ['маса тюка',F(b.m,1)+' кг','ціль '+TH(V.mSet)+' кг',Math.abs(b.m-V.mSet)/V.mSet>.06?'up':'dn'],
+ ['суха речовина',F(b.mDM,1)+' кг',''+F(100*(1-V.wAvg/100))+' % маси']]);
+s+=chartDm();
+s+=chamBox(Q,'Цикл формування тюка в камері зі змінним об’ємом. Натисніть «Пуск циклу», щоб побачити всі п’ять фаз.');
+s+='<div class="concl">'+verdict2(b)+'</div>';
+s+=recBox(2);
+s+=nb([1,'Датчики'],[3,'Зважування на схилі']);
+return s}
+function chartDm(){const pts=[],pts2=[],Q=QS({});
+ for(let D=V.a.Dmin;D<=V.a.Dmax+1e-9;D+=0.01){const b=baleMass(V,{...Q,D:r2(D)});
+  pts.push([r2(D),b.m]);pts2.push([r2(D),b.mDM])}
+ return chart('cdm',[{name:'маса тюка m, кг',color:C('bale'),pts},
+  {name:'суха речовина m_СР, кг',color:C('ac'),pts:pts2}],
+  {h:210,x0:V.a.Dmin,x1:V.a.Dmax,y0:0,xl:'заданий діаметр D_set, м',lgb:1,
+   vl:[[Dnow(),C('ink'),'ваш D'],],bands:[[V.mSet*.95,V.mSet*1.05,C('ac')]]})}
+function verdict2(b){const u=[],D=DnowRaw();
+ if(D<V.a.Dmin-1e-9||D>V.a.Dmax+1e-9)u.push('діаметр '+F(D,2)+' м поза межами камери '+F(V.a.Dmin,2)+'…'+F(V.a.Dmax,2)+' м');
+ if(b.m>V.mLim)u.push('тюк '+F(b.m,1)+' кг важчий за межу навантажувача '+TH(V.mLim)+' кг');
+ if(Math.abs(b.m-V.mSet)/V.mSet>.06)u.push('маса '+F(b.m,1)+' кг відхиляється від цільової '+TH(V.mSet)+
+  ' кг на '+F(r1(100*(b.m-V.mSet)/V.mSet),1)+' % — змініть діаметр або тиск');
+ if(vNow()>V.vOpt+1.5)u.push('швидкість '+F(vNow(),1)+' км/год вища за '+F(V.vOpt,1)+
+  ' — подача нерівна, густина падає на '+F(r1(100*(1-(1-0.010*(vNow()-V.vOpt)))),1)+' %');
+ if(!u.length)return'<b>Налаштовано.</b> Тюк D = '+F(Dnow(),2)+' м дає '+F(b.m,1)+' кг при цільових '+
+  TH(V.mSet)+' кг; у ньому '+F(b.mDM,1)+' кг сухої речовини.';
+ return'<b>Ще не налаштовано.</b><ul><li>'+u.join('</li><li>')+'</li></ul>'}
+
+/* ---------- 3. Зважування на схилі ---------- */
+function scr3(){const b=baleMass(V,QS({})),th=thNow(),rr=ref();
+let s=H('Крок 3. Зважування на схилі: два методи',
+ 'Тензодатчик міряє силу вздовж своєї осі. На схилі машина нахиляється разом із датчиками, і показ зменшується. Наскільки — залежить від того, що саме ви зважуєте.');
+s+='<div class="r2"><div>'+inp('theta','Нахил ділянки θ, градуси','наприклад, '+F(V.theta,1))+
+ '<p class="hint">У варіанті задано '+F(V.theta,1)+'°.</p></div>'+
+ '<div>'+sel('method',['абсолютний','різницевий'],'Метод зважування',S.method)+
+ '<p class="hint">Абсолютний: показ мінус тара, зняту на рівному майданчику. Різницевий: два показання на тому самому місці — до й після виштовхування.</p></div></div>';
+s+=slopeSVG(V,b.m,th,{cap:'Та сама машина на тому самому схилі. Ліворуч із показання віднімають тару, зняту деінде; праворуч — показання, зняте тут-таки кілька секунд тому.'});
+s+='<div class="r2"><div>'+inp('bd.errAbs','Похибка абсолютного методу, кг','')+
+ '<p class="hint">(M_маш + m)·(1 − cos θ)'+chk(S.bd.errAbs,rr.errAbs,.05,1)+'</p></div>'+
+ '<div>'+inp('bd.errDif','Похибка різницевого методу, кг','')+
+ '<p class="hint">m·(1 − cos θ)'+chk(S.bd.errDif,rr.errDif,.05,.4)+'</p></div></div>';
+s+=gsc([['M_маш',TH(V.a.Mm)+' кг'],['m — маса тюка',F(b.m,1)+' кг'],
+ ['cos θ',F(r3(Math.cos(th*Math.PI/180)),3)],['1 − cos θ',F(r3(1-Math.cos(th*Math.PI/180)),3)]]);
+s+='<label for="i_why">Поясніть своїми словами, чому різницевий метод точніший на схилі</label>'+
+ '<input id="i_why" type="text" value="'+vs(S.why)+'" oninput="set(\'why\',this.value)" placeholder="одним реченням">';
+s+='<details class="inf"><summary>Звідки береться різниця між методами</summary>'+
+ '<p>Нехай машина з тюком стоїть на схилі θ. Датчики міряють складову ваги вздовж своєї осі, тобто (M_маш + m)·g·cos θ.</p>'+
+ '<p><b>Абсолютний метод.</b> Із цього показання віднімають масу порожньої машини M_маш, виміряну колись на рівному майданчику. Результат: (M_маш + m)·cos θ − M_маш. Похибка — (M_маш + m)·(1 − cos θ): множник (1 − cos θ) діє на <b>всю</b> масу, разом із трьома тоннами самої машини.</p>'+
+ '<p><b>Різницевий метод.</b> Обидва показання знімають на тому самому місці з проміжком у кілька секунд: до виштовхування (M_маш + m)·cos θ і після M_маш·cos θ. Різниця дорівнює m·cos θ, і похибка — лише m·(1 − cos θ).</p>'+
+ '<p>Відношення похибок дорівнює (M_маш + m)/m. У вашому варіанті це '+F(r1((V.a.Mm+b.m)/b.m),1)+
+ ' раза: машина важча за тюк, і в абсолютному методі вона тягне похибку за собою. Саме тому зважують різницею, а не відніманням тари.</p></details>';
+s+='<div class="concl">'+(S.method=='різницевий'
+ ?'<b>Обрано різницевий метод.</b> На схилі '+F(th,1)+'° похибка становить '+F(r1(rr.errDif),1)+
+  ' кг ('+F(r1(100*rr.errDif/b.m),1)+' % маси тюка) замість '+F(r1(rr.errAbs),1)+' кг в абсолютного.'
+ :'<b>Обрано абсолютний метод.</b> На схилі '+F(th,1)+'° він помиляється на '+F(r1(rr.errAbs),1)+' кг — це '+
+  F(r1(100*rr.errAbs/b.m),1)+' % маси тюка. Різницевий метод на тому самому схилі дав би '+F(r1(rr.errDif),1)+' кг.')+'</div>';
+s+=chartSlope();
+s+=recBox(3);
+s+=nb([2,'Формування тюка'],[4,'Обв’язування й автозупинка']);
+return s}
+function chartSlope(){const b=baleMass(V,QS({})),a=[],d=[];
+ for(let th=0;th<=15.05;th+=0.25){const k=1-Math.cos(th*Math.PI/180);
+  a.push([r2(th),f1(100*(V.a.Mm+b.m)*k/b.m)]);d.push([r2(th),f1(100*k)])}
+ return chart('csl',[{name:'абсолютний метод',color:C('wn'),pts:a},
+  {name:'різницевий метод',color:C('ac'),pts:d}],
+  {h:200,x0:0,x1:15,y0:0,xl:'нахил ділянки θ, градуси',yl:'похибка, % маси тюка',lgb:1,
+   vl:[[thNow(),C('ink'),'ваш схил']],bands:[[0,2,C('ac')]]})}
+/* ---------- 4. Обв’язування й автозупинка ---------- */
+function scr4(){const Q=QS({}),rr=ref(),b=baleMass(V,Q);
+let s=H('Крок 4. Сигнал «тюк готовий», зупинка й сітка',
+ 'Між сигналом і зупинкою агрегат проїжджає кілька метрів, і за цей час у камеру заходить ще матеріал. Якщо це не врахувати, кожен тюк виходить важчим за заданий.');
+s+='<div class="r3"><div><label>Автозупинка TIM Auto Stop</label>'+
+ fixBox('tim','Трактор зупиняється сам після сигналу')+
+ '<p class="hint">Запізнення: оператор — '+F(V.Tr,2)+' с, TIM — '+F(V.TrTim,2)+' с.</p></div>'+
+ '<div><label>Задні двері</label>'+fixBox('autoDoor','Автоматичні задні двері')+
+ '<p class="hint">Відчиняються відразу після обв’язування, зачиняються, коли тюк вийшов.</p></div>'+
+ '<div>'+inp('turns','Витків сітки на тюк','наприклад, '+F(V.turnsOpt,1))+
+ '<p class="hint">Для «'+esc(V.crop)+'» потрібно '+F(V.turnsOpt,1)+' витка.</p></div></div>';
+s+=stopSVG(V,Q,{cap:'Від сигналу до повної зупинки агрегат проходить шлях реакції плюс шлях гальмування. Увесь матеріал на цьому відрізку встигає зайти в камеру.'});
+s+='<div class="r3"><div>'+inp('bd.dL','Шлях до зупинки ΔL, м','')+
+ '<p class="hint">ΔL = v/3,6·T_затр + (v/3,6)²/(2a)'+chk(S.bd.dL,rr.dL,.04,.1)+'</p></div>'+
+ '<div>'+inp('bd.dm','Зайвий матеріал Δm, кг','')+
+ '<p class="hint">Δm = λ·ΔL, λ = '+F(V.lam,2)+' кг/м'+chk(S.bd.dm,rr.dm,.05,1)+'</p></div>'+
+ '<div>'+inp('preStop','Поріг перед-зупинки, кг','')+
+ '<p class="hint">На скільки раніше подати сигнал, щоб тюк вийшов заданої маси'+chk(S.preStop,rr.dm,.15,2)+'</p></div></div>';
+s+=gsc([['T_затр',F(S.tim?V.TrTim:V.Tr,2)+' с',S.tim?C('ac'):C('am')],
+ ['a — уповільнення',F(V.acc,1)+' м/с²'],['v',F(vNow(),1)+' км/год'],
+ ['маса без перед-зупинки',F(r1(b.m+rr.dm),1)+' кг',Math.abs(b.m+rr.dm-V.mSet)/V.mSet>.06?C('wn'):C('ac')]]);
+s+='<details class="inf"><summary>Звідки взялася формула шляху зупинки</summary>'+
+ '<p>Шлях складається з двох частин. Поки оператор (або система) реагує, швидкість не змінюється, і агрегат проходить v·T_затр. Далі починається гальмування з уповільненням a; шлях рівносповільненого руху до зупинки — v²/(2a).</p>'+
+ '<p style="text-align:center"><b>ΔL = v/3,6 · T_затр + (v/3,6)² / (2a)</b></p>'+
+ '<p>Ділення на 3,6 переводить км/год у м/с. За цей шлях підбирач устигає підняти λ·ΔL кілограмів — саме на стільки тюк вийде важчим. Тому сигнал подають раніше, на Δm кілограмів до цільової маси: це й називають перед-зупинкою.</p>'+
+ '<p>TIM Auto Stop скорочує не гальмування, а <b>реакцію</b>: трактор отримує команду від преса по шині ISOBUS і зупиняється сам. У вашому варіанті це '+
+ F(r2(V.Tr-V.TrTim),2)+' с, тобто '+F(r2(vNow()/3.6*(V.Tr-V.TrTim)),2)+' м і '+
+ F(r1(V.lam*vNow()/3.6*(V.Tr-V.TrTim)),1)+' кг на кожному тюку.</p></details>';
+s+=chartStop();
+s+='<div class="concl">'+verdict4(rr,b)+'</div>';
+s+=recBox(4);
+s+=nb([3,'Зважування'],[5,'Прохід полем']);
+return s}
+function chartStop(){const a=[],d=[];
+ for(let v=4;v<=16.05;v+=0.25){a.push([r2(v),f1(V.lam*stopLen(v,V.Tr,V.acc))]);
+  d.push([r2(v),f1(V.lam*stopLen(v,V.TrTim,V.acc))])}
+ return chart('cst',[{name:'без автозупинки (оператор)',color:C('wn'),pts:a},
+  {name:'із TIM Auto Stop',color:C('ac'),pts:d}],
+  {h:200,x0:4,x1:16,y0:0,xl:'швидкість, км/год',yl:'зайва маса Δm, кг',lgb:1,
+   vl:[[vNow(),C('ink'),'ваша швидкість']]})}
+function verdict4(rr,b){const u=[],pre=n(S.preStop)??0;
+ u.push(S.tim?'автозупинка увімкнена: запізнення '+F(V.TrTim,2)+' с замість '+F(V.Tr,2)+
+  ' с, шлях зупинки '+F(rr.dL,2)+' м':'автозупинки немає: поки зреагує оператор, агрегат пройде '+
+  F(rr.dL,2)+' м і набере зайвих '+F(rr.dm,1)+' кг');
+ u.push(Math.abs(pre-rr.dm)<=Math.max(2,rr.dm*0.15)
+  ?'перед-зупинка '+F(pre,1)+' кг узгоджена із зайвим матеріалом — тюк вийде заданої маси'
+  :'перед-зупинка '+F(pre,1)+' кг не відповідає Δm = '+F(rr.dm,1)+' кг: тюк вийде '+
+   (pre<rr.dm?'важчим':'легшим')+' за цільовий на '+F(r1(Math.abs(rr.dm-pre)),1)+' кг');
+ u.push(turnsNow()>=V.turnsOpt-0.05?'витків сітки достатньо — тюк тримає форму'
+  :'витків сітки '+F(turnsNow(),1)+' замість '+F(V.turnsOpt,1)+': приблизно '+
+   F(r1(cl(14*(V.turnsOpt-turnsNow()),0,60)),1)+' % тюків втратять форму при навантаженні');
+ if(!S.autoDoor)u.push('автоматичні двері вимкнені — цикл довший приблизно на '+F(V.TdoorMan,1)+' с на тюк');
+ return'<b>Стан циклу:</b><ul><li>'+u.join('</li><li>')+'</li></ul>'}
+
+/* ---------- 5. Прохід полем і облік ---------- */
+function scr5(){const t=S.tr,l=t.last;
+let s=H('Крок 5. Прохід загінкою й облік сухої речовини',
+ 'Тепер перевіряємо все разом: чи тримається маса, чи знаходить система вологі тюки й скільки корму насправді зібрано з гектара.');
+s+='<div class="r2"><div>'+inp('wThr','Поріг сигналізації вологості, %','наприклад, '+F(V.wSafe))+
+ '<p class="hint">Безпечна вологість зберігання для «'+esc(V.crop)+'» — не вище '+F(V.wSafe)+
+ ' %. Вище порога термінал позначає тюк, і його відкладають окремо.</p></div>'+
+ '<div>'+gsc([['налаштовано',[S.calW,S.calCell,S.pick,S.tim].filter(Boolean).length+' з 4'],
+  ['метод',esc(S.method)],['витків сітки',F(turnsNow(),1)]])+'</div></div>';
+s+='<button class="p" onclick="run()">'+(l?'Виконати ще один прохід':'Проїхати загінку')+'</button>'+
+   (l?' <span class="chip">проходів: '+t.n+'</span>':'');
+if(!l){s+='<p class="note">Проходів ще не було. Перед проходом заповніть кроки 1–4.</p>'+nb([4,'Автозупинка'],null);return s}
+
+s+='<h3>5.1. Що вийшло</h3>';
+s+='<div class="gg">'+
+ gc(Math.abs(l.errM),0,30,'похибка маси','%',[[0,2,C('ac')],[2,6,C('am')],[6,30,C('wn')]])+
+ gc(Math.abs(l.errDM),0,30,'похибка СР','%',[[0,2,C('ac')],[2,6,C('am')],[6,30,C('wn')]])+
+ gc(l.cv,0,15,'CV маси','%',[[0,4,C('ac')],[4,7,C('am')],[7,15,C('wn')]])+
+ gc(l.miss,0,Math.max(5,l.wet),'пропущено вологих','',[[0,0.5,C('ac')],[0.5,2,C('am')],[2,Math.max(5,l.wet),C('wn')]])+'</div>';
+s+=massSVG(V,l,{cap:'Маса кожного тюка в проході. Розкид виникає переважно через вологість: за одного діаметра вологіший матеріал дає важчий тюк.'});
+s+=mapSVG(V,l,{cap:'Карта вологості загінки за даними Task Doc. Смуга біля краю поля підсохла гірше — саме там зосереджені вологі тюки.'});
+s+='<h3>5.2. Облік сухої речовини</h3>';
+s+='<div class="tw"><table class="t2">'+
+ tr('Зважено тюків',l.N+' шт, загальна маса '+TH(l.bales.reduce((a,b)=>a+b.m,0))+' кг')+
+ tr('Площа загінки','пройдено '+TH(l.Ldrive)+' м × '+F(V.b,1)+' м = <b>'+F(l.area,2)+' га</b>')+
+ tr('Суха речовина (факт)',TH(l.sumDM)+' кг')+
+ tr('Суха речовина (за терміналом)',TH(l.sumDMshow)+' кг, похибка <b>'+F(l.errDM,1)+' %</b>')+
+ '</table></div>';
+s+='<div class="r2"><div>'+inp('bd.dmGa','Вихід сухої речовини DM, т/га','')+
+ '<p class="hint">DM = Σm_СР / S_загінки'+chk(S.bd.dmGa,l.dmGa,.03,.05)+'</p></div>'+
+ '<div>'+gsc([['за терміналом',F(l.dmGaShow,2)+' т/га',errc(l.errDM)],
+  ['фактично',F(l.dmGa,2)+' т/га']])+'</div></div>';
+s+='<h3>5.3. Вологі тюки</h3>';
+s+=kvc([['справді вологих',String(l.wet),'вологість понад '+F(V.wSafe)+' %'],
+ ['позначено терміналом',String(l.flagged),'поріг '+F(wThrNow(),1)+' %'],
+ ['пропущено',String(l.miss),l.miss?'підуть у сховище й зіпсуються':'усі знайдені',l.miss?'up':'dn'],
+ ['хибних тривог',String(l.falseAl),'сухі тюки, позначені даремно',l.falseAl>l.N*0.2?'up':'dn']]);
+s+=baleTable(l);
+s+='<h3>5.4. Економічна оцінка</h3>';
+const e=ecRef(S,V);
+if(e&&S.hist.length>1){const a=S.hist[0],b2=S.hist[S.hist.length-1];
+ s+='<p class="hint">Порівнюємо перший прохід із останнім. У гроші переводимо тільки те, що можна порахувати чесно: збережений корм і виграний час. Точність обліку показуємо окремо — див. нижче.</p>';
+ s+='<div class="tw"><table class="t2 c"><tr><th>Показник</th><th>Прохід №'+a.n+'</th><th>Прохід №'+b2.n+'</th></tr>'+
+  '<tr><th style="text-align:left">Метод зважування</th><td>'+esc(a.method)+'</td><td>'+esc(b2.method)+'</td></tr>'+
+  '<tr><th style="text-align:left">Пропущено вологих тюків</th><td>'+a.miss+' з '+a.wet+'</td><td>'+b2.miss+' з '+b2.wet+'</td></tr>'+
+  '<tr><th style="text-align:left">Частка виявлення</th><td>'+F(e.det1,1)+' %</td><td>'+F(e.det2,1)+' %</td></tr>'+
+  '<tr><th style="text-align:left">Тюків за годину</th><td>'+F(a.bph,1)+'</td><td>'+F(b2.bph,1)+'</td></tr>'+
+  '<tr><th style="text-align:left">Похибка обліку СР</th><td>'+F(a.errDM,1)+' %</td><td>'+F(b2.errDM,1)+' %</td></tr>'+
+  '</table></div>';
+ s+='<div class="tw"><table class="t2">'+
+  tr('Збережений корм','псувалося '+F(e.s1,1)+' % заготівлі, стало '+F(e.s2,1)+' %; на '+TH(V.Csez)+
+    ' т сезону це <b>'+TH(e.Ekorm)+' грн/рік</b>')+
+  tr('Виграний час','на сезонний обсяг потрібно '+F(e.h1,1)+' замість '+F(e.h2,1)+' машино-годин; '+
+    TH(V.Chour)+' грн/год → <b>'+TH(e.Echas)+' грн/рік</b>')+
+  tr('Обслуговування','0,10 · '+TH(V.Csys)+' = '+TH(e.Cex)+' грн/рік')+
+  tr('Чиста вигода','<b>'+TH(e.Enet)+' грн/рік</b>')+
+  tr('Окупність',e.T!=null?'T = '+TH(V.Csys)+' / '+TH(e.Enet)+' = <b>'+F(e.T,2)+' року</b>':'не окупається')+
+  '</table></div>';
+ s+='<div class="r2"><div>'+inp('ec.E','E — повна вигода, грн/рік','')+'<p class="hint">E = E_корм + E_час'+chk(S.ec.E,e.E,.03,500)+'</p></div>'+
+  '<div>'+inp('ec.T','T — окупність, років','')+'<p class="hint">'+(e.T!=null?chk(S.ec.T,e.T,.08,.05):'')+'</p></div></div>';
+ s+='<div class="note"><b>Точність обліку — окремо.</b> Похибка визначення сухої речовини змінилася з '+
+  F(Math.abs(a.errDM),1)+' % до '+F(Math.abs(b2.errDM),1)+' %. На сезонному обсязі це '+TH(e.tDisp)+
+  ' т сухої речовини, які раніше «губилися» в розрахунках. У вигоду ми їх не записуємо: грубу похибку ваг помічають і без системи, '+
+  'а те, що вона дає насправді — цифру в накладній, з якою згодні обидві сторони.</div>';
+ s+='<div class="concl">'+(e.T==null?'<b>За цими даними система не окупається.</b> Перевірте, чи справді другий прохід кращий за перший.'
+  :'<b>Висновок.</b> Налагодження підняло виявлення вологих тюків із '+F(e.det1,1)+' % до '+F(e.det2,1)+
+   ' % і скоротило цикл до '+F(b2.Tc,1)+' с. Чиста вигода '+TH(e.Enet)+' грн/рік, окупність '+F(e.T,2)+' року.')+'</div>'}
+else s+='<p class="note">Для економічної оцінки потрібно два проходи: перший — із початковими налаштуваннями, другий — після налагодження.</p>';
+if(S.hist.length>1)s+=histTab();
+s+=recBox(5);
+s+=nb([4,'Автозупинка'],[6,'Протокол']);
+return s}
+function baleTable(l){const sel_=cl(S.tr.sel||1,1,l.N);
+let s='<details class="inf"><summary>Список тюків проходу ('+l.N+' шт) — дані Task Doc</summary>'+
+ '<div class="tw"><table class="t2 c"><tr><th>№</th><th>валок</th><th>маса, кг</th><th>термінал, кг</th>'+
+ '<th>вологість, %</th><th>термінал, %</th><th>СР, кг</th><th>стан</th></tr>';
+for(const b of l.bales)s+='<tr'+(b.wet?' style="background:color-mix(in srgb,'+C('wet')+' 12%,transparent)"':'')+
+ '><td>'+b.i+'</td><td>'+b.pass+'</td><td>'+F(b.m,1)+'</td><td>'+F(b.show,1)+'</td>'+
+ '<td>'+F(b.w,1)+'</td><td>'+F(b.wShow,1)+'</td><td>'+F(b.mDM,1)+'</td>'+
+ '<td>'+(b.wet?(b.flag?'<span style="color:'+C('am')+'">вологий, позначено</span>':
+  '<span class="no">вологий, ПРОПУЩЕНО</span>'):(b.flag?'хибна тривога':'<span class="ok">норма</span>'))+'</td></tr>';
+return s+'</table></div></details>'}
+function histTab(){const h=S.hist;
+let s='<h3>Журнал проходів</h3><div class="tw"><table class="t2 c"><tr><th>№</th><th>метод</th><th>TIM</th>'+
+ '<th>середня маса</th><th>CV, %</th><th>похибка маси, %</th><th>похибка СР, %</th><th>пропущено вологих</th><th>тюків/год</th></tr>';
+for(const r of h)s+='<tr><td>'+r.n+'</td><td>'+esc(r.method)+'</td><td>'+(r.tim?'так':'ні')+'</td>'+
+ '<td>'+F(r.mu,1)+'</td><td>'+F(r.cv,1)+'</td><td>'+F(r.errM,1)+'</td><td>'+F(r.errDM,1)+'</td>'+
+ '<td>'+r.miss+' з '+r.wet+'</td><td>'+F(r.bph,1)+'</td></tr>';
+return s+'</table></div>'}
+
+/* ---------- 6. Протокол ---------- */
+function scr6(){const sc=score(S,V),T_=tot(),
+ nm=['Датчики й калібрування','Формування тюка','Зважування на схилі','Обв’язування й автозупинка','Прохід полем і облік'],
+ mxv=[16,20,20,22,22];
+let s=H('Підсумковий протокол','Перенесіть ці рядки у звіт. Код протоколу підтверджує, що результат отримано саме у вашому варіанті.');
+if(S.demo)s+='<div class="wm">ПРИКЛАД ІЗ МЕТОДИЧКИ — не є звітом студента</div>';
+s+='<div class="tw"><table class="t2">'+
+ tr('Студент',esc((S.reg.name||'')+', група '+(S.reg.group||'')+', № '+(S.reg.num||'')))+
+ tr('Варіант',esc(V.id)+' — '+esc(V.a.p)+', '+esc(V.crop))+
+ tr('Код протоколу','<b style="font-family:ui-monospace,monospace;letter-spacing:.06em">'+esc(pcode())+'</b>')+
+ '</table></div>';
+s+='<h3>Результати по пунктах</h3><div class="tw"><table class="t2">';
+for(let i=1;i<=5;i++)s+=tr('Пункт '+i+'. '+nm[i-1],esc(rec(i)));
+s+='</table></div>';
+s+='<h3>Самоконтроль виконання</h3><div class="tw"><table class="t2 c"><tr><th>Розділ</th><th>Виконано</th><th>Бали</th></tr>';
+for(let i=0;i<5;i++)s+='<tr><td style="text-align:left">'+esc(nm[i])+'</td><td>'+
+ (done(i+1)==1?'<span class="ok">повністю</span>':done(i+1)?'<span style="color:'+C('am')+'">частково</span>':'<span class="no">ні</span>')+
+ '</td><td>'+F(sc[i],1)+' / '+mxv[i]+'</td></tr>';
+s+='<tr><th style="text-align:left">Разом</th><th></th><th>'+F(r1(T_),1)+' / 100</th></tr></table></div>';
+s+='<div class="bar"><span>виконано</span><i style="width:'+Math.round(cl(T_,0,100)*2.6)+'px;background:'+
+ (T_>=75?C('ac'):T_>=50?C('am'):C('wn'))+'"></i><b>'+F(r1(T_),1)+' %</b></div>';
+s+='<p class="hint">Бали — це самоконтроль повноти роботи, а не оцінка викладача.</p>';
+s+='<h3>Висновок</h3><div class="concl">'+concl()+'</div>';
+s+='<button class="p" onclick="print()">Друк / зберегти у PDF</button> <button class="g" onclick="go(0)">До реєстрації</button>';
+s+=nb([5,'Прохід полем'],null);
+return s}
+function concl(){const l=S.tr.last,e=ecRef(S,V),u=[],b=baleMass(V,QS({})),rr=ref();
+ if(!l)return'Прохід не виконано — висновок зробити неможливо.';
+ u.push('Облік корму тримається на двох датчиках: вологомір мав зсув '+F(V.fl.wCal,1)+
+  ' %, і без поправки кожні 100 кг тюка обліковувалися б із помилкою '+
+  F(r1(Math.abs(V.fl.wCal)),1)+' кг сухої речовини');
+ u.push('У камері зі змінним об’ємом задається діаметр, а не маса: за D = '+F(Dnow(),2)+
+  ' м і густини '+F(b.rho,1)+' кг/м³ тюк виходить '+F(b.m,1)+' кг, і вологіший матеріал за того самого діаметра дає важчий тюк');
+ u.push('На схилі '+F(thNow(),1)+'° абсолютний метод помиляється на '+F(r1(rr.errAbs),1)+
+  ' кг, різницевий — на '+F(r1(rr.errDif),1)+' кг: різниця у відношенні (M_маш + m)/m = '+
+  F(r1((V.a.Mm+b.m)/b.m),1));
+ u.push('Між сигналом і зупинкою агрегат проходить '+F(rr.dL,2)+' м і набирає '+F(rr.dm,1)+
+  ' кг зайвого матеріалу; перед-зупинка й TIM Auto Stop усувають цей перебір');
+ u.push('За проходом вихід сухої речовини становив '+F(l.dmGa,2)+' т/га, вологих тюків '+l.wet+
+  ', пропущено '+l.miss+(l.miss?' — ці тюки зіпсуються у сховищі':''));
+ if(e&&e.T!=null)u.push('Економічно комплект виправданий: чиста вигода '+TH(e.Enet)+
+  ' грн/рік, окупність '+F(e.T,2)+' року');
+ return'<ul><li>'+u.join('</li><li>')+'</li></ul>'}
+/* ---------- 7. Досліди ---------- */
+function scr7(){const L=S.lab;if(!L.D){L.D=V.ideal.D;L.press=V.ideal.press;L.v=V.vp;L.theta=V.theta;
+ L.w=V.wAvg;L.turns=V.turnsOpt;save()}
+const Q=Qs({D:String(L.D),press:String(L.press),v:String(L.v),theta:String(L.theta),
+ method:L.method,pick:L.pick,tim:L.tim,autoDoor:1,turns:String(L.turns),calW:1,calCell:1},V);
+const b=baleMass(V,{...Q,w:L.w}),P=L.pin,
+ dL=stopLen(L.v,L.tim?V.TrTim:V.Tr,V.acc),dm=overMass(V.lam,dL),
+ eA=(V.a.Mm+b.m)*(1-Math.cos(L.theta*Math.PI/180)),
+ eD=b.m*(1-Math.cos(L.theta*Math.PI/180)),
+ cyc=cycle(V,{...Q,turns:L.turns},b.m);
+let s=H('Досліди «що буде, якщо…»',
+ 'Ця сторінка не оцінюється. Рухайте один повзунок за раз і дивіться, що змінюється: саме ці залежності потрібні у блоках «Дослід» методички.');
+s+='<div class="lab-g">'+
+ sld('lab.D','Діаметр тюка','м',V.a.Dmin,V.a.Dmax,.05,L.D,'межі камери')+
+ sld('lab.press','Тиск у камері','%',30,100,5,L.press,'уставка густини')+
+ sld('lab.v','Швидкість','км/год',4,16,.5,L.v,'рівна подача до '+F(V.vOpt,1))+
+ sld('lab.w','Вологість матеріалу','%',Math.max(4,V.wAvg-12),V.wAvg+16,.5,L.w,'безпечно до '+F(V.wSafe)+' %')+
+ sld('lab.theta','Нахил ділянки','°',0,15,.5,L.theta,'у варіанті '+F(V.theta,1)+'°')+
+ sld('lab.turns','Витків сітки','',1,4,.1,L.turns,'потрібно '+F(V.turnsOpt,1))+
+ '<div>'+sel('lab.method',['абсолютний','різницевий'],'Метод зважування',L.method)+'</div>'+
+ '<div><label>Налаштування циклу</label><div class="sg">'+
+  '<button class="'+(L.tim?'on':'off')+'" onclick="setN(\'lab.tim\',S.lab.tim?0:1)">TIM Auto Stop</button>'+
+  '<button class="'+(L.pick?'on':'off')+'" onclick="setN(\'lab.pick\',S.lab.pick?0:1)">підбирач піднято</button>'+
+  '</div></div></div>';
+s+='<div class="pc"><button class="g sm" onclick="labPin()">'+(P?'Закріплено — замінити':'Закріпити для порівняння')+'</button>'+
+ (P?'<button class="g sm" onclick="labUnpin()">Зняти</button>':'')+
+ '<button class="g sm" onclick="labLog()">Додати в журнал</button>'+
+ '<button class="g sm" onclick="labRst()">Еталонні налаштування</button></div>';
+s+='<div class="gg">'+
+ gc(b.m,0,V.mLim*1.3,'маса тюка','кг',[[V.mSet*.95,V.mSet*1.05,C('ac')],[V.mLim,V.mLim*1.3,C('wn')]])+
+ gc(b.mDM,0,V.mLim,'суха речовина','кг',[])+
+ gc(100*eD/b.m,0,10,'похибка різницевого','%',[[0,2,C('ac')],[2,5,C('am')],[5,10,C('wn')]])+
+ gc(dm,0,Math.max(10,dm*1.6),'зайва маса Δm','кг',[[0,Math.max(2,dm*0.3),C('ac')]])+'</div>';
+s+=gsc([['об’єм тюка',F(b.V,3)+' м³'],['густина',F(b.rho,1)+' кг/м³'],
+ ['похибка абсолютного',F(r1(eA),1)+' кг',eA/b.m>0.05?C('wn'):C('ac')],
+ ['шлях зупинки',F(dL,2)+' м'],['цикл',F(cyc.Tc,1)+' с'],['тюків за годину',F(cyc.bph,1)]]);
+if(P)s+='<div class="tw"><table class="t2 c"><tr><th>Показник</th><th>закріплено</th><th>зараз</th><th>різниця</th></tr>'+
+ trc('маса тюка, кг',P.m,b.m)+trc('суха речовина, кг',P.mDM,b.mDM)+trc('густина, кг/м³',P.rho,b.rho)+
+ trc('похибка зважування, кг',P.err,L.method=='різницевий'?eD:eA)+trc('цикл, с',P.Tc,cyc.Tc)+
+ '<tr><th style="text-align:left">налаштування</th><td colspan="3" style="text-align:left">'+
+ esc(labDesc(P.set))+' → '+esc(labDesc(labSt()))+'</td></tr></table></div>';
+s+=chamBox({...Q,D:L.D,turns:L.turns},'Камера за поточних налаштувань досліду.');
+{const pts=[],pts2=[];
+ for(let w=Math.max(4,V.wAvg-12);w<=V.wAvg+16;w+=0.5){const x=baleMass(V,{...Q,w:r1(w)});
+  pts.push([r1(w),x.m]);pts2.push([r1(w),x.mDM])}
+ s+='<h3>Вологість → маса тюка</h3>';
+ s+=chart('l1',[{name:'маса тюка, кг',color:C('bale'),pts},{name:'суха речовина, кг',color:C('ac'),pts:pts2}],
+  {h:200,y0:0,xl:'вологість матеріалу, %',lgb:1,vl:[[V.wSafe,C('wet'),'межа зберігання'],[L.w,C('ink'),'зараз']]})}
+{const a=[],d=[];
+ for(let th=0;th<=15.05;th+=0.25){const k=1-Math.cos(th*Math.PI/180);
+  a.push([r2(th),f1((V.a.Mm+b.m)*k)]);d.push([r2(th),f1(b.m*k)])}
+ s+='<h3>Нахил → похибка зважування</h3>';
+ s+=chart('l2',[{name:'абсолютний метод, кг',color:C('wn'),pts:a},{name:'різницевий метод, кг',color:C('ac'),pts:d}],
+  {h:200,x0:0,x1:15,y0:0,xl:'нахил ділянки, градуси',yl:'похибка, кг',lgb:1,vl:[[L.theta,C('ink'),'зараз']]})}
+s+='<div class="concl">'+labConcl(b,eA,eD,dm,cyc,L)+'</div>';
+if(L.log.length){s+='<h3>Журнал дослідів</h3><div class="tw"><table class="t2 c"><tr><th>№</th><th>D</th><th>тиск</th>'+
+ '<th>v</th><th>w</th><th>θ</th><th>метод</th><th>маса</th><th>СР</th><th>похибка</th><th>цикл</th></tr>';
+ L.log.forEach((r,i)=>{s+='<tr><td>'+(i+1)+'</td><td>'+F(r.set.D,2)+'</td><td>'+F(r.set.press)+'</td>'+
+  '<td>'+F(r.set.v,1)+'</td><td>'+F(r.set.w,1)+'</td><td>'+F(r.set.theta,1)+'</td><td>'+esc(r.set.method)+'</td>'+
+  '<td>'+F(r.m,1)+'</td><td>'+F(r.mDM,1)+'</td><td>'+F(r.err,1)+'</td><td>'+F(r.Tc,1)+'</td></tr>'});
+ s+='</table></div><button class="g sm" onclick="labClr()">Очистити журнал</button>'}
+s+=nb([6,'Протокол'],[8,'Калькулятор']);
+return s}
+const sld=(k,lab,u,a,b,st,v,nt)=>'<div><label>'+esc(lab)+': <b>'+F(v,st<1?(st<.1?2:1):0)+'</b> '+esc(u)+'</label>'+
+ '<input type="range" min="'+a+'" max="'+b+'" step="'+st+'" value="'+v+'" oninput="setN(\''+k+'\',+this.value)">'+
+ (nt?'<p class="hint" style="margin:0 0 6px">'+esc(nt)+'</p>':'')+'</div>';
+const trc=(nm,a,b)=>{const d=b-a;return'<tr><th>'+esc(nm)+'</th><td>'+F(a,1)+'</td><td>'+F(b,1)+'</td><td>'+
+ (d>0?'+':'')+F(r1(d),1)+'</td></tr>'};
+function labSt(){const L=S.lab;return{D:L.D,press:L.press,v:L.v,w:L.w,theta:L.theta,method:L.method,
+ pick:L.pick,tim:L.tim,turns:L.turns}}
+function labMt(){const L=S.lab,Q=Qs({D:String(L.D),press:String(L.press),v:String(L.v),theta:String(L.theta),
+  method:L.method,pick:L.pick,tim:L.tim,turns:String(L.turns),calW:1,calCell:1},V),
+ b=baleMass(V,{...Q,w:L.w}),k=1-Math.cos(L.theta*Math.PI/180),
+ err=L.method=='різницевий'?b.m*k:(V.a.Mm+b.m)*k,c=cycle(V,{...Q,turns:L.turns},b.m);
+ return{m:b.m,mDM:b.mDM,rho:b.rho,V:b.V,err:f1(err),Tc:c.Tc,bph:c.bph,set:labSt()}}
+function labPin(){S.lab.pin=labMt();save();R()}
+function labUnpin(){S.lab.pin=null;save();R()}
+function labLog(){S.lab.log.push(labMt());if(S.lab.log.length>14)S.lab.log.shift();save();R()}
+function labClr(){S.lab.log=[];save();R()}
+function labRst(){const I=V.ideal;S.lab={...S.lab,D:I.D,press:I.press,v:I.v,theta:V.theta,w:V.wAvg,
+ method:'різницевий',pick:1,tim:1,turns:V.turnsOpt};save();R()}
+const labDesc=s=>'D '+F(s.D,2)+' м, тиск '+F(s.press)+' %, '+F(s.v,1)+' км/год, w '+F(s.w,1)+
+ ' %, θ '+F(s.theta,1)+'°, '+s.method;
+function labConcl(b,eA,eD,dm,cyc,L){const u=[];
+ u.push(b.m>V.mLim?'тюк '+F(b.m,1)+' кг важчий за межу навантажувача '+TH(V.mLim)+' кг — зменшіть діаметр'
+  :Math.abs(b.m-V.mSet)/V.mSet<=.06?'маса '+F(b.m,1)+' кг відповідає цільовій'
+  :'маса '+F(b.m,1)+' кг відхиляється від цільової на '+F(r1(100*(b.m-V.mSet)/V.mSet),1)+' %');
+ u.push(L.w>V.wSafe?'вологість '+F(L.w,1)+' % вища за безпечну '+F(V.wSafe)+
+  ' %: тюк самонагріється у сховищі, хоча важить більше — це вода, а не корм'
+  :'вологість '+F(L.w,1)+' % у межах безпечної; сухої речовини в тюку '+F(b.mDM,1)+' кг');
+ u.push(L.method=='різницевий'?'різницевий метод на '+F(L.theta,1)+'° дає похибку '+F(r1(eD),1)+
+  ' кг замість '+F(r1(eA),1)+' кг в абсолютного'
+  :'абсолютний метод на '+F(L.theta,1)+'° помиляється на '+F(r1(eA),1)+' кг — це '+
+   F(r1(100*eA/b.m),1)+' % маси тюка');
+ u.push(L.tim?'з автозупинкою зайва маса '+F(dm,1)+' кг':'без автозупинки зайва маса '+F(dm,1)+
+  ' кг на кожному тюку');
+ if(!L.pick)u.push('підбирач не піднято — показання ваг «гуляють» від нерівностей');
+ if(L.turns<V.turnsOpt-0.05)u.push('витків сітки замало: тюки втрачатимуть форму');
+ u.push('цикл '+F(cyc.Tc,1)+' с → '+F(cyc.bph,1)+' тюка за годину, '+F(cyc.haph,2)+' га/год');
+ return'<b>Що показує цей набір налаштувань:</b><ul><li>'+u.join('</li><li>')+'</li></ul>'}
+
+/* ---------- 8. Калькулятор ---------- */
+function scr8(){const c=S.calc,g=k=>n(c[k]);
+let s=H('Калькулятор','Незалежний від варіанта. Сюди підставляють числа з умов методички й перевіряють свої розрахунки.');
+s+='<h3>Тюк: об’єм, густина, суха речовина</h3>';
+s+='<div class="r3"><div>'+inp('calc.D','D — діаметр тюка, м','1,25')+'</div>'+
+ '<div>'+inp('calc.W','W — ширина тюка, м','1,20')+'</div>'+
+ '<div>'+inp('calc.m','m — маса тюка, кг','280')+'</div></div>';
+s+='<div class="r3"><div>'+inp('calc.w','w — вологість, %','16')+'</div><div></div><div></div></div>';
+if(g('D')&&g('W')){const Vb=Math.PI*g('D')*g('D')*g('W')/4;
+ s+='<div class="tw"><table class="t2">'+
+  tr('Об’єм тюка','V = π·D²·W/4 = 3,1416 · '+F(g('D'),2)+'² · '+F(g('W'),2)+' / 4 = <b>'+F(r3(Vb),3)+' м³</b>')+
+  (g('m')?tr('Густина','ρ = m/V = '+F(g('m'),1)+' / '+F(r3(Vb),3)+' = <b>'+F(r1(g('m')/Vb),1)+' кг/м³</b>'):'')+
+  (g('m')&&g('w')!=null?tr('Суха речовина','m_СР = m·(1 − w/100) = '+F(g('m'),1)+'·(1 − '+F(g('w'),1)+
+    '/100) = <b>'+F(r1(g('m')*(1-g('w')/100)),1)+' кг</b>'):'')+
+  (g('m')&&g('w')!=null?tr('Густина сухої речовини','ρ_СР = m_СР/V = <b>'+
+    F(r1(g('m')*(1-g('w')/100)/Vb),1)+' кг/м³</b>'):'')+
+  '</table></div>'}
+s+='<h3>Валок і вихід з гектара</h3>';
+s+='<div class="r3"><div>'+inp('calc.U','U — урожайність вологої маси, кг/га','3800')+'</div>'+
+ '<div>'+inp('calc.b','b — ширина смуги у валок, м','7,0')+'</div>'+
+ '<div>'+inp('calc.lam','λ — погонна маса валка, кг/м','')+'</div></div>';
+if(g('U')&&g('b')){const lam=g('U')*g('b')/10000;
+ s+='<div class="tw"><table class="t2">'+
+  tr('Погонна маса валка','λ = U·b/10000 = '+TH(g('U'))+' · '+F(g('b'),1)+' / 10000 = <b>'+F(r2(lam),2)+' кг/м</b>')+
+  (g('m')?tr('Довжина валка на тюк','L = m/λ = '+F(g('m'),1)+' / '+F(r2(lam),2)+' = <b>'+
+    F(r1(g('m')/lam),1)+' м</b>'):'')+
+  (g('w')!=null?tr('Вихід сухої речовини','DM = U·(1 − w/100) = '+TH(g('U'))+'·(1 − '+F(g('w'),1)+
+    '/100) = <b>'+F(r2(g('U')*(1-g('w')/100)/1000),2)+' т/га</b>'):'')+
+  '</table></div>'}
+s+='<h3>Зважування на схилі</h3>';
+s+='<div class="r3"><div>'+inp('calc.Mm','M_маш — маса машини, кг','3250')+'</div>'+
+ '<div>'+inp('calc.th','θ — нахил, градуси','10')+'</div><div></div></div>';
+if(g('Mm')&&g('th')!=null&&g('m')){const k=1-Math.cos(g('th')*Math.PI/180);
+ s+='<div class="tw"><table class="t2">'+
+  tr('1 − cos θ','1 − cos '+F(g('th'),1)+'° = <b>'+F(r3(k),3)+'</b>')+
+  tr('Абсолютний метод','(M_маш + m)·(1 − cos θ) = ('+TH(g('Mm'))+' + '+F(g('m'),1)+')·'+F(r3(k),3)+
+    ' = <b>'+F(r1((g('Mm')+g('m'))*k),1)+' кг</b> (' +F(r1(100*(g('Mm')+g('m'))*k/g('m')),1)+' % маси тюка)')+
+  tr('Різницевий метод','m·(1 − cos θ) = '+F(g('m'),1)+'·'+F(r3(k),3)+' = <b>'+F(r1(g('m')*k),1)+
+    ' кг</b> ('+F(r1(100*k),1)+' % маси тюка)')+
+  '</table></div>'}
+s+='<h3>Шлях зупинки й перед-зупинка</h3>';
+s+='<div class="r3"><div>'+inp('calc.v','v — швидкість, км/год','9')+'</div>'+
+ '<div>'+inp('calc.Tr','T_затр — запізнення, с','1,2')+'</div>'+
+ '<div>'+inp('calc.a','a — уповільнення, м/с²','1,5')+'</div></div>';
+if(g('v')&&g('Tr')!=null&&g('a')){const u=g('v')/3.6,L1=u*g('Tr'),L2=u*u/(2*g('a')),dL=L1+L2,
+ lam=g('lam')??(g('U')&&g('b')?g('U')*g('b')/10000:null);
+ s+='<div class="tw"><table class="t2">'+
+  tr('Шлях реакції','v/3,6 · T_затр = '+F(g('v'),1)+'/3,6 · '+F(g('Tr'),2)+' = <b>'+F(r2(L1),2)+' м</b>')+
+  tr('Шлях гальмування','(v/3,6)²/(2a) = '+F(r2(u),2)+'²/(2·'+F(g('a'),1)+') = <b>'+F(r2(L2),2)+' м</b>')+
+  tr('Разом','ΔL = <b>'+F(r2(dL),2)+' м</b>')+
+  (lam?tr('Зайвий матеріал','Δm = λ·ΔL = '+F(r2(lam),2)+' · '+F(r2(dL),2)+' = <b>'+F(r1(lam*dL),1)+
+    ' кг</b> — на стільки раніше подають сигнал'):'')+
+  '</table></div>'}
+s+='<p class="hint">Усі формули ті самі, що в методичці. Калькулятор нічого не підказує — він лише рахує за вашими числами.</p>';
+s+=nb([7,'Досліди'],null);
+return s}
+
+/* ===== Навігація й рендер ===== */
+function go(i){S.step=i;save();scrollTo(0,0);R()}
+function nav(){let s='';
+for(let i=0;i<=NST;i++){const d=done(i),on=S.step==i?' on':'';
+ s+='<button class="'+on.trim()+'" onclick="go('+i+')"'+(i>0&&!S.reg?' disabled':'')+'>'+
+  '<i class="'+(d==1?'ok':d?'pt':'')+'"></i>'+esc(TT[i])+'</button>'}
+s+='<button class="lab'+(S.step==LAB?' on':'')+'" onclick="go('+LAB+')"'+(!S.reg?' disabled':'')+
+ '><i></i>'+esc(TT[LAB])+'</button>';
+s+='<button class="lab'+(S.step==CALC?' on':'')+'" onclick="go('+CALC+')"><i></i>'+esc(TT[CALC])+'</button>';
+return s}
+function dashP(){if(!V)return'<div class="t">ТЕРМІНАЛ ПРЕС-ПІДБИРАЧА</div><div class="d"><span>варіант не отримано</span></div>';
+const b=baleMass(V,QS({})),l=S.tr.last,rr=ref(),
+ d=(a,x,al)=>'<div class="d'+(al?' al':'')+'"><span>'+a+'</span><span>'+x+'</span></div>';
+let s='<div class="t">ТЕРМІНАЛ · '+esc(V.id)+'</div>';
+s+=d('матеріал',esc(V.crop.split(' ')[0]));
+s+=d('D_set, м',F(Dnow(),2),DnowRaw()<V.a.Dmin-1e-9||DnowRaw()>V.a.Dmax+1e-9);
+s+=d('тиск, %',F(pressNow()));
+s+=d('маса тюка, кг',F(b.m,1),Math.abs(b.m-V.mSet)/V.mSet>.06||b.m>V.mLim);
+s+=d('суха речовина, кг',F(b.mDM,1));
+s+=d('вологість, %',F(V.wAvg+(S.calW?0:V.fl.wCal),1),!S.calW);
+s+=d('швидкість, км/год',F(vNow(),1),vNow()>V.vOpt+1.5);
+s+=d('метод зважування',S.method=='різницевий'?'різниц.':'абсол.',S.method!='різницевий');
+s+=d('схил, °',F(thNow(),1));
+s+=d('ΔL, м',F(rr.dL,2),!S.tim);
+s+=d('перед-зупинка, кг',F(n(S.preStop)??0,1),Math.abs((n(S.preStop)??0)-rr.dm)>Math.max(2,rr.dm*.15));
+s+=d('витків сітки',F(turnsNow(),1),turnsNow()<V.turnsOpt-0.05);
+if(l){s+='<div class="t" style="margin-top:8px">ПРОХІД №'+S.tr.n+'</div>';
+ s+=d('тюків',String(l.N));
+ s+=d('середня маса, кг',F(l.mu,1));
+ s+=d('CV, %',F(l.cv,1),l.cv>7);
+ s+=d('похибка СР, %',F(l.errDM,1),Math.abs(l.errDM)>2);
+ s+=d('вологих / пропущено',l.wet+' / '+l.miss,l.miss>0);
+ s+=d('DM, т/га',F(l.dmGa,2))}
+return s}
+function bann(){if(!S.demo)return'';
+return'<div class="bn"><span><b>Відкрито приклад із методички.</b> Усі поля заповнені правильними значеннями — '+
+ 'на ньому видно, як має виглядати виконана робота. Для свого звіту отримайте власний варіант.</span>'+
+ '<button class="p" style="margin:0" onclick="go(0)">Отримати свій варіант</button></div>'}
+function R(){const m=document.getElementById('mn');
+ document.getElementById('nv').innerHTML=nav();
+ document.getElementById('bn').innerHTML=bann();
+ document.getElementById('ds').innerHTML=dashP();
+ document.getElementById('chip').textContent=V?('варіант '+V.id+' · '+F(r1(tot()),1)+' / 100'):'варіант не отримано';
+ if(!S.reg||!V)S.step=0;
+ m.innerHTML=[scr0,scr1,scr2,scr3,scr4,scr5,scr6,scr7,scr8][S.step]();
+ for(const id of ['cdm','csl','cst','l1','l2'])chBind(id,chTip(id));
+ aniPaint();
+ if(ANI.run){ANI.last=performance.now();requestAnimationFrame(aniTick)}}
+function chTip(id){const L=S.lab,Q=QS({});
+ if(id=='cdm')return x=>{const b=baleMass(V,{...Q,D:r2(x)});
+  return'D = '+F(r2(x),2)+' м<br>V = '+F(b.V,3)+' м³<br>маса '+F(b.m,1)+' кг<br>суха речовина '+F(b.mDM,1)+' кг'};
+ if(id=='csl'){const b=baleMass(V,Q);return x=>{const k=1-Math.cos(x*Math.PI/180);
+  return'θ = '+F(r2(x),2)+'°<br>абсолютний '+F(r1(100*(V.a.Mm+b.m)*k/b.m),1)+' %<br>різницевий '+F(r1(100*k),1)+' %'}}
+ if(id=='cst')return x=>'v = '+F(r2(x),1)+' км/год<br>без TIM '+F(r1(V.lam*stopLen(x,V.Tr,V.acc)),1)+
+  ' кг<br>із TIM '+F(r1(V.lam*stopLen(x,V.TrTim,V.acc)),1)+' кг';
+ if(id=='l1')return x=>{const b=baleMass(V,{...Qs({D:String(L.D),press:String(L.press),v:String(L.v)},V),w:r1(x)});
+  return'вологість '+F(r1(x),1)+' %<br>маса '+F(b.m,1)+' кг<br>суха речовина '+F(b.mDM,1)+' кг'};
+ if(id=='l2'){const b=baleMass(V,{...Qs({D:String(L.D),press:String(L.press)},V),w:L.w});
+  return x=>{const k=1-Math.cos(x*Math.PI/180);
+   return'θ = '+F(r2(x),2)+'°<br>абсолютний '+F(r1((V.a.Mm+b.m)*k),1)+' кг<br>різницевий '+F(r1(b.m*k),1)+' кг'}}
+ return()=>null}
+/* ===== Запуск ===== */
+theme(0);
+if(!S){demoState();save()}            /* перше відкриття: приклад із методички */
+let RW=innerWidth;addEventListener('resize',()=>{if(Math.abs(innerWidth-RW)>8){RW=innerWidth;clearTimeout(R.t);R.t=setTimeout(R,180)}});
+R();
+</script></body></html>
