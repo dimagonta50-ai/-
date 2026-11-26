@@ -1,0 +1,1919 @@
+<!DOCTYPE html>
+<html lang="uk"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Симулятор зернозбирального комбайна — ЛР №10</title>
+<style>
+:root{
+  --bg:#ECEFE8;--pn:#FFFFFF;--pn2:#F5F7F2;--ink:#1C231D;--sub:#526056;--ln:#D3DBD0;
+  --ac:#2F6B3A;--aci:#FFFFFF;--wn:#B4412C;--am:#A66A00;
+  --trk:#3F7D49;--trk2:#2C5B34;--db:#121710;--df:#FFB81C;--dd:#A8822A;
+  --grain:#D9A62B;--grain2:#9E7210;--straw:#D9C487;--chaff:#BFAE7E;--air:#3E8FB8;
+  --acc:var(--ac);--acc2:var(--trk2);--bad:var(--wn);--warn:var(--am);--ok:var(--ac);
+  box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)
+}
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#12150F;--pn:#1C2118;--pn2:#161A12;--ink:#ECEFE7;--sub:#A5AF9F;--ln:#343D2D;
+  --ac:#77B76B;--aci:#0E130B;--wn:#E3705A;--am:#E2A93B;
+  --trk:#5E9E62;--trk2:#3F7446;--db:#0B0E09;--df:#FFC53D;--dd:#9E7D2E;
+  --grain:#E8BB4A;--grain2:#C79519;--straw:#B8A878;--chaff:#8E8366;--air:#5BA4C7
+}}
+:root[data-theme="dark"]{
+  --bg:#12150F;--pn:#1C2118;--pn2:#161A12;--ink:#ECEFE7;--sub:#A5AF9F;--ln:#343D2D;
+  --ac:#77B76B;--aci:#0E130B;--wn:#E3705A;--am:#E2A93B;
+  --trk:#5E9E62;--trk2:#3F7446;--db:#0B0E09;--df:#FFC53D;--dd:#9E7D2E;
+  --grain:#E8BB4A;--grain2:#C79519;--straw:#B8A878;--chaff:#8E8366;--air:#5BA4C7
+}
+html{scroll-padding-top:env(safe-area-inset-top,0px);height:100%}
+*{box-sizing:border-box}
+body{margin:0;min-height:100%;background:var(--bg);color:var(--ink);font:15px/1.52 -apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;-webkit-text-size-adjust:100%}
+.w{max-width:1260px;margin:0 auto;padding:14px 14px 48px}
+.top{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:10px}
+.top h1{font-size:1.14rem;line-height:1.25;margin:0;font-weight:700;letter-spacing:-.01em}
+.top h1 small{display:block;font-weight:400;font-size:.8rem;color:var(--sub);letter-spacing:0;margin-top:2px}
+.tools{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.chip{font-size:.79rem;border:1px solid var(--ln);border-radius:99px;padding:4px 12px;color:var(--ink);background:var(--pn);font-weight:600;font-variant-numeric:tabular-nums}
+.ban{border:1px solid var(--am);background:color-mix(in srgb,var(--am) 12%,var(--pn));border-radius:10px;padding:10px 14px;margin-bottom:12px;font-size:.89rem;display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+.lay{display:grid;grid-template-columns:224px minmax(0,1fr) 244px;gap:14px;align-items:start}
+@media(max-width:1040px){.lay{grid-template-columns:210px minmax(0,1fr)}aside{grid-column:1/-1;position:static!important}}
+@media(max-width:760px){.lay{grid-template-columns:minmax(0,1fr)}}
+
+nav{display:flex;flex-direction:column;gap:4px;position:sticky;top:10px}
+@media(max-width:760px){nav{flex-direction:row;overflow-x:auto;position:static;padding-bottom:6px}}
+nav button{border:1px solid var(--ln);background:var(--pn);color:var(--sub);padding:7px 9px;border-radius:8px;font:inherit;font-size:.8rem;text-align:left;cursor:pointer;white-space:nowrap;display:flex;gap:7px;align-items:center;transition:border-color .15s,background .15s}
+nav button:hover{border-color:color-mix(in srgb,var(--ac) 55%,var(--ln))}
+nav button .n{flex:none;width:19px;height:19px;border-radius:50%;border:1.5px solid var(--sub);display:grid;place-items:center;font-size:.68rem;font-weight:700}
+nav button.dn .n{background:var(--ac);border-color:var(--ac);color:var(--aci)}
+nav button.pt .n{border-color:var(--am);color:var(--am)}
+nav button .tick{margin-left:auto;color:var(--ac);font-weight:700}
+nav button.on{border-color:var(--ac);color:var(--ink);font-weight:700;box-shadow:inset 3px 0 0 var(--ac);background:color-mix(in srgb,var(--ac) 6%,var(--pn))}
+
+main{background:var(--pn);border:1px solid var(--ln);border-radius:12px;padding:18px 22px;min-height:360px;min-width:0}
+@media(max-width:760px){main{padding:14px 12px}}
+main h2{margin:0 0 4px;font-size:1.12rem;line-height:1.3}
+main h3{font-size:.98rem;margin:18px 0 6px}
+.hint,.note{color:var(--sub);font-size:.86rem;margin:4px 0 12px}
+.note{margin:6px 0}
+label{display:block;font-size:.84rem;margin:10px 0 3px;color:var(--sub)}
+input[type=text],input[type=number],select{width:100%;padding:8px 10px;border:1px solid var(--ln);border-radius:8px;background:var(--pn2);color:var(--ink);font:inherit;font-size:.95rem;transition:border-color .15s}
+input[type=text]:focus,input[type=number]:focus,select:focus,textarea:focus{border-color:var(--ac)}
+input[type=text]:disabled{opacity:.85;color:var(--ink);background:color-mix(in srgb,var(--pn2) 70%,var(--bg))}
+input[type=range]{width:100%;accent-color:var(--ac);margin:2px 0;cursor:pointer}
+input[type=checkbox]{accent-color:var(--ac);width:16px;height:16px;cursor:pointer}
+:focus-visible{outline:2px solid var(--ac);outline-offset:2px}
+main textarea{width:100%;font:inherit;font-size:.9rem;padding:8px 10px;border:1px solid var(--ln);border-radius:8px;background:var(--pn2);color:var(--ink);resize:vertical}
+
+.r2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.r3{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.r4{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+@media(max-width:700px){.r4{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:560px){.r3{grid-template-columns:1fr 1fr}.r2{grid-template-columns:minmax(0,1fr)}}
+@media(max-width:420px){.r3,.r4{grid-template-columns:minmax(0,1fr)}}
+
+button.p,button.g{border:1px solid var(--ac);border-radius:8px;padding:8px 14px;font:inherit;font-size:.9rem;cursor:pointer;margin:4px 4px 4px 0;transition:opacity .15s,transform .05s}
+button.p{background:var(--ac);color:var(--aci);font-weight:600}
+button.g{background:none;color:var(--ac)}
+button.p:hover,button.g:hover{opacity:.9}
+button.p:active,button.g:active{transform:translateY(1px)}
+button:disabled{opacity:.4;cursor:not-allowed}
+button.sm{padding:4px 10px;font-size:.8rem;margin:0}
+.nb{display:flex;justify-content:space-between;margin-top:22px;padding-top:12px;border-top:1px solid var(--ln)}
+.btns{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0}
+
+/* Термінал комбайна в кабіні */
+aside{background:var(--db);border:1px solid #2A3324;border-radius:12px;padding:13px 14px;font:.79rem/1.55 ui-monospace,SFMono-Regular,Consolas,monospace;color:var(--df);position:sticky;top:10px;box-shadow:0 4px 16px rgba(0,0,0,.18)}
+aside .dh{color:var(--dd);font-size:.69rem;letter-spacing:.05em;margin:11px 0 6px;text-transform:uppercase;display:flex;justify-content:space-between;align-items:center}
+aside .dh:first-child{margin-top:0}
+aside .dg{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+aside .dv{border:1px solid color-mix(in srgb,var(--dd) 65%,transparent);border-radius:7px;padding:5px 6px;text-align:center;background:rgba(255,255,255,.02)}
+aside .dv b{display:block;font-size:1.04rem;font-variant-numeric:tabular-nums}
+aside .dv span{display:block;font-size:.63rem;color:var(--dd);line-height:1.25}
+aside .dv .mbar{height:3px;background:rgba(255,255,255,.1);border-radius:2px;margin-top:4px;overflow:hidden}
+aside .dv .mbar i{display:block;height:100%;background:currentColor;border-radius:2px;transition:width .25s}
+aside .dv.ok{color:#7FE07F}
+aside .dv.bad{color:#FF7A5C;border-color:#FF7A5C}
+aside .dv.wr{color:var(--df)}
+aside .dl div{display:flex;justify-content:space-between;gap:8px;border-bottom:1px dashed color-mix(in srgb,var(--dd) 50%,transparent);padding:2px 0}
+aside .dl span{color:var(--dd)}
+aside .dl b{text-align:right;font-variant-numeric:tabular-nums}
+aside .dl b.ok{color:#7FE07F}
+aside .dl b.no{color:#FF7A5C}
+
+.t2{width:100%;border-collapse:collapse;font-size:.86rem;margin:8px 0}
+.t2 th,.t2 td{border:1px solid var(--ln);padding:6px 9px;text-align:left;vertical-align:top}
+.t2 th{width:31%;background:var(--pn2);font-weight:600}
+.t3{width:100%;border-collapse:collapse;font-size:.84rem;margin:8px 0}
+.t3 th,.t3 td{border:1px solid var(--ln);padding:5px 8px;text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums}
+.t3 thead th{background:var(--pn2);text-align:center;font-weight:700}
+.t3 tbody th{text-align:left;font-weight:500;background:var(--pn2);white-space:normal;min-width:155px}
+.tw{overflow-x:auto}
+
+.rb{border:1px dashed var(--ac);border-radius:8px;padding:10px 13px;margin-top:14px;font-size:.86rem;background:color-mix(in srgb,var(--ac) 4%,var(--pn))}
+.hr{height:1px;background:var(--ln);border:0;margin:20px 0 14px}
+.fm{background:var(--pn2);border:1px solid var(--ln);border-left:3px solid var(--ac);border-radius:0 8px 8px 0;padding:10px 14px;margin:10px 0;font-size:.96rem;text-align:center;font-variant-numeric:tabular-nums;overflow-x:auto}
+.st{margin:8px 0 14px;padding-left:22px;font-size:.92rem}
+.st li{margin:4px 0}
+.ck{display:grid;gap:7px;margin:10px 0}
+.ck label{display:flex;gap:8px;align-items:flex-start;font-size:.9rem;margin:0;color:var(--ink);cursor:pointer}
+.ck input{width:auto;margin:3px 0 0}
+.warn-b{border:1px solid var(--am);background:color-mix(in srgb,var(--am) 12%,var(--pn));border-radius:8px;padding:8px 12px;font-size:.88rem;margin:10px 0}
+
+.fig{background:var(--pn2);border:1px solid var(--ln);border-radius:10px;margin:8px 0;overflow-x:auto;overflow-y:hidden}
+.fig svg{display:block;width:100%;height:auto;min-width:540px}
+@media(max-width:640px){.fig svg{min-width:480px}}
+.cap{font-size:.8rem;color:var(--sub);margin:-2px 0 14px;padding:0 2px;line-height:1.45}
+.ch{position:relative;margin:8px 0;background:var(--pn2);border:1px solid var(--ln);border-radius:10px;touch-action:pan-y}
+.ch svg{display:block;width:100%;height:auto;cursor:crosshair}
+.ch text,.fig text{font-family:inherit}
+.tip{position:absolute;top:6px;pointer-events:none;background:var(--pn);border:1px solid var(--ln);border-radius:6px;padding:5px 9px;font-size:.75rem;line-height:1.38;white-space:nowrap;box-shadow:0 3px 10px rgba(0,0,0,.18);display:none;z-index:3}
+
+.gs{display:grid;grid-template-columns:repeat(auto-fit,minmax(144px,1fr));gap:8px;margin:0 0 8px}
+@media(max-width:420px){.gs{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.gt{border:1px solid var(--ln);border-radius:8px;padding:7px 9px;background:var(--pn2);min-width:0}
+.gt b{display:block;font-size:1.06rem;font-variant-numeric:tabular-nums;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.gt span{display:block;font-size:.72rem;color:var(--sub);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+.kv{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin:10px 0}
+@media(max-width:620px){.kv{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.kv div{border:1px solid var(--ln);border-radius:8px;padding:6px 8px;background:var(--pn2)}
+.kv b{display:block;font-size:1.02rem;font-variant-numeric:tabular-nums}
+.kv span{font-size:.73rem;color:var(--sub)}
+.kv em{font-style:normal;font-size:.74rem;display:block;color:var(--sub)}
+
+.sls{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:4px 18px;margin:8px 0 14px}
+@media(max-width:620px){.sls{grid-template-columns:minmax(0,1fr)}}
+.sl label{display:flex;justify-content:space-between;gap:10px;margin:8px 0 2px;font-size:.84rem;color:var(--sub)}
+.sl label b{color:var(--ink);font-variant-numeric:tabular-nums}
+.sl input[type=range]{width:100%;margin:0}
+.gcs{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin:10px 0}
+@media(max-width:700px){.gcs{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.gc{border:1px solid var(--ln);border-radius:10px;padding:8px;background:var(--pn2);text-align:center}
+.gc svg{width:100%;height:auto;display:block}
+
+.inf{border-left:3px solid var(--ac);background:var(--pn2);border-radius:0 8px 8px 0;padding:8px 14px;margin:12px 0 14px;font-size:.87rem}
+.inf summary{font-weight:700;color:var(--ac);margin-bottom:4px;cursor:pointer}
+.inf p{margin:6px 0}
+.ok{color:var(--ac);font-weight:700}
+.no{color:var(--wn);font-weight:700}
+.sub{font-size:.77rem;color:var(--sub);display:block;margin-top:2px}
+
+/* SVG анімація обертання вузлів */
+@keyframes spinCW{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
+@keyframes spinCCW{from{transform:rotate(0deg)}to{transform:rotate(-360deg)}}
+@keyframes flowDash{to{stroke-dashoffset:-24}}
+.rot-cw{transform-box:fill-box;transform-origin:center;animation:spinCW var(--spd,3s) linear infinite}
+.rot-ccw{transform-box:fill-box;transform-origin:center;animation:spinCCW var(--spd,3s) linear infinite}
+.air-flow{stroke-dasharray:8 4;animation:flowDash var(--aspd,1.1s) linear infinite}
+@media(prefers-reduced-motion:reduce){.rot-cw,.rot-ccw,.air-flow{animation:none!important}}
+
+/* Друк чистого звіту */
+.pr-hdr{display:none}
+@media print{
+  nav,.nb,aside,.top,.ban,.btns,.hint{display:none!important}
+  .lay{display:block}
+  main{border:0;padding:0;box-shadow:none}
+  body{background:#fff;color:#000;font-size:12pt}
+  .pr-hdr{display:block;border-bottom:2px solid #000;padding-bottom:8px;margin-bottom:14px}
+  .pr-hdr h1{font-size:14pt;margin:0 0 4px}
+  .pr-hdr p{margin:0;font-size:10pt;color:#333}
+  .rb,.tw,.gs,tr{break-inside:avoid}
+  *{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+}
+</style></head><body><div class="w">
+<header class="top">
+  <h1>Симулятор зернозбирального комбайна<small>Пропускна здатність, молотильний апарат, очистка, втрати зерна й карта врожайності · Лабораторна робота № 10</small></h1>
+  <div class="tools"><span class="chip" id="chip"></span><button class="g sm" id="thb" onclick="theme()" title="Перемкнути тему">Тема: авто</button></div>
+</header>
+<div id="bn"></div>
+<div class="lay">
+  <nav id="nv" aria-label="Кроки роботи"></nav>
+  <main id="mn"></main>
+  <aside id="ds" aria-label="Термінал комбайна в кабіні"></aside>
+</div></div>
+
+<script>
+/* Симулятор до лабораторної роботи № 10 (версія 2.0).
+   Автоматичні системи керування зернозбиральними комбайнами:
+   пропускна здатність, молотильний апарат, очистка, втрати зерна, карта врожайності.
+   Один файл, без зовнішніх бібліотек; працює офлайн. */
+const KEY='lr10v2',TKEY='lr10theme';
+
+/* ===== Математична модель зернозбирального комбайна ===== */
+const cl=(x,a,b)=>Math.max(a,Math.min(b,x)),
+      f1=x=>Math.round(x*10)/10,
+      f2=x=>Math.round(x*100)/100,
+      f3=x=>Math.round(x*1000)/1000,
+      n=x=>{const v=parseFloat(String(x??'').replace(',','.').replace(/[−–—]/g,'-').replace(/\s/g,''));
+            return isNaN(v)?null:v};
+
+function hash(s){let h=2166136261;for(const c of s){h^=c.charCodeAt(0);h=Math.imul(h,16777619)}return h>>>0}
+function rng(a){return()=>{a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
+const gs=r=>(r()+r()+r()-1.5)*2;
+
+const CROP=[
+ {c:'пшениця озима',psi:[0.9,1.3],U:[4800,7800],w:[12,20],nOpt:[760,900],dOpt:[12,16],hLow:[14,20],
+  rho:760,C:[7600,9800],cnd:0.28,cdr:0.42,wOpt:16,wB:14},
+ {c:'ячмінь ярий',   psi:[0.9,1.3],U:[3800,6200],w:[12,19],nOpt:[640,760],dOpt:[14,18],hLow:[12,18],
+  rho:640,C:[6400,8200],cnd:0.26,cdr:0.46,wOpt:15,wB:14},
+ {c:'ріпак озимий',  psi:[1.7,2.3],U:[2800,4600],w:[9.5,15],nOpt:[420,560],dOpt:[18,24],hLow:[30,48],
+  rho:680,C:[18000,23000],cnd:0.24,cdr:0.52,wOpt:11,wB:8},
+ {c:'соя',           psi:[1.4,2.0],U:[2500,3900],w:[13.5,19],nOpt:[480,620],dOpt:[16,22],hLow:[8,14],
+  rho:740,C:[16000,21000],cnd:0.30,cdr:0.50,wOpt:14,wB:12},
+ {c:'кукурудза на зерно',psi:[0.26,0.40],U:[7000,12500],w:[18,28],nOpt:[380,500],dOpt:[22,30],hLow:[55,80],
+  rho:720,C:[6800,8600],cnd:0.26,cdr:0.38,wOpt:22,wB:14}
+];
+
+const HARV=[
+ {p:'John Deere S790',       B:[9.1,10.7,12.2],qNom:19.5,Vb:14.8,Qun:[135],Nb:[300,1000],Nv:[300,1150],price:16.8e6},
+ {p:'Claas Lexion 8700',     B:[9.0,10.8,12.3],qNom:20.5,Vb:15.0,Qun:[130],Nb:[280, 980],Nv:[320,1200],price:17.5e6},
+ {p:'New Holland CR9.90',    B:[9.1,10.6,12.5],qNom:21.0,Vb:14.5,Qun:[142],Nb:[280,1050],Nv:[300,1180],price:17.2e6},
+ {p:'Case IH Axial-Flow 9250',B:[9.1,10.7,12.5],qNom:19.0,Vb:14.4,Qun:[139],Nb:[280,1050],Nv:[300,1150],price:16.4e6},
+ {p:'Deutz-Fahr C9306 TS',   B:[7.6, 9.2,10.7],qNom:15.5,Vb:11.0,Qun:[115],Nb:[300, 980],Nv:[300,1100],price:12.9e6}
+];
+const TRK=['John Deere 8R 340','Fendt 936 Vario','New Holland T7.270','Case IH Magnum 340'];
+
+const feed=(U,psi,B,v)=>U*(1+psi)*B*v/36000;
+const speedFor=(q,U,psi,B)=>36000*q/(U*(1+psi)*B);
+const grainFlow=(U,B,v)=>U*B*v/36000;
+
+function lossHead(V,Q){
+  const h=Q.h??V.hCut,v=Q.v??V.vp;
+  return V.pH0+V.kH*Math.pow(Math.max(0,h-V.hLow),1.3)+0.012*Math.pow(Math.max(0,v-V.vHead),2);
+}
+function lossThresh(V,Q){
+  const kn=(Q.nb??V.nOpt)/V.nOpt,kd=(Q.d??V.dOpt)/V.dOpt,
+        kw=1+0.09*Math.max(0,(Q.w??V.w)-V.wOpt);
+  return V.cnd*Math.exp(-V.aN*(kn-1))*Math.exp(V.bD*(kd-1))*kw;
+}
+function grainDamage(V,Q){
+  const kn=(Q.nb??V.nOpt)/V.nOpt,kd=(Q.d??V.dOpt)/V.dOpt,
+        kw=1+0.06*Math.max(0,V.wOpt-(Q.w??V.w));
+  return V.cdr*Math.exp(V.cN*(kn-1))*Math.exp(-V.eD*(kd-1))*kw;
+}
+const lossSep=(V,kq)=>V.cSep*Math.pow(Math.max(.05,kq),3.2);
+const chaffK=(V,d)=>Math.pow(V.dOpt/Math.max(3,d),0.9);
+const fanShape=kv=>0.5*(Math.pow(Math.max(.2,kv),-2.6)+Math.pow(Math.max(.2,kv),3.4));
+const lossClean=(V,kq,kv)=>V.cOch*Math.pow(Math.max(.05,kq),2.4)*fanShape(kv);
+const trash=(V,kq,kv,d)=>V.z0*Math.pow(Math.max(.05,kq),1.3)*Math.pow(Math.max(.2,kv),-2.0)*chaffK(V,d??V.dOpt);
+
+function mode(V,Q){
+  const v=Q.v??V.vp,U=Q.U??V.U,
+        q=feed(U,V.psi,V.B,v),kq=q/V.qNom,kv=(Q.nv??V.nvOpt)/V.nvOpt,
+        d=Q.d??V.dOpt,
+        pH=lossHead(V,Q),pT=lossThresh(V,Q),pS=lossSep(V,kq),pC=lossClean(V,kq,kv),
+        dmg=grainDamage(V,Q),z=trash(V,kq,kv,d),
+        pMol=pT+pS+pC,pTot=pH+pMol;
+  return{q:f2(q),kq:f2(kq),kv:f2(kv),pH:f2(pH),pT:f2(pT),pS:f2(pS),pC:f2(pC),
+         pMol:f2(pMol),pTot:f2(pTot),dmg:f2(dmg),z:f2(z),raw:{pH,pT,pS,pC,pTot,dmg,z},
+         over:q>V.qNom,grain:f2(U*(1-pTot/100))};
+}
+
+function uField(V,x,y){
+  const{ua,ub,uc,ud,ue,uy,ur,uamp}=V.uMap;
+  return (V.uK||1)*V.U*(1+ua*Math.sin(ub*x+uc)+ud*Math.cos(ue*y)+uamp*Math.exp(-Math.pow((y-uy)/ur,2)));
+}
+
+const SEGP=12;
+function pass(V,Q){
+  const NSEG=V.NSEG||36;
+  const seed=hash(V.id+'p'+Q.v+Q.nb+Q.d+Q.nv+Q.h+(Q.auto?1:0)+(Q.sync?1:0)+(Q.calY?1:0)+Q.qSet),
+        R=rng(seed),segs=[],vSet=Q.v??V.vp,Lseg=V.FL/SEGP;
+  let y=V.b0,np=0,x=0,tWork=0,grain=0,bio=0,lossKg=0,bunker=0,stops=0,tStop=0,unloads=0;
+  for(let i=0;i<NSEG;i++){
+    const U=Math.round(cl(uField(V,x+Lseg/2,y)*(1+0.022*gs(R)),V.U*0.45,V.U*1.9)),
+          vRaw=Q.auto?speedFor(Q.qSet,U,V.psi,V.B):vSet,
+          v=f1(cl(vRaw,V.vMin,V.vMax)),
+          m=mode(V,{...Q,v,U}),
+          tSeg=Lseg/(v/3.6),
+          area=Lseg*V.B/1e4,
+          gSeg=U*area*(1-m.pTot/100);
+    segs.push({i:i+1,np,x:f1(x+Lseg/2),y:f1(y),U,v,q:m.q,kq:m.kq,pTot:m.pTot,pH:m.pH,pT:m.pT,
+               pS:m.pS,pC:m.pC,dmg:m.dmg,z:m.z,over:m.over,area:f3(area),grain:f1(gSeg)});
+    tWork+=tSeg;grain+=gSeg;bio+=U*area;lossKg+=U*area*m.pTot/100;
+    bunker+=gSeg;
+    if(bunker>=V.mBunk){
+      unloads++;
+      const tUn=V.mBunk/V.Qun;
+      if(!Q.sync){stops++;tStop+=tUn+V.tMan}
+      bunker-=V.mBunk;
+    }
+    x+=Lseg;if(x>V.FL-1){x=0;np++;y+=V.b;}
+  }
+  const area=segs.reduce((a,b)=>a+b.area,0),
+        mu=k=>segs.reduce((a,b)=>a+b[k]*b.area,0)/area,
+        pTot=f2(mu('pTot')),pH=f2(mu('pH')),pT=f2(mu('pT')),pS=f2(mu('pS')),pC=f2(mu('pC')),
+        dmg=f2(mu('dmg')),z=f2(mu('z')),
+        qAvg=f2(mu('q')),vAvg=f1(mu('v')),
+        qs=segs.map(s=>s.q),qMin=f2(Math.min(...qs)),qMax=f2(Math.max(...qs)),
+        qSd=Math.sqrt(segs.reduce((a,b)=>a+Math.pow(b.q-qAvg,2),0)/Math.max(1,NSEG-1)),
+        qCv=f1(100*qSd/qAvg),
+        over=segs.filter(s=>s.over).length,
+        tTot=tWork+tStop,
+        W=f2(area/(tTot/3600)),
+        Wmax=f2(area/(tWork/3600)),
+        kY=Q.calY?1:(1+V.fl.yCal/100),
+        Ushow=f1(grain/area*kY),Ureal=f1(grain/area),
+        errY=f1(100*(Ushow-Ureal)/Ureal);
+  return{segs,area:f2(area),grain:Math.round(grain),bio:Math.round(bio),lossKg:Math.round(lossKg),
+         pTot,pH,pT,pS,pC,dmg,z,qAvg,vAvg,qMin,qMax,qCv,over,unloads,stops,
+         tWork:Math.round(tWork),tStop:Math.round(tStop),W,Wmax,Ushow,Ureal,errY,
+         normOk:pTot<=V.nTot&&dmg<=V.nDmg&&z<=V.nZ&&pH<=V.nH};
+}
+
+const dryMass=(m,w1,w2)=>m*(w1-w2)/(100-w2);
+const dryTP=(V,m,w1)=>m/1000*Math.max(0,w1-V.wBase);
+const dryCost=(V,m,w1)=>Math.round(dryTP(V,m,w1)*V.Cdry);
+
+function mkV(r_){
+  const R=rng(hash([r_.group,r_.name,r_.num].join('|').toLowerCase().replace(/\s+/g,' '))),
+        pk=a=>a[Math.floor(R()*a.length)],ri=(a,b)=>Math.round(a+R()*(b-a)),rf=(a,b)=>a+R()*(b-a);
+  const h=pk(HARV),cr=pk(CROP),trk=pk(TRK);
+  const V={a:h,trk,crop:cr.c,
+    qNom:h.qNom,Vb:h.Vb,QunL:h.Qun[0],
+    psi:f2(rf(cr.psi[0],cr.psi[1])),
+    U:ri(cr.U[0]/100,cr.U[1]/100)*100,
+    w:f1(rf(cr.w[0],cr.w[1])),wOpt:cr.wOpt,
+    nOpt:Math.round(rf(cr.nOpt[0],cr.nOpt[1])/10)*10,
+    dOpt:Math.round(rf(cr.dOpt[0],cr.dOpt[1])),
+    hLow:Math.round(rf(cr.hLow[0],cr.hLow[1])),
+    rho:cr.rho,Cz:ri(cr.C[0]/100,cr.C[1]/100)*100,
+    cnd:cr.cnd,cdr:cr.cdr,
+    dMin:2,dMax:48,
+    nbMin:h.Nb[0],nbMax:h.Nb[1],nvMin:h.Nv[0],nvMax:h.Nv[1],
+    cSep:f2(rf(.30,.42)),cOch:f2(rf(.20,.28)),z0:f2(rf(1.4,2.2)),
+    pH0:f2(rf(.22,.32)),kH:f3(rf(.011,.020)),
+    S:ri(90,260),
+    tMan:ri(45,80),
+    Cdry:f1(rf(28,46)),
+    wBase:cr.wB,
+    Chour:ri(4200,7800),
+    Csys:ri(180,420)*1000,
+    id:'В-'+(hash(r_.group+r_.name+r_.num+'#id')%9000+1000)
+  };
+  V.nTot=1.5;V.nH=0.5;V.nDmg=2.0;V.nZ=3.0;
+  V.B=h.B.map(b=>({b,e:Math.abs(speedFor(h.qNom*0.85,V.U,V.psi,b)-6.2)}))
+         .sort((p,q)=>p.e-q.e)[0].b;
+  V.w=f1(Math.max(V.w,V.wBase+1.5));
+  V.aN=5.2;  V.cN=f2(V.aN*V.cnd/V.cdr);
+  V.eD=1.6;  V.bD=f2(V.eD*V.cdr/V.cnd);
+  V.nvOpt=Math.round(cl(rf(.52,.72)*(V.nvMax-V.nvMin)+V.nvMin,V.nvMin+60,V.nvMax-80)/10)*10;
+  V.hCut=Math.max(6,V.hLow-ri(1,4));
+  V.vHead=f1(rf(6.5,8.5));
+  V.vMin=3.0;V.vMax=f1(rf(8.5,11));
+  {let k=0.85,v=speedFor(V.qNom*k,V.U,V.psi,V.B);
+   if(v>V.vMax-1.6)k=feed(V.U,V.psi,V.B,V.vMax-1.6)/V.qNom;
+   else if(v<V.vMin+1.2)k=feed(V.U,V.psi,V.B,V.vMin+1.2)/V.qNom;
+   V.kLoad=f2(cl(k,.55,1.0));
+   V.qSet=f1(V.qNom*V.kLoad);
+   V.vp=f1(speedFor(V.qSet,V.U,V.psi,V.B));}
+  V.mBunk=Math.round(V.Vb*V.rho);
+  V.Qun=f1(V.QunL*V.rho/1000);
+  V.FL=Math.round(Math.sqrt(V.S*1e4*2.0)/10)*10;
+  V.FW=Math.round(V.S*1e4/V.FL/10)*10;
+  V.b=f1(V.B);V.b0=f1(V.B/2);
+  {const gPass=V.U*V.FL*V.B/1e4;
+   V.NP=Math.max(2,Math.min(9,Math.round(4*V.mBunk/Math.max(1,gPass))));
+   V.NSEG=V.NP*12;}
+  V.hSez=ri(170,300);
+  V.kDmg=f2(rf(.20,.32));
+  V.uMap={ua:f2(rf(.05,.12)),ub:f3(rf(.004,.011)),uc:f2(rf(0,6.2)),
+          ud:f2(rf(.03,.08)),ue:f3(rf(.008,.020)),
+          uy:0,ur:0,uamp:f2(rf(.16,.30))};
+  V.uMap.uy=f1((ri(0,1)+0.5)*V.b);
+  V.uMap.ur=f1(rf(.5,.9)*V.b);
+  V.uK=1;
+  {let sum=0,cnt=0;
+   for(let ip=0;ip<V.NP;ip++)for(let is=0;is<12;is++){
+     sum+=uField(V,(is+0.5)*V.FL/12,V.b0+ip*V.b);cnt++;
+   }
+   V.uK=f3(V.U/(sum/cnt));}
+  {const us=[];
+   for(let ip=0;ip<V.NP;ip++)for(let is=0;is<12;is++)us.push(uField(V,(is+0.5)*V.FL/12,V.b0+ip*V.b));
+   us.sort((a,b)=>a-b);
+   V.Umax=Math.round(us[us.length-1]);
+   V.U90=Math.round(us[Math.floor(0.90*(us.length-1))]);}
+  V.fl={nb:R()<.80?f2(rf(.14,.30))*(R()<.45?-1:1):0,
+        d: R()<.65?f2(rf(.18,.40))*(R()<.5?-1:1):0,
+        nv:R()<.75?f2(rf(.16,.32))*(R()<.5?-1:1):0,
+        yCal:f1(rf(3.5,9.0))*(R()<.5?-1:1),
+        hCut:R()<.6?ri(6,16):0};
+  if(!V.fl.nb)V.fl.nb=f2(rf(.16,.28));
+  {const g=Math.abs(V.fl.nb),up=V.nbMax/V.nOpt-1,dn=1-V.nbMin/V.nOpt,
+         nU=0.55,nD=0.30,okU=up>=nU,okD=dn>=nD;
+   V.fl.nb=g*((okU&&okD)?(R()<.45?-1:1):okU?1:okD?-1:(up/nU>=dn/nD?1:-1));}
+  V.start={nb:Math.round(cl(V.nOpt*(1+V.fl.nb),V.nbMin,V.nbMax)/10)*10,
+           d:Math.round(cl(V.dOpt*(1+V.fl.d),V.dMin,V.dMax)),
+           nv:Math.round(cl(V.nvOpt*(1+V.fl.nv),V.nvMin,V.nvMax)/10)*10,
+           h:V.hCut+V.fl.hCut};
+  V.Ssez=Math.round(V.vp*V.B/10*0.78*V.hSez/50)*50;
+  V.vCons=f1(cl(speedFor(V.qSet,V.U90,V.psi,V.B),V.vMin,V.vMax));
+  V.ideal=idealQ(V);
+  for(let it=0;it<14;it++){
+    const m=mode(V,{...V.start,v:V.vp,w:V.w});
+    if(m.pTot>V.nTot*1.25||m.dmg>V.nDmg*1.15||m.z>V.nZ*1.1||m.pH>V.nH*1.3)break;
+    V.fl.nb=f2(V.fl.nb+Math.sign(V.fl.nb)*0.045);
+    if(!V.fl.hCut&&it>3)V.fl.hCut=ri(8,16);
+    if(it>5)V.fl.nv=f2((V.fl.nv||0.18)*1.12);
+    V.start.nb=Math.round(cl(V.nOpt*(1+V.fl.nb),V.nbMin,V.nbMax)/10)*10;
+    V.start.nv=Math.round(cl(V.nvOpt*(1+V.fl.nv),V.nvMin,V.nvMax)/10)*10;
+    V.start.h=V.hCut+V.fl.hCut;
+  }
+  return V;
+}
+
+function idealQ(V){
+  let best=null;
+  const kq=feed(V.U,V.psi,V.B,V.vp)/V.qNom,d=V.dOpt;
+  for(let nb=V.nbMin;nb<=V.nbMax;nb+=10)
+    for(let nv=V.nvMin;nv<=V.nvMax;nv+=10){
+      const Q={nb,d,nv,h:V.hCut,v:V.vp,w:V.w},kv=nv/V.nvOpt,
+            pT=lossThresh(V,Q),dmg=grainDamage(V,Q),
+            pC=lossClean(V,kq,kv),z=trash(V,kq,kv,d),pS=lossSep(V,kq),
+            obj=lossHead(V,Q)+pT+pS+pC+dmg+0.6*Math.max(0,z-V.nZ);
+      if(!best||obj<best.obj)best={nb,nv,obj};
+    }
+  return{nb:best.nb,d,nv:best.nv,h:V.hCut,v:V.vp,qSet:V.qSet,auto:1,sync:1,calY:1};
+}
+
+function Qs(S_,V,o){
+  return Object.assign({
+    nb:n(S_.nb)??V.start.nb,d:n(S_.d)??V.start.d,nv:n(S_.nv)??V.start.nv,
+    h:n(S_.h)??V.start.h,v:n(S_.v)??V.vp,w:V.w,U:V.U,
+    qSet:n(S_.qSet)??V.qSet,auto:S_.auto??0,sync:S_.sync??0,calY:!!S_.calY
+  },o||{});
+}
+
+/* Виправлено: прибрано передчасне округлення hStop та hSpeed до множення на Chour */
+function econ(V,p0,p1,p2){
+  const cost=p=>(p.pTot+V.kDmg*p.dmg)/100*V.U*V.Cz/1000,
+        gaReg=cost(p0)-cost(p1),
+        gaAut=cost(p1)-cost(p2),
+        hGa1=1/Math.max(.01,p1.W),hGa2=1/Math.max(.01,p2.W),
+        hStopRaw=(p1.tStop-p2.tStop)/3600/Math.max(.01,p1.area),
+        hSpeedRaw=hGa1-hGa2-hStopRaw,
+        gaChas=(hGa1-hGa2)*V.Chour,
+        gaStop=hStopRaw*V.Chour,
+        gaSpeed=hSpeedRaw*V.Chour,
+        Ereg=Math.round(gaReg*V.Ssez),
+        Eaut=Math.round((gaAut+gaChas)*V.Ssez),
+        Cex=Math.round(.10*V.Csys),
+        Enet=Eaut-Cex,
+        dDmg=f2(p0.dmg-p2.dmg);
+  return{gaReg:f1(gaReg),gaAut:f1(gaAut),gaChas:f1(gaChas),gaStop:f1(gaStop),gaSpeed:f1(gaSpeed),
+         hGa1:f3(hGa1),hGa2:f3(hGa2),hStop:f3(hStopRaw),hSpeed:f3(hSpeedRaw),
+         Ereg,Eaut,Cex,Enet,dDmg,T:Enet>0?f2(V.Csys/Enet):null};
+}
+function ecRef(S_,V){
+  const t=S_.tr||{};
+  if(!t.base||!t.man||!t.aut)return null;
+  return econ(V,t.base,t.man,t.aut);
+}
+
+/* Система оцінювання: 18 + 22 + 20 + 18 + 22 = 100 балів (усунуто стелю 98/100) */
+const pen=(e,t,s)=>e<=t?0:Math.min(1,(e-t)/s);
+const okn=(x,y,t)=>x!==''&&x!=null&&n(x)!=null&&Math.abs(n(x)-y)<=t;
+function score(S_,V){
+  const r=[0,0,0,0,0],Q=Qs(S_,V),bd=S_.bd||{},t=S_.tr||{};
+  /* 1. Подача й робоча швидкість — 18 */
+  {const v=n(S_.v)??V.vp,q=feed(V.U,V.psi,V.B,v),
+         qS=n(S_.qSet)??V.qSet,vq=speedFor(qS,V.U,V.psi,V.B);
+   r[0]=(okn(bd.q,q,Math.max(.1,q*.02))?7:0)+(okn(bd.vq,vq,Math.max(.1,vq*.03))?7:0)+
+        (t.base?4:0);}
+  /* 2. Молотильний апарат — 22 */
+  {const m=mode(V,Q),mi=mode(V,{...V.ideal,w:V.w}),
+         qual=1-pen(m.pT+m.dmg,(mi.pT+mi.dmg)*1.25,(mi.pT+mi.dmg)*1.2);
+   r[1]=(okn(bd.nbOpt,V.ideal.nb,Math.max(20,V.ideal.nb*.06))?5:0)+
+        (okn(bd.dOpt,V.ideal.d,Math.max(2,V.ideal.d*.15))?4:0)+
+        7*qual+5*(1-pen(m.dmg,V.nDmg,1.0))+((S_.why||'').trim().length>=12?1:0);}
+  /* 3. Очистка й чистота зерна — 20 */
+  {const m=mode(V,Q),mi=mode(V,{...V.ideal,w:V.w});
+   r[2]=(okn(bd.nvOpt,V.ideal.nv,Math.max(30,V.ideal.nv*.06))?6:0)+
+        7*(1-pen(m.pC,mi.pC*1.3,mi.pC*1.2))+7*(1-pen(m.z,V.nZ,1.5));}
+  /* 4. Жатка й автоматика подачі — 18 */
+  {const m=mode(V,Q);
+   r[3]=5*(1-pen(m.pH,V.nH,.4))+(okn(bd.hOpt,V.hCut,2)?3:0)+
+        (S_.auto?4:0)+(S_.sync?3:0)+(okn(S_.qSet,V.qSet,Math.max(.4,V.qSet*.10))?3:0);}
+  /* 5. Прохід полем і економіка — 22 */
+  {const l=t.aut,e=ecRef(S_,V),ec=S_.ec||{};
+   if(l){
+     const rrm=l.grain?dryMass(l.grain,V.w,V.wBase):null,
+           rrtp=l.grain?dryTP(V,l.grain,V.w):null,
+           tStr=String(ec.T||'').trim().toLowerCase(),
+           tOk=e?(e.T==null?(/окуп|ні|-|—/.test(tStr)):okn(ec.T,e.T,Math.max(.05,e.T*.08))):false;
+     r[4]=5*(l.normOk?1:1-pen(l.pTot,V.nTot,1.0))+
+          (okn(bd.W,l.W,Math.max(.1,l.W*.04))?3:0)+
+          (okn(bd.Ureal,l.Ureal,Math.max(40,l.Ureal*.03))?3:0)+
+          (rrm!=null&&okn(bd.mw,rrm,Math.max(30,rrm*.04))?2:0)+
+          (rrtp!=null&&okn(bd.tp,rrtp,Math.max(1,rrtp*.04))?2:0)+
+          (e?((okn(ec.Ereg,e.Ereg,Math.max(800,Math.abs(e.Ereg)*.04))?3:0)+
+              (okn(ec.Eaut,e.Eaut,Math.max(800,Math.abs(e.Eaut)*.04))?2:0)+
+              (tOk?2:0)):0);
+   }}
+  return r.map(x=>Math.max(0,Math.round(x*10)/10));
+}
+
+/* ===== Стан, збереження, проходи, протокол ===== */
+const DEMO={group:'Приклад',name:'Приклад виконання',num:142};
+const F=(x,d)=>{if(x===''||x==null||(typeof x=='number'&&isNaN(x)))return'—';
+ const s=d==null?String(x):Number(x).toFixed(d);return s.replace('.',',').replace('-','−')};
+const r1=x=>Math.round(x*10)/10,r2=x=>Math.round(x*100)/100,r3=x=>Math.round(x*1000)/1000;
+const TH=x=>(x<0?'−':'')+String(Math.round(Math.abs(x))).replace(/\B(?=(\d{3})+(?!\d))/g,' ');
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const vs=x=>esc(String(x??'').replace('.',','));
+let S=null;try{S=JSON.parse(localStorage.getItem(KEY))}catch(e){}if(!S||!S.tr)S=null;
+const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}};
+let V=S&&S.reg?mkV(S.reg):null;
+
+const TT=['Реєстрація й варіант','1. Подача й робоча швидкість','2. Молотильний апарат',
+          '3. Очистка й чистота зерна','4. Жатка й автоматика подачі','5. Прохід полем і економіка',
+          'Підсумковий протокол','Досліди «що буде, якщо…»','Калькулятор'];
+const LAB=7,CALC=8,NST=6;
+
+function theme(t){
+  const o=['auto','light','dark'];let i=o.indexOf(localStorage.getItem(TKEY)||'auto');
+  if(t!==0){i=(i+1)%3;try{localStorage.setItem(TKEY,o[i])}catch(e){}}
+  const v=o[i];if(v=='auto')document.documentElement.removeAttribute('data-theme');
+  else document.documentElement.setAttribute('data-theme',v);
+  const b=document.getElementById('thb');if(b)b.textContent='Тема: '+({auto:'авто',light:'світла',dark:'темна'})[v];
+  if(t!==0&&typeof R=='function')R();
+}
+
+function blank(){
+  return{reg:null,step:0,
+    nb:'',d:'',nv:'',h:'',v:'',qSet:'',auto:0,sync:0,calY:0,why:'',
+    bd:{q:'',vq:'',nbOpt:'',dOpt:'',nvOpt:'',hOpt:'',W:'',Ureal:'',mw:'',tp:''},
+    ec:{Ereg:'',Eaut:'',T:''},
+    tr:{n:0,base:null,man:null,aut:null,last:null},
+    lab:{nb:0,d:0,nv:0,h:0,v:0,qSet:0},
+    calc:{U:'',psi:'',B:'',v:'',q:'',qNom:'',Vb:'',rho:'',m:'',w1:'',w2:'14',Cdry:'',
+          pTot:'',dmg:'',kDmg:'25',Cz:'',Ssez:'',W2:'',W3:'',Chour:'',Csys:''}};
+}
+
+const QS=o=>Qs(S,V,o);
+const nbNow=()=>cl(n(S.nb)??V.start.nb,V.nbMin,V.nbMax);
+const dNow =()=>cl(n(S.d) ??V.start.d ,V.dMin ,V.dMax );
+const nvNow=()=>cl(n(S.nv)??V.start.nv,V.nvMin,V.nvMax);
+const hNow =()=>Math.max(2,n(S.h)??V.start.h);
+const vNow =()=>cl(n(S.v)||V.vp,V.vMin,V.vMax);
+const qSetNow=()=>n(S.qSet)??V.qSet;
+
+/* Виправлено: у проході 'man' примусово calY:0, auto:0, sync:0 */
+function runCore(kind){
+  const Q=kind=='aut'?QS({auto:1,sync:1,calY:1})
+         :kind=='man'?QS({v:V.vCons,auto:0,sync:0,calY:0})
+         :QS({auto:0,sync:0,calY:0,...V.start,v:V.vp});
+  const p=pass(V,Q),rowr={...p,kind,nb:Q.nb,d:Q.d,nv:Q.nv,h:Q.h,v:Q.v,
+    qSet:Q.qSet,auto:Q.auto?1:0,sync:Q.sync?1:0,calY:Q.calY?1:0};
+  S.tr[kind]=rowr;S.tr.last=rowr;S.tr.n++;
+}
+function run(kind){
+  if(kind!='base'){
+    if(n(S.nb)==null)return alert('Задайте оберти барабана (крок 2).');
+    if(n(S.d)==null) return alert('Задайте зазор підбарабання (крок 2).');
+    if(n(S.nv)==null)return alert('Задайте оберти вентилятора (крок 3).');
+    if(n(S.h)==null) return alert('Задайте висоту зрізу (крок 4).');
+  }
+  if(kind=='aut'&&!S.tr.man)return alert('Спершу виконайте прохід «налаштовано, без автоматики».');
+  runCore(kind);save();R();
+}
+
+function ref(){
+  const v=vNow(),I=V.ideal,
+        q=feed(V.U,V.psi,V.B,v),vq=speedFor(qSetNow(),V.U,V.psi,V.B),
+        g=S.tr.aut||S.tr.man||S.tr.base,mGr=g?g.grain:0;
+  return{q,vq,nbOpt:I.nb,dOpt:I.d,nvOpt:I.nv,hOpt:V.hCut,
+         mw:dryMass(mGr,V.w,V.wBase),tp:dryTP(V,mGr,V.w),dryC:dryCost(V,mGr,V.w),
+         W:g?g.W:null,Ureal:g?g.Ureal:null};
+}
+
+function demoState(){
+  S=blank();S.demo=1;S.reg={...DEMO};V=mkV(S.reg);const I=V.ideal;
+  runCore('base');
+  S.nb=String(I.nb);S.d=String(I.d);S.nv=String(I.nv);S.h=String(V.hCut);
+  S.v=String(V.vp);S.qSet=String(V.qSet);
+  runCore('man');
+  S.auto=1;S.sync=1;S.calY=1;
+  runCore('aut');
+  const rr=ref(),l=S.tr.aut;
+  S.bd={q:F(r2(rr.q),2),vq:F(r2(rr.vq),2),nbOpt:String(I.nb),dOpt:String(I.d),
+        nvOpt:String(I.nv),hOpt:String(V.hCut),W:F(l.W,2),Ureal:F(l.Ureal,1),
+        mw:F(Math.round(rr.mw),0),tp:F(r1(rr.tp),1)};
+  S.why='оберти барабана й зазор підбарабання діють на одну величину — інтенсивність обмолоту,'+
+        ' тому зазор ставлять за культурою, а оберти доводять за співвідношенням недомолоту й дроблення';
+  const e=ecRef(S,V);
+  S.ec={Ereg:String(e.Ereg),Eaut:String(e.Eaut),T:e.T==null?'не окупається':F(e.T,2)};
+  S.lab={nb:I.nb,d:I.d,nv:I.nv,h:V.hCut,v:V.vp,qSet:V.qSet};
+  S.step=0;return S;
+}
+
+function rec(i){
+  const t=S.tr,l=t.aut||t.man||t.base,rr=ref(),
+        m=(x,u)=>x===''||x==null?'—':String(x).replace('.',',')+u;
+  return[0,
+    `U = ${TH(V.U)} кг/га; ψ = ${F(V.psi,2)}; B = ${F(V.B,1)} м; v = ${F(vNow(),1)} км/год; `+
+    `q = ${m(S.bd.q,' кг/с')} при q_ном = ${F(V.qNom,1)} кг/с (завантаження ${F(r1(100*rr.q/V.qNom),1)} %); `+
+    `уставка q = ${F(qSetNow(),1)} кг/с → v = ${m(S.bd.vq,' км/год')}`,
+    `n_б = ${F(nbNow())} об/хв (межі ${V.nbMin}…${V.nbMax}); δ = ${F(dNow())} мм; `+
+    `таблиця для культури: n = ${V.nOpt} об/хв, δ = ${V.dOpt} мм; w = ${F(V.w,1)} % `+
+    `(таблицю складено для ${V.wOpt} %); знайдений оптимум n_б = ${m(S.bd.nbOpt,' об/хв')}, `+
+    `δ = ${m(S.bd.dOpt,' мм')}`,
+    `n_в = ${F(nvNow())} об/хв (межі ${V.nvMin}…${V.nvMax}); розрахункові ${V.nvOpt} об/хв; `+
+    `знайдений оптимум ${m(S.bd.nvOpt,' об/хв')}; норма засміченості ${F(V.nZ,1)} %`,
+    `h_низ = ${F(V.hLow)} см; h_зр = ${F(hNow())} см (рекомендована ${m(S.bd.hOpt,' см')}); `+
+    `уставка подачі ${F(qSetNow(),1)} кг/с; автоматика подачі ${S.auto?'увімкнена':'вимкнена'}; `+
+    `синхронізація з транспортом ${S.sync?'увімкнена':'вимкнена'}; `+
+    `датчик врожайності ${S.calY?'калібрований':'не калібрований'}`,
+    l?`прохід: ${V.NP} загінки, ${F(l.area,2)} га; втрати ${F(l.pTot,2)} % (норма ${F(V.nTot,1)}), `+
+      `з них жатка ${F(l.pH,2)}, недомолот ${F(l.pT,2)}, сепарація ${F(l.pS,2)}, очистка ${F(l.pC,2)}; `+
+      `дроблення ${F(l.dmg,2)} % (норма ${F(V.nDmg,1)}); засміченість ${F(l.z,2)} % (норма ${F(V.nZ,1)}); `+
+      `W = ${m(S.bd.W,' га/год')}; фактична врожайність ${m(S.bd.Ureal,' кг/га')}, `+
+      `датчик після калібрування ${F(l.Ushow,1)} кг/га (похибка ${F(l.errY,1)} %), `+
+      `до калібрування давав похибку ${F(t.base?t.base.errY:V.fl.yCal,1)} %; `+
+      `випарити ${m(S.bd.mw,' кг')} води = ${m(S.bd.tp,' т·%')}; `+
+      `ефект регулювання ${m(S.ec.Ereg,' грн/сезон')}, автоматики ${m(S.ec.Eaut,' грн/сезон')}, `+
+      `окупність ${S.ec.T===''?'—':esc(S.ec.T)}${/\d/.test(S.ec.T||'')?' року':''}`
+     :'прохід не виконано'][i];
+}
+
+function done(i){
+  const t=S.tr;
+  if(i==0)return S.reg?1:0;
+  if(i==1){const f=[n(S.bd.q),n(S.bd.vq),n(S.v),t.base].filter(x=>x!=null&&x!=='').length;return f>=4?1:f?.5:0}
+  if(i==2){const f=[n(S.nb),n(S.d),n(S.bd.nbOpt),n(S.bd.dOpt),(S.why||'').trim()].filter(x=>x!=null&&x!=='').length;return f>=5?1:f?.5:0}
+  if(i==3){const f=[n(S.nv),n(S.bd.nvOpt)].filter(x=>x!=null&&x!=='').length;return f>=2?1:f?.5:0}
+  if(i==4){const f=[n(S.h),n(S.bd.hOpt),n(S.qSet),S.auto,S.sync].filter(x=>x!=null&&x!==''&&x!==0).length;return f>=5?1:f?.5:0}
+  if(i==5){if(!t.aut)return t.man?.5:0;
+    const f=[n(S.bd.W),n(S.bd.Ureal),n(S.bd.mw),n(S.bd.tp),S.ec.Ereg,S.ec.Eaut,S.ec.T].filter(x=>x!==''&&x!=null).length;
+    return f>=7?1:.5;}
+  if(i==6)return [1,2,3,4,5].every(k=>done(k)==1)?1:0;
+  return 0;
+}
+const tot=()=>score(S,V).reduce((a,b)=>a+b,0);
+function pcode(){
+  const s=score(S,V),h=hash(JSON.stringify([S.reg,s,S.tr.n])).toString(36).toUpperCase();
+  return V.id+'-'+Math.round(tot())+'-'+h.slice(0,4);
+}
+
+/* ===== SVG-графіка: масштабовані схеми, теплові карти та графіки ===== */
+const C=k=>'var(--'+k+')';
+const A=o=>Object.keys(o).map(k=>k.replace(/_/g,'-')+'="'+o[k]+'"').join(' ');
+const sv=(w,h,b)=>['<svg viewBox="0 0 '+w+' '+h+'" width="'+w+'" height="'+h+'" role="img">'+(b||''),'</svg>'];
+const ln=(x1,y1,x2,y2,c,w,o)=>'<line '+A({x1:r2(x1),y1:r2(y1),x2:r2(x2),y2:r2(y2),stroke:c||C('ln'),stroke_width:w||1,...(o||{})})+'/>';
+const rc=(x,y,w,h,f,o)=>'<rect '+A({x:r2(x),y:r2(y),width:r2(Math.max(0,w)),height:r2(Math.max(0,h)),fill:f||'none',...(o||{})})+'/>';
+const ci=(x,y,r,f,o)=>'<circle '+A({cx:r2(x),cy:r2(y),r:r2(Math.max(0,r)),fill:f||'none',...(o||{})})+'/>';
+const el=(x,y,rx,ry,f,o)=>'<ellipse '+A({cx:r2(x),cy:r2(y),rx:r2(rx),ry:r2(ry),fill:f||'none',...(o||{})})+'/>';
+const pa=(d,f,o)=>'<path '+A({d,fill:f||'none',...(o||{})})+'/>';
+const pg=(p,f,o)=>'<polygon '+A({points:p.map(q=>r2(q[0])+','+r2(q[1])).join(' '),fill:f||'none',...(o||{})})+'/>';
+const pl=(p,c,w,o)=>'<polyline '+A({points:p.map(q=>r2(q[0])+','+r2(q[1])).join(' '),fill:'none',stroke:c,stroke_width:w||1,...(o||{})})+'/>';
+/* Виправлено: підтримка і o.b, і o.w для жирного шрифту */
+function T(x,y,s,o){
+  o=o||{};
+  const fw=o.w||(o.b?700:400);
+  return'<text '+A({x:r2(x),y:r2(y),fill:o.c||C('ink'),font_size:o.s||11,
+    text_anchor:o.a||'start',font_weight:fw,
+    ...(o.rot?{transform:'rotate('+o.rot+' '+r2(x)+' '+r2(y)+')'}:{}),
+    ...(o.o?{opacity:o.o}:{})})+'>'+esc(s)+'</text>';
+}
+function blk(x,y,w,h,t,o){
+  o=o||{};
+  return rc(x,y,w,h,o.f||C('pn2'),{stroke:o.c||C('ln'),stroke_width:o.sw||1.2,rx:o.rx??5})+
+    (t?T(x+w/2,y+h/2+(o.ts||4),t,{a:'middle',s:o.s||11,b:o.b,c:o.tc}):'');
+}
+function dimH(x1,x2,y,t,c){
+  c=c||C('sub');const d=x2>x1?1:-1;
+  return ln(x1,y,x2,y,c,1)+ln(x1,y-4,x1,y+4,c,1)+ln(x2,y-4,x2,y+4,c,1)+
+    pg([[x1,y],[x1+6*d,y-2.6],[x1+6*d,y+2.6]],c)+pg([[x2,y],[x2-6*d,y-2.6],[x2-6*d,y+2.6]],c)+
+    (t?T((x1+x2)/2,y-6,t,{a:'middle',s:10,c}):'');
+}
+function dimV(y1,y2,x,t,c){
+  c=c||C('sub');
+  const ym=(y1+y2)/2;
+  return ln(x,y1,x,y2,c,1.2)+ln(x-4,y1,x+4,y1,c,1.2)+ln(x-4,y2,x+4,y2,c,1.2)+
+    (t?(rc(x+5,ym-9,62,15,C('pn2'),{rx:3,opacity:.92})+T(x+8,ym+2,t,{s:10,b:1,c})):'');
+}
+const dash=(a,b)=>({stroke_dasharray:a+' '+(b||a)});
+
+/* Кругова шкала */
+function gauge(val,lo,hi,lab,unit,bands){
+  const w=112,h=84,cx=56,cy=62,R=42,a0=-175,a1=-5,f=cl((val-lo)/(hi-lo),0,1),ar=d=>(d*Math.PI)/180,
+        P=(d,r)=>[cx+r*Math.cos(ar(d)),cy+r*Math.sin(ar(d))],
+        arc=(d1,d2,r,c,w_)=>{const p1=P(d1,r),p2=P(d2,r);return pa('M'+r2(p1[0])+' '+r2(p1[1])+'A'+r+' '+r+' 0 0 1 '+r2(p2[0])+' '+r2(p2[1]),'none',{stroke:c,stroke_width:w_,stroke_linecap:'round'})};
+  let s=arc(a0,a1,R,C('ln'),8);
+  for(const b of bands||[]){
+    const d1=a0+(a1-a0)*cl((b[0]-lo)/(hi-lo),0,1),d2=a0+(a1-a0)*cl((b[1]-lo)/(hi-lo),0,1);
+    if(d2>d1+.4)s+=arc(d1,d2,R,b[2],8);
+  }
+  const d=a0+(a1-a0)*f,p=P(d,R-13),o=P(d,8);
+  s+=ln(o[0],o[1],p[0],p[1],C('ink'),2.4,{stroke_linecap:'round'})+ci(cx,cy,3.4,C('ink'));
+  s+=T(cx,cy-16,F(r1(val),null)+(unit?' '+unit:''),{a:'middle',s:14.5,b:1});
+  s+=T(cx,cy+17,lab,{a:'middle',s:9.5,c:C('sub')});
+  return sv(w,h)[0]+s+sv(w,h)[1];
+}
+
+/* Інтерактивний графік із clipPath та наведенням */
+function chart(id,ser,o){
+  o=o||{};const w=o.w||640,h=o.h||200,L=o.L||46,Rr=14,Tp=o.T||14,B=30,
+        xs=[].concat(...ser.map(s=>s.pts.map(p=>p[0]))),ys=[].concat(...ser.map(s=>s.pts.map(p=>p[1])));
+  if(!xs.length)return'';
+  const x0=o.x0??Math.min(...xs),x1=o.x1??Math.max(...xs),
+        y0=o.y0??0,y1=o.y1??Math.max(1,Math.max(...ys)*1.12),
+        X=v=>L+(w-L-Rr)*(v-x0)/((x1-x0)||1),Y=v=>Tp+(h-Tp-B)*(1-(v-y0)/((y1-y0)||1));
+  const cid='clip_'+id;
+  let s='<defs><clipPath id="'+cid+'">'+rc(L,Tp,w-L-Rr,h-Tp-B,'#000')+'</clipPath></defs>';
+  s+=rc(L,Tp,w-L-Rr,h-Tp-B,C('pn'),{stroke:C('ln')});
+  const nyt=o.ny||4;
+  for(let i=0;i<=nyt;i++){
+    const v=y0+(y1-y0)*i/nyt,y=Y(v);
+    s+=ln(L,y,w-Rr,y,C('ln'),i?.6:1,i?dash(3,4):{})+T(L-5,y+3.5,o.yf?o.yf(v):F(r1(v)),{a:'end',s:9.5,c:C('sub')});
+  }
+  const nxt=o.nx||5;
+  for(let i=0;i<=nxt;i++){
+    const v=x0+(x1-x0)*i/nxt,x=X(v);
+    s+=ln(x,Tp,x,h-B,C('ln'),.6,dash(3,4))+T(x,h-B+13,o.xf?o.xf(v):F(r1(v)),{a:'middle',s:9.5,c:C('sub')});
+  }
+  s+='<g clip-path="url(#'+cid+')">';
+  for(const b of o.bands||[])s+=rc(L,Y(b[1]),w-L-Rr,Y(b[0])-Y(b[1]),b[2],{opacity:.14});
+  (o.vl||[]).forEach((g,i)=>{
+    s+=ln(X(g[0]),Tp,X(g[0]),h-B,g[1]||C('am'),1.5,dash(5,4))+
+       T(X(g[0])+4,Tp+12+i*13,g[2]||'',{s:9.5,b:1,c:g[1]||C('am')});
+  });
+  for(const se of ser){
+    if(se.pts.length<2)continue;
+    s+=pl(se.pts.map(p=>[X(p[0]),Y(p[1])]),se.color,se.w||2,se.dash?dash(5,4):{});
+  }
+  for(const se of ser)if(se.dots)for(const p of se.pts)s+=ci(X(p[0]),Y(p[1]),2.6,se.color);
+  s+='</g>';
+  if(o.xl)s+=T(w-Rr,h-4,o.xl,{a:'end',s:10,c:C('sub')});
+  if(o.yl)s+=T(4,Tp-4,o.yl,{s:10,c:C('sub')});
+  if(ser.length>1&&!o.nolg){
+    const ls=ser.filter(x=>x.name),
+          y0l=o.lgb?h-B-8-(ls.length-1)*13:Tp+12+(o.vl||[]).length*13;
+    s+=ls.map((se,i)=>{
+      const x=L+8,y=y0l+i*13;
+      return ln(x,y-3.5,x+16,y-3.5,se.color,2.4,se.dash?dash(5,4):{})+T(x+21,y,se.name,{s:10,c:C('sub')});
+    }).join('');
+  }
+  const hit={L,Rr,Tp,B,w,h,x0,x1,y0,y1};
+  return'<div class="ch" id="'+id+'" data-g="'+esc(JSON.stringify(hit))+'">'+sv(w,h)[0]+s+
+    '<g id="'+id+'_c" style="display:none"><line y1="'+Tp+'" y2="'+(h-B)+'" stroke="'+C('ink')+'" stroke-width="1"/></g>'+
+    sv(w,h)[1]+'<div class="tip" id="'+id+'_t"></div></div>';
+}
+function chBind(id,fn){
+  const d=document.getElementById(id);if(!d)return;
+  const g=JSON.parse(d.dataset.g),tip=document.getElementById(id+'_t'),cur=document.getElementById(id+'_c'),svg=d.querySelector('svg');
+  const mv=e=>{
+    const b=svg.getBoundingClientRect(),px=(e.touches?e.touches[0].clientX:e.clientX)-b.left,
+          ux=px/b.width*g.w;
+    if(ux<g.L-2||ux>g.w-g.Rr+2){out();return}
+    const v=g.x0+(g.x1-g.x0)*(ux-g.L)/(g.w-g.L-g.Rr),t=fn(v);
+    if(!t){out();return}
+    cur.style.display='';cur.firstChild.setAttribute('x1',r2(ux));cur.firstChild.setAttribute('x2',r2(ux));
+    tip.style.display='block';tip.innerHTML=t;
+    const tw=tip.offsetWidth||130;tip.style.left=Math.max(4,Math.min(b.width-tw-4,px-tw/2))+'px';
+  };
+  const out=()=>{cur.style.display='none';tip.style.display='none'};
+  d.onmousemove=mv;d.onmouseleave=out;d.ontouchstart=mv;d.ontouchmove=e=>{mv(e);e.preventDefault()};d.ontouchend=out;
+}
+
+/* --- 5-етапна технологічна схема комбайна --- */
+function phasesSVG(){
+  const W=760,H=186,pw=W/5;let s='';
+  const tt=[['жатка','зрізає й подає масу'],['барабан','вимолочує зерно з колоса'],
+            ['сепарація','вибиває зерно з соломи'],['очистка','відділяє полову повітрям'],
+            ['бункер','накопичення й вивантаження']];
+  for(let i=0;i<5;i++){
+    const x=i*pw;
+    s+=rc(x+6,8,pw-12,H-42,C('pn'),{stroke:C('ln'),rx:8});
+    s+=T(x+pw/2,29,String(i+1),{s:15,a:'middle',b:1,c:C('acc')});
+    s+=T(x+pw/2,48,tt[i][0],{s:12,a:'middle',b:1});
+    s+=T(x+pw/2,H-22,tt[i][1],{s:9.5,a:'middle',c:C('sub')});
+    const cx=x+pw/2,cy=96;
+    if(i==0){
+      s+=ci(cx-14,cy-8,13,'none',{stroke:C('ln'),stroke_width:1.3});
+      s+=ln(cx-30,cy+12,cx+22,cy+12,C('acc'),2.6);
+      for(let k=-28;k<22;k+=6)s+=ln(cx+k,cy+24,cx+k,cy+12,C('straw'),1.3);
+    }
+    if(i==1){
+      s+=ci(cx,cy,17,C('pn2'),{stroke:C('ink'),stroke_width:1.7});
+      for(let k=0;k<6;k++){const a=k*Math.PI/3;s+=ln(cx+Math.cos(a)*6,cy-Math.sin(a)*6,cx+Math.cos(a)*17,cy-Math.sin(a)*17,C('ink'),1.7)}
+      s+=pa(`M ${cx-22} ${cy+13} A 24 24 0 0 0 ${cx+22} ${cy+15}`,'none',{stroke:C('acc2'),stroke_width:2.8});
+    }
+    if(i==2){
+      let p=[];for(let k=0;k<=8;k++)p.push([cx-26+k*6.5,cy+(k%2?5:-5)]);
+      s+=pl(p,C('straw'),2.6);
+      for(let k=0;k<4;k++)s+=ci(cx-18+k*12,cy+17,3.2,C('grain'));
+    }
+    if(i==3){
+      s+=ln(cx-26,cy-4,cx+24,cy-12,C('acc'),2.6);
+      for(let k=0;k<3;k++)s+=pa(`M ${cx-28} ${cy+8+k*7} q 20 -4 40 -10`,'none',{stroke:C('air'),stroke_width:1.7});
+      for(let k=0;k<3;k++)s+=el(cx+6+k*9,cy-18-k*3,6,2.4,C('chaff'),{opacity:.95});
+    }
+    if(i==4){
+      s+=pg([[cx-20,cy-14],[cx+20,cy-14],[cx+15,cy+14],[cx-15,cy+14]],C('pn2'),{stroke:C('ln'),stroke_width:1.4});
+      s+=pg([[cx-17,cy-2],[cx+17,cy-2],[cx+15,cy+13],[cx-15,cy+13]],C('grain'),{opacity:.92});
+    }
+    if(i<4)s+=T(x+pw-1,cy+4,'→',{s:15,a:'middle',b:1,c:C('acc')});
+  }
+  const [a,b]=sv(W,H);return a+s+b;
+}
+
+/* --- Загальна схема комбайна з анімацією та чистими виносками (без накладання h) --- */
+function combineSVG(o){
+  o=o||{};const SC=48,W=780,H=o.loss?408:382,gy=238,x0=172;
+  const px=m=>x0+m*SC,py=m=>gy-m*SC;
+  const spdDrum=cl(1.8/(o.kn||1),0.6,3.5).toFixed(2)+'s',
+        spdFan=cl(1.5/(o.kv||1),0.5,3.2).toFixed(2)+'s',
+        aspd=cl(1.1/(o.kv||1),0.4,2.4).toFixed(2)+'s';
+  let s='<defs>'+
+    '<linearGradient id="gBody" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="'+C('pn')+'"/><stop offset="100%" stop-color="'+C('pn2')+'"/></linearGradient>'+
+    '<linearGradient id="gGrain" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="'+C('grain')+'"/><stop offset="100%" stop-color="'+C('grain2')+'"/></linearGradient>'+
+    '<marker id="arM" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5.4" markerHeight="5.4" orient="auto"><path d="M0,1 L9,5 L0,9 z" fill="'+C('acc')+'"/></marker>'+
+    '<marker id="arL" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto"><path d="M0,1 L9,5 L0,9 z" fill="'+C('bad')+'"/></marker>'+
+    '<marker id="arA" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="4.6" markerHeight="4.6" orient="auto"><path d="M0,1 L9,5 L0,9 z" fill="'+C('air')+'"/></marker>'+
+    '</defs>';
+  const hc=cl(o.h!=null?o.h:25,2,130)/100,hLow=o.hLowM??.3;
+  /* 1. ґрунт і стерня */
+  s+=ln(0,gy,W,gy,C('ln'),1.5);
+  for(let x=4;x<W;x+=10)s+=ln(x,gy,x+2,gy-4,C('sub'),.7,{opacity:.45});
+  /* 2. хлібостій попереду жатки (лише до x = -1.65, щоб не заважати розміру h) */
+  for(let m=-3.35;m<12.2;m+=.15){
+    if(m>-1.68&&m<-1.38)continue;
+    const un=m<-1.68,top=un?(o.standing??.95):Math.min(hc,hLow);
+    s+=ln(px(m),gy,px(m),py(top),C('straw'),un?1.35:1,{opacity:un?.88:.62});
+    if(un&&Math.round(m*100)%30==0)s+=el(px(m),py(top),2.4,5,C('grain'),{opacity:.92});
+  }
+  /* 3. колеса */
+  for(const w of [{x:px(4.4),r:.80},{x:px(9.05),r:.46}]){
+    s+=ci(w.x,py(w.r),w.r*SC,C('pn2'),{stroke:C('ln'),stroke_width:1.8});
+    s+=ci(w.x,py(w.r),w.r*SC*.42,C('pn'),{stroke:C('ln'),stroke_width:1.2});
+  }
+  /* 4. корпус молотарки */
+  s+=pg([[px(2.55),py(1.05)],[px(2.55),py(2.95)],[px(9.9),py(2.95)],
+         [px(10.05),py(1.0)],[px(9.55),py(.55)],[px(2.95),py(.55)]],'url(#gBody)',
+        {stroke:C('ln'),stroke_width:1.7});
+  /* 5. бункер зерна */
+  s+=pg([[px(5.0),py(2.95)],[px(5.0),py(3.92)],[px(9.3),py(3.92)],[px(9.3),py(2.95)]],C('pn'),
+        {stroke:C('ln'),stroke_width:1.5});
+  {const f=cl(o.fill??0,0,1),yb=py(3.0),yt=yb-(py(3.0)-py(3.86))*f;
+   if(f>0)s+=pg([[px(5.07),yt],[px(5.07),yb],[px(9.23),yb],[px(9.23),yt]],'url(#gGrain)',{opacity:.9})}
+  /* 6. вивантажувальний шнек */
+  s+=pg([[px(9.0),py(3.62)],[px(9.0),py(3.86)],[px(12.1),py(3.2)],[px(12.1),py(2.96)]],C('pn'),
+        {stroke:C('ln'),stroke_width:1.3});
+  /* 7. кабіна */
+  s+=pg([[px(2.62),py(2.95)],[px(2.62),py(3.86)],[px(4.82),py(3.98)],[px(4.82),py(2.95)]],C('pn'),
+        {stroke:C('ln'),stroke_width:1.5});
+  s+=pg([[px(2.74),py(3.14)],[px(2.74),py(3.74)],[px(3.52),py(3.8)],[px(3.52),py(3.17)]],C('air'),{opacity:.28});
+  /* 8. похила камера */
+  s+=pg([[px(.78),py(.92)],[px(.62),py(1.74)],[px(2.6),py(2.52)],[px(2.6),py(1.12)]],C('pn'),
+        {stroke:C('ln'),stroke_width:1.5});
+  /* 9. жатка: корпус, обертове мотовило, шнек, ніж */
+  s+=pg([[px(-1.35),py(hc)],[px(-1.35),py(hc+1.0)],[px(.82),py(hc+1.0)],[px(.82),py(hc)]],C('pn'),
+        {stroke:C('ln'),stroke_width:1.5});
+  {const rx=px(-.62),ry=py(hc+.88),rr=.38*SC;
+   let reel='<g class="rot-ccw" style="--spd:3.2s">';
+   reel+=ci(rx,ry,rr,'none',{stroke:C('ln'),stroke_width:1.2});
+   for(let k=0;k<6;k++){const a=k*Math.PI/3;reel+=ln(rx,ry,rx+Math.cos(a)*rr,ry-Math.sin(a)*rr,C('sub'),1.1)}
+   s+=reel+'</g>';}
+  s+=ci(px(.2),py(hc+.32),.24*SC,C('pn2'),{stroke:C('ln'),stroke_width:1.1});
+  s+=ln(px(-1.42),py(hc),px(.78),py(hc),C('acc'),2.8);
+  /* 10. молотильний барабан, підбарабання, соломотряс, решета, вентилятор */
+  const dr={x:px(3.5),y:py(1.9),r:.34},bt={x:px(4.5),y:py(2.08),r:.21},fan={x:px(5.7),y:py(.98),r:.29};
+  {let drG='<g class="rot-cw" style="--spd:'+spdDrum+'">';
+   drG+=ci(dr.x,dr.y,dr.r*SC,C('pn'),{stroke:C('ink'),stroke_width:1.9});
+   for(let k=0;k<8;k++){const a=k*Math.PI/4;
+     drG+=ln(dr.x+Math.cos(a)*dr.r*SC*.48,dr.y-Math.sin(a)*dr.r*SC*.48,
+             dr.x+Math.cos(a)*dr.r*SC,dr.y-Math.sin(a)*dr.r*SC,C('ink'),2)}
+   s+=drG+'</g>';}
+  s+=pa(`M ${r2(dr.x-dr.r*SC*1.2)} ${r2(dr.y+dr.r*SC*.40)} A ${r2(dr.r*SC*1.28)} ${r2(dr.r*SC*1.28)} 0 0 0 ${r2(dr.x+dr.r*SC*1.12)} ${r2(dr.y+dr.r*SC*.60)}`,
+        'none',{stroke:C('acc2'),stroke_width:3.4});
+  s+=ci(bt.x,bt.y,bt.r*SC,C('pn'),{stroke:C('ln'),stroke_width:1.4});
+  {let p=[];for(let m=5.0;m<=8.8;m+=.48)p.push([px(m),py(2.36+(Math.round(m*2)%2?.1:-.1))]);s+=pl(p,C('straw'),2.6)}
+  s+=ln(px(5.1),py(1.5),px(8.5),py(1.2),C('acc'),2.6);
+  s+=ln(px(5.1),py(1.12),px(8.3),py(.84),C('acc'),2.1,dash(5,4));
+  {let fanG='<g class="rot-ccw" style="--spd:'+spdFan+'">';
+   fanG+=ci(fan.x,fan.y,fan.r*SC,C('pn2'),{stroke:C('ln'),stroke_width:1.5});
+   for(let k=0;k<6;k++){const a=k*Math.PI/3;fanG+=ln(fan.x,fan.y,fan.x+Math.cos(a)*fan.r*SC,fan.y-Math.sin(a)*fan.r*SC,C('air'),2)}
+   s+=fanG+'</g>';}
+  {const kv=cl(o.kv??1,.4,1.7);
+   for(let k=0;k<4;k++){const yy=py(1.04+k*.12);
+     s+=pa(`M ${r2(px(6.05))} ${r2(yy)} q ${r2(.8*SC*kv)} ${-5-3*k} ${r2(1.7*SC*Math.min(1.3,kv))} ${-9-4*k}`,
+           'none',{stroke:C('air'),stroke_width:1.6,opacity:.78,marker_end:'url(#arA)',class:'air-flow',style:'--aspd:'+aspd});
+   }}
+  s+=pg([[px(8.45),py(1.15)],[px(8.68),py(1.15)],[px(8.9),py(2.95)],[px(8.67),py(2.95)]],'url(#gGrain)',
+        {stroke:C('ln'),stroke_width:.9,opacity:.82});
+  /* 11. шлях хлібної маси */
+  s+=pa(`M ${r2(px(-1.1))} ${r2(py(hc+.22))} L ${r2(px(.65))} ${r2(py(hc+.38))} L ${r2(px(2.5))} ${r2(py(1.5))}`+
+        ` L ${r2(dr.x-dr.r*SC*1.22)} ${r2(dr.y+3)} L ${r2(bt.x)} ${r2(bt.y-5)} L ${r2(px(5.3))} ${r2(py(2.26))}`+
+        ` L ${r2(px(8.2))} ${r2(py(1.96))}`,'none',
+        {stroke:C('acc'),stroke_width:2.8,opacity:.92,marker_end:'url(#arM)',stroke_linejoin:'round'});
+  /* 12. номери вузлів (жирні!) */
+  const POS=[[1,-.62,hc+.88,-30,-26],[2,.2,hc+.02,-26,24],[3,1.6,1.72,-10,-32],
+             [4,3.5,1.9,-4,-40],[5,3.5,1.46,-40,22],[6,7.2,2.36,16,-22],[7,7.4,1.32,24,22],
+             [8,5.7,.98,-32,20],[9,7.1,3.4,0,-30],[10,11.2,3.3,-10,-26]];
+  for(const [k,xm,ym,dx,dy] of POS){
+    const x=px(xm),y=py(ym),cx2=x+dx,cy2=y+dy;
+    s+=ln(x,y,cx2,cy2,C('sub'),.9,dash(3,3));
+    s+=ci(cx2,cy2,9.5,C('pn'),{stroke:C('acc'),stroke_width:1.5});
+    s+=T(cx2,cy2+3.6,String(k),{s:10,a:'middle',b:1,c:C('acc')});
+  }
+  /* 13. розмір висоти зрізу у чистому коридорі (без накладання) */
+  s+=ln(px(-1.55),py(hc),px(-1.42),py(hc),C('acc'),1,dash(2,2));
+  s+=dimV(gy,py(hc),px(-1.55),'h = '+F(Math.round(hc*100))+' см',C('acc'));
+  /* 14. точки втрат */
+  if(o.loss){
+    const L=[[.1,o.loss.pH,'жатка'],[3.95,o.loss.pT,'недомолот'],
+             [7.3,o.loss.pS,'сепарація'],[9.7,o.loss.pC,'очистка']];
+    for(const [xm,val,lab] of L){
+      const x=px(xm);
+      s+=ln(x,gy-2,x,gy+22,C('bad'),2,{marker_end:'url(#arL)'});
+      s+=T(x,gy+36,lab,{s:10,a:'middle',c:C('bad'),b:1});
+      s+=T(x,gy+49,F(val,2)+' %',{s:10.5,a:'middle',c:C('bad'),b:1});
+    }
+  }
+  /* 15. експлікація */
+  {const EX=['1 — мотовило','2 — ніж жатки','3 — похила камера','4 — молотильний барабан',
+             '5 — підбарабання','6 — соломотряс / ротор (сепарація)','7 — решета очистки','8 — вентилятор',
+             '9 — бункер зерна','10 — вивантажувальний шнек'];
+   const y0=o.loss?gy+64:gy+30,col=Math.ceil(EX.length/2);
+   s+=ln(10,y0-10,W-10,y0-10,C('ln'),.8);
+   EX.forEach((t,i)=>{const c=Math.floor(i/col),rI=i%col;s+=T(14+c*(W/2-10),y0+8+rI*15,t,{s:10,c:C('sub')})});}
+  const [a,b]=sv(W,H);return a+s+b;
+}
+
+/* --- Молотильний апарат зблизька з анімацією барабана --- */
+function threshSVG(nb,d,o){
+  o=o||{};const W=700,H=340,cx=232,cy=168,R=92,Dd=o.Dd||600,
+        gOut=cl(d*0.55,5,22),gIn=gOut*2.2,
+        spd=cl(2.2/(nb/800),0.5,4.0).toFixed(2)+'s';
+  const A=a=>a*Math.PI/180,P=(a,r)=>[cx+Math.cos(A(a))*r,cy-Math.sin(A(a))*r];
+  let s='<defs><marker id="arT" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5.4" markerHeight="5.4" orient="auto">'+
+    '<path d="M0,1 L9,5 L0,9 z" fill="'+C('acc')+'"/></marker></defs>';
+  {const a0=196,a1=352,p1=[],p2=[];
+   for(let t=0;t<=1.0001;t+=.03){const a=a0+(a1-a0)*t,g=gIn+(gOut-gIn)*t;p1.push(P(a,R+1));p2.push(P(a,R+g))}
+   s+=pg(p1.concat(p2.reverse()),C('straw'),{opacity:.62});}
+  {const a0=196,a1=352,pts=[];
+   for(let t=0;t<=1.0001;t+=.02){const a=a0+(a1-a0)*t,g=gIn+(gOut-gIn)*t;pts.push(P(a,R+g))}
+   s+=pl(pts,C('acc2'),4.6);
+   for(let t=0;t<=1.0001;t+=.055){const a=a0+(a1-a0)*t,g=gIn+(gOut-gIn)*t,q=P(a,R+g);s+=ci(q[0],q[1],2.5,C('acc2'))}}
+  /* обертовий барабан */
+  {let dr='<g class="rot-cw" style="--spd:'+spd+'">';
+   dr+=ci(cx,cy,R,C('pn'),{stroke:C('ink'),stroke_width:2});
+   dr+=ci(cx,cy,R*.17,C('pn2'),{stroke:C('ln'),stroke_width:1.4});
+   for(let k=0;k<8;k++){
+     const a=k*45,q1=P(a,R*.2),q2=P(a,R);
+     dr+=ln(q1[0],q1[1],q2[0],q2[1],C('ln'),1.3);
+     dr+=rc(q2[0]-4.5,q2[1]-4.5,9,9,C('ink'),{rx:2,transform:'rotate('+r2(-a)+' '+r2(q2[0])+' '+r2(q2[1])+')'});
+   }
+   s+=dr+'</g>';}
+  {const q1=P(132,R*.68),q2=P(48,R*.68);
+   s+=pa('M '+r2(q1[0])+' '+r2(q1[1])+' A '+r2(R*.68)+' '+r2(R*.68)+' 0 0 1 '+r2(q2[0])+' '+r2(q2[1]),
+         'none',{stroke:C('acc'),stroke_width:2.3,marker_end:'url(#arT)'});}
+  s+=T(cx,cy-R-16,'барабан '+F(nb)+' об/хв',{s:13,a:'middle',b:1,c:C('acc')});
+  s+=T(cx,cy+4,'Ø '+F(Dd)+' мм',{s:10.5,a:'middle',c:C('sub')});
+  {const a=352,q1=P(a,R),q2=P(a,R+gOut);
+   s+=ln(q1[0],q1[1],q2[0],q2[1],C('bad'),2.6);
+   s+=ln(q2[0],q2[1],q2[0]+20,q2[1]+26,C('bad'),.9,dash(3,3));
+   s+=T(q2[0]+23,q2[1]+30,'δ = '+F(d)+' мм',{s:12,b:1,c:C('bad')});
+   s+=T(q2[0]+23,q2[1]+44,'зазор на виході',{s:9.5,c:C('sub')});}
+  {const q=P(198,R+gIn+8);
+   s+=pa('M '+r2(Math.max(24,q[0]-62))+' '+r2(q[1]+34)+' L '+r2(q[0]-6)+' '+r2(q[1]+3),'none',
+         {stroke:C('acc'),stroke_width:2.4,marker_end:'url(#arT)'});
+   s+=T(Math.max(18,q[0]-66),q[1]+48,'хлібна маса',{s:10.5,c:C('sub')});}
+  {const q=P(352,R+gOut);
+   s+=pa('M '+r2(q[0]+6)+' '+r2(q[1]-26)+' L '+r2(q[0]+54)+' '+r2(q[1]-44),'none',
+         {stroke:C('straw'),stroke_width:2.4,marker_end:'url(#arT)'});
+   s+=T(q[0]+10,q[1]-50,'солома далі',{s:10,c:C('sub')});}
+  for(let k=0;k<7;k++){
+    const a=210+k*19,g=gIn+(gOut-gIn)*k/7,q=P(a,R+g+11);
+    s+=ci(q[0],q[1],3,C('grain'),{stroke:C('ln'),stroke_width:.5});
+    s+=ln(q[0],q[1]+4,q[0],q[1]+11,C('grain'),1,{opacity:.65});
+  }
+  s+=T(cx-10,H-42,'зерно крізь підбарабання — на очистку',{s:10,a:'middle',c:C('grain2')});
+  s+=T(10,H-8,'Зазор підбарабання показано збільшено — у справжньому масштабі він був би тонший за лінію',{s:9.5,c:C('sub')});
+  const bx=438,bw=250;
+  s+=blk(bx,18,bw,96,null,{f:C('pn')});
+  s+=T(bx+12,38,'НЕДОМОЛОТ',{s:10.5,b:1,c:C('bad')});
+  s+=T(bx+12,54,'зерно лишилося в колосі й',{s:10,c:C('sub')});
+  s+=T(bx+12,67,'пішло в солому',{s:10,c:C('sub')});
+  for(let k=0;k<6;k++){const x=bx+16+k*15,y=88;s+=el(x,y,8,3.4,C('straw'),{stroke:C('ln'),stroke_width:.6});if(k%2==0)s+=ci(x+2,y,2.6,C('grain'))}
+  s+=T(bx+bw-12,93,o.pT!=null?F(o.pT,2)+' %':'',{s:14,a:'end',b:1,c:C('bad')});
+  s+=blk(bx,126,bw,96,null,{f:C('pn')});
+  s+=T(bx+12,146,'ДРОБЛЕННЯ',{s:10.5,b:1,c:C('warn')});
+  s+=T(bx+12,162,'уже вільне зерно розбите',{s:10,c:C('sub')});
+  s+=T(bx+12,175,'ударом бича',{s:10,c:C('sub')});
+  for(let k=0;k<8;k++){
+    const x=bx+18+k*14,y=196;
+    if(k%3)s+=ci(x,y,3.6,C('grain'),{stroke:C('ln'),stroke_width:.6});
+    else{s+=pa('M '+(x-4)+' '+(y-3.6)+' L '+(x+1)+' '+y+' L '+(x-4)+' '+(y+3.6)+' z',C('warn'));
+         s+=pa('M '+(x+5)+' '+(y-3.6)+' L '+(x+2)+' '+y+' L '+(x+5)+' '+(y+3.6)+' z',C('warn'))}
+  }
+  s+=T(bx+bw-12,201,o.dmg!=null?F(o.dmg,2)+' %':'',{s:14,a:'end',b:1,c:C('warn')});
+  s+=T(bx,246,'Обидві втрати міняються в протилежні боки:',{s:10,c:C('sub')});
+  s+=T(bx,260,'швидший барабан або тісніший зазор —',{s:10,c:C('sub')});
+  s+=T(bx,274,'менше недомолоту, але більше дроблення.',{s:10,c:C('sub')});
+  s+=T(bx,292,'Мінімум має не кожна з них, а їхня сума.',{s:10,b:1,c:C('ink')});
+  const [a2,b2]=sv(W,H);return a2+s+b2;
+}
+
+/* --- Інтерактивна 2D теплова карта «Похила долина» (n_б × δ) --- */
+function valleySVG(nbCur,dCur){
+  const W=700,H=258,L=58,R=168,Tp=22,B=36,pw=W-L-R,ph=H-Tp-B;
+  const cols=24,rows=14;
+  const n0=V.nbMin,n1=V.nbMax,d0=Math.max(V.dMin,Math.round(V.dOpt*0.45)),d1=Math.min(V.dMax,Math.round(V.dOpt*1.75));
+  const cw=pw/cols,ch=ph/rows;
+  const cells=[];let minS=99,maxS=0;
+  for(let r=0;r<rows;r++){
+    const d=d0+(d1-d0)*(r+0.5)/rows;
+    for(let c=0;c<cols;c++){
+      const nb=n0+(n1-n0)*(c+0.5)/cols;
+      const Q={nb,d,w:V.w},t=lossThresh(V,Q),g=grainDamage(V,Q),sum=t+g;
+      if(sum<minS)minS=sum;if(sum>maxS)maxS=sum;
+      cells.push({r,c,nb:Math.round(nb/10)*10,d:Math.round(d),t,g,sum});
+    }
+  }
+  const hi=Math.min(maxS,Math.max(minS*3.5,2.8));
+  let s=rc(L,Tp,pw,ph,C('pn'),{stroke:C('ln')});
+  for(const ce of cells){
+    const f=cl((ce.sum-minS)/Math.max(.2,hi-minS),0,1);
+    /* зелений мінімум -> жовтий -> червоний */
+    const col=f<.35?C('ok'):f<.68?C('warn'):C('bad');
+    const op=f<.35?(0.68-f*0.8):(0.25+f*0.58);
+    s+=rc(L+ce.c*cw,Tp+ce.r*ch,cw+.4,ch+.4,col,{opacity:r2(op)});
+  }
+  /* осі */
+  for(let i=0;i<=4;i++){
+    const nb=n0+(n1-n0)*i/4,x=L+pw*i/4;
+    s+=T(x,H-B+14,F(Math.round(nb)),{a:'middle',s:9.5,c:C('sub')});
+  }
+  for(let i=0;i<=4;i++){
+    const d=d0+(d1-d0)*i/4,y=Tp+ph*i/4;
+    s+=T(L-6,y+3.5,F(Math.round(d)),{a:'end',s:9.5,c:C('sub')});
+  }
+  s+=T(L+pw/2,H-4,'оберти барабана n_б, об/хв',{a:'middle',s:10,c:C('sub')});
+  s+=T(14,Tp+ph/2,'зазор δ, мм',{a:'middle',s:10,c:C('sub'),rot:-90});
+
+  const px=nb=>L+pw*cl((nb-n0)/(n1-n0),0,1),
+        py=d=>Tp+ph*cl((d-d0)/(d1-d0),0,1);
+  /* маркери точок: "як є", "таблиця", поточна */
+  const pt0=[px(V.start.nb),py(V.start.d)],
+        ptI=[px(V.ideal.nb),py(V.ideal.d)],
+        ptC=[px(nbCur),py(dCur)];
+  s+=ci(pt0[0],pt0[1],5,C('sub'),{stroke:C('pn'),stroke_width:1.5});
+  s+=ci(ptI[0],ptI[1],5.5,C('ok'),{stroke:C('pn'),stroke_width:1.6});
+  s+=ci(ptC[0],ptC[1],6.5,C('am'),{stroke:C('ink'),stroke_width:2});
+
+  /* легенда праворуч */
+  const lx=W-R+14;
+  s+=T(lx,Tp+12,'Похила долина',{s:11,b:1});
+  s+=T(lx,Tp+26,'суми втрат:',{s:10,c:C('sub')});
+  s+=rc(lx,Tp+38,12,12,C('ok'),{opacity:.65,rx:2})+T(lx+18,Tp+48,'мінімум (~'+F(minS,2)+'%)',{s:9.5,c:C('sub')});
+  s+=rc(lx,Tp+55,12,12,C('warn'),{opacity:.55,rx:2})+T(lx+18,Tp+65,'помірна сума',{s:9.5,c:C('sub')});
+  s+=rc(lx,Tp+72,12,12,C('bad'),{opacity:.75,rx:2})+T(lx+18,Tp+82,'перегрів / недомолот',{s:9.5,c:C('sub')});
+
+  s+=ci(lx+6,Tp+106,5,C('am'),{stroke:C('ink'),stroke_width:1.6})+T(lx+18,Tp+110,'ваша точка',{s:9.5,b:1});
+  s+=ci(lx+6,Tp+124,5,C('ok'),{stroke:C('pn'),stroke_width:1.4})+T(lx+18,Tp+128,'оптимум ('+V.ideal.nb+' / '+V.ideal.d+')',{s:9.5,c:C('sub')});
+  s+=ci(lx+6,Tp+142,4.5,C('sub'),{stroke:C('pn'),stroke_width:1.2})+T(lx+18,Tp+146,'«як є» ('+V.start.nb+' / '+V.start.d+')',{s:9.5,c:C('sub')});
+  s+=T(lx,Tp+172,'Уздовж зеленої смуги',{s:9,c:C('sub')});
+  s+=T(lx,Tp+184,'сума майже однакова,',{s:9,c:C('sub')});
+  s+=T(lx,Tp+196,'але тісніший δ збільшує',{s:9,c:C('sub')});
+  s+=T(lx,Tp+208,'засміченість на кроці 3.',{s:9,b:1,c:C('ink')});
+  const [a,b]=sv(W,H);return a+s+b;
+}
+
+/* --- Очистка з анімацією вентилятора та потоків --- */
+function cleanSVG(nv,kv,o){
+  o=o||{};const W=700,H=346,k=cl(kv||1,.35,1.8),
+        spd=cl(1.6/k,0.45,3.2).toFixed(2)+'s',
+        aspd=cl(1.1/k,0.35,2.4).toFixed(2)+'s';
+  let s='<defs><marker id="arA2" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto">'+
+    '<path d="M0,1 L9,5 L0,9 z" fill="'+C('air')+'"/></marker>'+
+    '<marker id="arB2" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5.4" markerHeight="5.4" orient="auto">'+
+    '<path d="M0,1 L9,5 L0,9 z" fill="'+C('bad')+'"/></marker>'+
+    '<marker id="arG2" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto">'+
+    '<path d="M0,1 L9,5 L0,9 z" fill="'+C('acc')+'"/></marker></defs>';
+  s+=rc(86,40,440,172,C('pn'),{stroke:C('ln'),stroke_width:1.4,rx:8});
+  const U1=[104,80],U2=[508,114],L1=[104,132],L2=[496,160];
+  s+=ln(U1[0],U1[1],U2[0],U2[1],C('acc'),3.4);
+  s+=ln(L1[0],L1[1],L2[0],L2[1],C('acc'),2.8,dash(7,5));
+  s+=T(112,70,'верхнє решето',{s:10,c:C('acc'),b:1});
+  s+=T(112,124,'нижнє решето',{s:10,c:C('acc'),b:1});
+  const fx=134,fy=168,fr=22;
+  {let fg='<g class="rot-ccw" style="--spd:'+spd+'">';
+   fg+=ci(fx,fy,fr,C('pn2'),{stroke:C('ln'),stroke_width:1.6});
+   for(let i=0;i<7;i++){const a=i*2*Math.PI/7;fg+=ln(fx,fy,fx+Math.cos(a)*fr,fy-Math.sin(a)*fr,C('air'),2.2)}
+   s+=fg+'</g>';}
+  s+=T(10,fy+2,'вентилятор',{s:10,c:C('sub')});
+  s+=T(10,fy+17,F(nv)+' об/хв',{s:11.5,b:1,c:C('air')});
+  s+=ln(74,fy+6,fx-fr-3,fy+4,C('sub'),.9,dash(3,3));
+  {const nA=5;
+   for(let i=0;i<nA;i++){
+     const y0=fy-14+i*7,x1=fx+fr+4,len=Math.min(420,(150+190*k)*(1-i*.04)),dy=-(62-i*10)*k;
+     s+=pa('M '+r2(x1)+' '+r2(y0)+' q '+r2(len*.55)+' '+r2(dy*.42)+' '+r2(len)+' '+r2(dy),'none',
+           {stroke:C('air'),stroke_width:1.8,opacity:.85,marker_end:'url(#arA2)',class:'air-flow',style:'--aspd:'+aspd});
+   }}
+  s+=pa('M 38 30 L 96 58','none',{stroke:C('acc'),stroke_width:2.4,marker_end:'url(#arG2)'});
+  s+=T(34,24,'ворох із молотарки',{s:10,c:C('sub')});
+  for(let i=0;i<7;i++){
+    const x=152+i*44,yU=U1[1]+(U2[1]-U1[1])*(x-U1[0])/(U2[0]-U1[0]),yL=L1[1]+(L2[1]-L1[1])*(x-L1[0])/(L2[0]-L1[0]);
+    s+=ci(x,58,3.2,C('grain'),{stroke:C('ln'),stroke_width:.5});
+    s+=ln(x,63,x,yU-14,C('grain'),1.2,{opacity:.5});
+    s+=ci(x+3,yU+9,2.8,C('grain'),{stroke:C('ln'),stroke_width:.4});
+    s+=ln(x+3,yU+13,x+3,yL-12,C('grain'),1.2,{opacity:.45});
+    s+=ci(x+6,yL+10,2.6,C('grain'),{stroke:C('ln'),stroke_width:.4});
+    s+=ln(x+6,yL+14,x+6,191,C('grain'),1.2,{opacity:.35});
+  }
+  s+=rc(104,193,400,13,C('grain'),{stroke:C('ln'),stroke_width:1,rx:6,opacity:.92});
+  s+=T(306,203,'шнек чистого зерна — у бункер',{s:10,a:'middle',b:1,c:C('ink')});
+  for(let i=0;i<6;i++){const x=180+i*58,yU=U1[1]+(U2[1]-U1[1])*(x-U1[0])/(U2[0]-U1[0]);s+=el(x,yU-6,9,3.2,C('chaff'),{stroke:C('ln'),stroke_width:.5,opacity:.95})}
+  s+=pa('M 514 104 L 586 76','none',{stroke:C('bad'),stroke_width:2.4,marker_end:'url(#arB2)'});
+  s+=T(596,70,'за комбайн:',{s:10,c:C('bad'),b:1});
+  s+=T(596,84,'полова й зерно',{s:10,c:C('bad')});
+  if(o.pC!=null)s+=T(596,101,F(o.pC,2)+' %',{s:13,b:1,c:C('bad')});
+  const by=228,bw=334;
+  s+=blk(10,by,bw,104,null,{f:C('pn2')});
+  s+=T(24,by+20,'ЗАМАЛО ПОВІТРЯ',{s:10.5,b:1,c:C('bad')});
+  s+=T(24,by+37,'полова лежить на решеті суцільним шаром,',{s:10,c:C('sub')});
+  s+=T(24,by+51,'зерно не встигає крізь неї провалитися',{s:10,c:C('sub')});
+  s+=T(24,by+65,'і сходить із решета разом із нею',{s:10,c:C('sub')});
+  s+=T(24,by+86,'утрати очистки ↑     засміченість ↑',{s:10.5,b:1,c:C('bad')});
+  s+=blk(356,by,bw,104,null,{f:C('pn2')});
+  s+=T(370,by+20,'ЗАБАГАТО ПОВІТРЯ',{s:10.5,b:1,c:C('warn')});
+  s+=T(370,by+37,'потік піднімає не лише полову, а й дрібне',{s:10,c:C('sub')});
+  s+=T(370,by+51,'та щупле зерно — воно летить за комбайн',{s:10,c:C('sub')});
+  s+=T(370,by+65,'разом із нею',{s:10,c:C('sub')});
+  s+=T(370,by+86,'утрати очистки ↑',{s:10.5,b:1,c:C('warn')});
+  s+=T(508,by+86,'засміченість ↓',{s:10.5,b:1,c:C('ok')});
+  const [a,b]=sv(W,H);return a+s+b;
+}
+
+/* --- Виправлена карта врожайності: справжній човниковий рух комбайна (туди-назад) --- */
+function mapSVG(p,o){
+  o=o||{};const W=o.W||700,H=o.H||278,m=32,pw=W-m*2,ph=H-m-48,Lm=V.FL,Wm=V.NP*V.b;
+  const X=x=>m+x/Lm*pw,Y=y=>m+y/Math.max(Wm,V.b)*ph;
+  let s='<defs><marker id="arP" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5.2" markerHeight="5.2" orient="auto">'+
+    '<path d="M0,1 L9,5 L0,9 z" fill="'+C('acc')+'"/></marker></defs>'+
+    rc(m,m,pw,ph,C('pn2'),{stroke:C('ln')});
+  const us=p?p.segs.map(g=>g.U):[],u0=us.length?Math.min(...us):V.U*.8,u1=us.length?Math.max(...us):V.U*1.2;
+  if(p)for(const g of p.segs){
+    const rev=g.np%2===1,
+          xPhys=rev?(V.FL-g.x):g.x,
+          f=(g.U-u0)/Math.max(1,u1-u0),
+          x=X(xPhys-V.FL/24),w=pw/12,y=Y(g.y-V.b/2),h=ph/Math.max(1,V.NP);
+    s+=rc(x,y,w,h,C('grain'),{opacity:.12+.62*f});
+  }
+  /* Човниковий рух: парні загінки (0,2...) зліва направо, непарні (1,3...) справа наліво */
+  if(p){
+    const SP=12;
+    for(let k=0;k<V.NP;k++){
+      const seg=p.segs.slice(k*SP,(k+1)*SP);if(!seg.length)continue;
+      const y=Y(seg[0].y),rev=k%2===1;
+      const xStart=rev?X(V.FL):X(0),xEnd=rev?X(0):X(V.FL);
+      s+=pa('M '+r2(xStart)+' '+r2(y)+' L '+r2(xEnd)+' '+r2(y),'none',
+            {stroke:C('acc'),stroke_width:2.1,opacity:.78,marker_end:'url(#arP)'});
+      if(k<V.NP-1){
+        const y2=Y(seg[0].y+V.b),xTurn=rev?X(0):X(V.FL),dxTurn=rev?-16:16;
+        s+=pa('M '+r2(xTurn)+' '+r2(y)+' q '+dxTurn+' '+r2((y2-y)/2)+' 0 '+r2(y2-y),'none',
+              {stroke:C('acc'),stroke_width:1.5,opacity:.55,stroke_dasharray:'4 3'});
+      }
+    }
+    let bk=0,un=[];
+    for(const g of p.segs){bk+=g.grain;if(bk>=V.mBunk){un.push(g);bk-=V.mBunk}}
+    for(const g of un){
+      const rev=g.np%2===1,xPhys=rev?(V.FL-g.x):g.x;
+      s+=ci(X(xPhys),Y(g.y),6.5,C('warn'),{stroke:C('pn'),stroke_width:1.8});
+    }
+  }
+  s+=dimH(m,m+pw,m+ph+16,F(Lm)+' м');
+  s+=dimV(m,m+ph,m-15,F(r1(Wm))+' м');
+  s+=T(m,20,'карта врожайності облікової смуги (човниковий хід)',{s:10,c:C('sub'),b:1});
+  s+=ci(m+8,H-10,5.5,C('warn'),{stroke:C('pn'),stroke_width:1.5});
+  s+=T(m+20,H-6,'бункер повний — вивантаження',{s:9.5,c:C('sub')});
+  s+=ln(m+210,H-11,m+234,H-11,C('acc'),2.1,{opacity:.8});
+  s+=T(m+240,H-6,'човниковий хід комбайна',{s:9.5,c:C('sub')});
+  if(us.length)s+=T(W-m,20,F(Math.round(u0))+'…'+F(Math.round(u1))+' кг/га',{s:10,a:'end',b:1,c:C('sub')});
+  const [a,b]=sv(W,H);return a+s+b;
+}
+
+/* ===== Екрани та безшовне оновлення без втрати фокусу ===== */
+const H=(t,k)=>'<h2>'+esc(t)+'</h2>'+(k?'<p class="hint">'+k+'</p>':'');
+const get=k=>k.split('.').reduce((o,x)=>o==null?null:o[x],S);
+const inp=(k,lab,ph,o)=>{
+  o=o||{};const id='i_'+k.replace(/\./g,'_');
+  return(lab?'<label for="'+id+'">'+lab+'</label>':'')+
+    '<input id="'+id+'" type="text" inputmode="'+(o.im||'decimal')+'" value="'+vs(get(k))+
+    '" placeholder="'+esc(ph||'')+'" oninput="set(\''+k+'\',this.value)">';
+};
+
+/* Точкове оновлення залежних блоків без перемальовування активного <input> */
+function softUpdate(){
+  document.getElementById('nv').innerHTML=nav();
+  document.getElementById('ds').innerHTML=dashP();
+  document.getElementById('chip').textContent=V?('варіант '+V.id+' · '+F(r1(tot()),1)+' / 100'):'варіант не отримано';
+  if(!V)return;
+  const st=S.step,Q=QS({}),m=mode(V,Q),rr=ref(),e=ecRef(S,V);
+  const setH=(id,html)=>{const el=document.getElementById(id);if(el)el.innerHTML=html};
+  setH('chk_q',chk(S.bd.q,rr.q,.02,.1));
+  setH('chk_vq',chk(S.bd.vq,rr.vq,.03,.1));
+  setH('chk_nbOpt',chk(S.bd.nbOpt,rr.nbOpt,.06,20));
+  setH('chk_dOpt',chk(S.bd.dOpt,rr.dOpt,.15,2));
+  setH('chk_nvOpt',chk(S.bd.nvOpt,rr.nvOpt,.06,30));
+  setH('chk_hOpt',chk(S.bd.hOpt,rr.hOpt,0,2));
+  setH('chk_Ureal',rr.Ureal!=null?chk(S.bd.Ureal,rr.Ureal,.03,40):'');
+  setH('chk_W',rr.W!=null?chk(S.bd.W,rr.W,.04,.1):'');
+  setH('chk_mw',chk(S.bd.mw,rr.mw,.04,30));
+  setH('chk_tp',chk(S.bd.tp,rr.tp,.04,1));
+  if(e){
+    setH('chk_Ereg',chk(S.ec.Ereg,e.Ereg,.04,800));
+    setH('chk_Eaut',chk(S.ec.Eaut,e.Eaut,.04,800));
+    const tStr=String(S.ec.T||'').trim().toLowerCase();
+    setH('chk_T',e.T==null?(/окуп|ні|-|—/.test(tStr)?' <span class="ok">✓</span>':' <span class="sub">не окупається</span>'):chk(S.ec.T,e.T,.08,.05));
+  }
+  setH('rec_box',esc(rec(st)));
+  if(st==1){
+    const gf=grainFlow(V.U,V.B,vNow());
+    setH('s1_gs',gsc([['завантаження молотарки',F(r1(100*m.kq),1)+' %',m.kq>1?C('bad'):m.kq>.95?C('warn'):C('ok')],
+      ['подача q',F(m.q,2)+' кг/с'],['зерновий потік',F(r2(gf),2)+' кг/с'],
+      ['бункер наповниться за',F(r1(V.mBunk/gf/60),1)+' хв']]));
+    setH('s1_svg',combineSVG({h:hNow(),loss:null,fill:.45,kn:nbNow()/V.nOpt,kv:nvNow()/V.nvOpt,hLowM:V.hLow/100}));
+  }
+  if(st==2){
+    setH('s2_gs',gsc([['недомолот',F(m.pT,2)+' %',C('bad')],['дроблення',F(m.dmg,2)+' %',m.dmg>V.nDmg?C('bad'):C('warn')],
+      ['сума',F(r2(m.pT+m.dmg),2)+' %'],['повні втрати',F(m.pTot,2)+' %',m.pTot>V.nTot?C('bad'):C('ok')]]));
+    setH('s2_svg',threshSVG(nbNow(),dNow(),{pT:m.pT,dmg:m.dmg}));
+    setH('s2_val',valleySVG(nbNow(),dNow()));
+  }
+  if(st==3){
+    setH('s3_gs',gsc([['утрати очистки',F(m.pC,2)+' %',C('bad')],['засміченість',F(m.z,2)+' %',m.z>V.nZ?C('bad'):C('ok')],
+      ['повні втрати',F(m.pTot,2)+' %',m.pTot>V.nTot?C('bad'):C('ok')],['повітря від розрахункового',F(r1(m.kv*100),0)+' %']]));
+    setH('s3_svg',cleanSVG(nvNow(),m.kv,{pC:m.pC}));
+  }
+  if(st==8)setH('s8_body',calcResultsHTML());
+}
+
+function set(k,v){
+  const p=k.split('.');let o=S;for(let i=0;i<p.length-1;i++)o=o[p[i]];
+  o[p[p.length-1]]=v;save();softUpdate();
+}
+function setN(k,v){
+  const p=k.split('.');let o=S;for(let i=0;i<p.length-1;i++)o=o[p[i]];
+  o[p[p.length-1]]=v;save();R();
+}
+function chk(val,ref,tolPct,tolAbs){
+  const x=n(val);if(x==null||val==='')return'';
+  const t=Math.max(tolAbs??0,Math.abs(ref)*(tolPct??.02));
+  return Math.abs(x-ref)<=t?' <span class="ok" title="збігається з розрахунком">✓</span>'
+   :' <span class="no" title="перевірте розрахунок">✗</span>';
+}
+const kvc=a=>'<div class="kv">'+a.map(x=>'<div><b'+(x[3]?' class="'+x[3]+'"':'')+'>'+x[1]+'</b><span>'+
+  esc(x[0])+'</span>'+(x[2]?'<em>'+x[2]+'</em>':'')+'</div>').join('')+'</div>';
+const gsc=a=>'<div class="gs">'+a.map(x=>'<div class="gt"><b'+(x[2]?' style="color:'+x[2]+'"':'')+'>'+x[1]+
+  '</b><span>'+esc(x[0])+'</span></div>').join('')+'</div>';
+const recBox=i=>'<div class="rb"><b>Запишіть у протокол (пункт '+i+'):</b><br><span id="rec_box">'+esc(rec(i))+'</span></div>';
+const nb=(a,b)=>'<div class="nb">'+(a?'<button class="g" onclick="go('+a[0]+')">← '+esc(a[1])+'</button>':'<span></span>')+
+  (b?'<button class="p" onclick="go('+b[0]+')">'+esc(b[1])+' →</button>':'<span></span>')+'</div>';
+const tr=(a,b)=>'<tr><th>'+a+'</th><td>'+b+'</td></tr>';
+const gc=(v,lo,hi,lab,u,b)=>'<div class="gc">'+gauge(v,lo,hi,lab,u,b)+'</div>';
+const fixBox=(k,t)=>'<label><input type="checkbox" '+(S[k]?'checked':'')+
+  ' onchange="setN(\''+k+'\',this.checked?1:0)"> '+esc(t)+'</label>';
+const nrm=(v,lim,unit,inv)=>{
+  const ok=inv?v>=lim:v<=lim;
+  return'<span class="'+(ok?'ok':'no')+'">'+F(v,2)+' '+unit+'</span> <em>(норма '+(inv?'≥ ':'≤ ')+F(lim,1)+')</em>';
+};
+const sld=(k,lo,hi,st,lab,unit)=>{
+  const v=get(k),id='sv_'+k.replace(/\./g,'_');
+  return'<div class="sl"><label>'+esc(lab)+' <b id="'+id+'">'+F(v,st<1?1:0)+' '+esc(unit||'')+'</b></label>'+
+    '<input type="range" min="'+lo+'" max="'+hi+'" step="'+st+'" value="'+v+
+    '" oninput="labSet(\''+k+'\',this.value,'+(st<1?1:0)+',\''+esc(unit||'')+'\')"></div>';
+};
+
+/* ---------- 0. Реєстрація ---------- */
+function scr0(){
+  const d=S.reg||{};
+  let s=H('Реєстрація та індивідуальний варіант',
+    'Варіант визначається групою, прізвищем та номером у журналі. Той самий підпис завжди дає той самий варіант — його можна відтворити.');
+  s+='<div class="r3">'+
+    '<div><label for="rg">Група</label><input id="rg" type="text" value="'+vs(d.group)+'" oninput="rset(\'group\',this.value)" placeholder="АІ-31"></div>'+
+    '<div><label for="rn">Прізвище та ім’я</label><input id="rn" type="text" value="'+vs(d.name)+'" oninput="rset(\'name\',this.value)" placeholder="Іваненко Іван"></div>'+
+    '<div><label for="rk">№ у журналі</label><input id="rk" type="text" inputmode="numeric" value="'+vs(d.num)+'" oninput="rset(\'num\',this.value)" placeholder="7"></div></div>';
+  s+='<div class="btns"><button class="p" onclick="mkvar()">Отримати варіант</button>'+
+     (S.reg?'<button class="g" onclick="wipe()">Очистити все й почати заново</button>':'')+'</div>';
+  if(V){
+    s+='<h3>Варіант '+esc(V.id)+'</h3>';
+    s+='<div class="tw"><table class="t2">'+
+      tr('Комбайн',esc(V.a.p)+'; паспортна пропускна здатність q<sub>ном</sub> = '+F(V.qNom,1)+
+        ' кг/с; бункер '+F(V.Vb,1)+' м³')+
+      tr('Жатка','ширина захвату B = '+F(V.B,1)+' м (із заводського ряду '+V.a.B.map(b=>F(b,1)).join(' / ')+' м)')+
+      tr('Транспорт',esc(V.trk)+' з перевантажувальним візком; шнек вивантаження '+
+        F(V.QunL)+' л/с ≈ '+F(V.Qun,1)+' кг/с; маневр при зупинці '+F(V.tMan)+' с')+
+      tr('Культура',esc(V.crop)+'; урожайність U = '+TH(V.U)+' кг/га; ψ = '+F(V.psi,2)+
+        '; вологість зерна w = '+F(V.w,1)+' % (базисна '+V.wBase+' %)')+
+      tr('Поле',F(V.S)+' га ('+TH(V.FL)+' × '+TH(V.FW)+' м); обліковий прохід — '+V.NP+
+        ' загінки по '+F(V.B,1)+' м')+
+      tr('Межі регулювань','барабан '+V.nbMin+'…'+V.nbMax+' об/хв; зазор підбарабання '+
+        V.dMin+'…'+V.dMax+' мм; вентилятор '+V.nvMin+'…'+V.nvMax+' об/хв; швидкість '+
+        F(V.vMin,1)+'…'+F(V.vMax,1)+' км/год')+
+      tr('Норми якості','втрати зерна за комбайном ≤ '+F(V.nTot,1)+' %, з них за жаткою ≤ '+
+        F(V.nH,1)+' %; дроблення ≤ '+F(V.nDmg,1)+' %; засміченість бункерного зерна ≤ '+F(V.nZ,1)+' %')+
+      tr('Економіка','ціна зерна '+TH(V.Cz)+' грн/т; знижка на дроблене '+F(V.kDmg*100,0)+
+        ' %; комбайно-година '+TH(V.Chour)+' грн; сушіння '+F(V.Cdry,1)+' грн за т·%; '+
+        'сезон '+V.hSez+' год ≈ '+TH(V.Ssez)+' га; комплект автоматики '+TH(V.Csys)+' грн')+
+      '</table></div>';
+    s+='<div class="fig">'+phasesSVG()+'</div>';
+    s+='<p class="cap">Технологічна послідовність роботи вузлів зернозбирального комбайна: від зрізу стебел до вивантаження бункера.</p>';
+    s+='<details class="inf" open><summary>Що саме автоматизують у зернозбиральному комбайні й навіщо</summary>'+
+      '<p>Комбайн — єдина машина, у якій зерно й утрати народжуються одночасно. Усе, що він не вимолотив, не відсепарував або видув із половою, лишається в полі назавжди: другого проходу не буде. Тому керування комбайном — це керування не продуктивністю, а <b>співвідношенням між продуктивністю і втратами</b>.</p>'+
+      '<p>У роботі ви по черзі пройдете весь шлях хлібної маси: розрахуєте подачу й швидкість (крок 1), знайдете оптимум барабана й зазору підбарабання (крок 2), налаштуєте вентилятор очистки (крок 3), визначите висоту зрізу й оціните автоматику подачі (крок 4), а потім виконаєте три контрольні проходи — «як є», «налаштовано» та «налаштовано з автоматикою» (крок 5).</p></details>';
+  }
+  s+=nb(null,V?[1,'Подача й робоча швидкість']:null);
+  return s;
+}
+function rset(k,v){S.reg=S.reg||{};S.reg[k]=v;save()}
+function mkvar(){
+  const d=S.reg||{};
+  if(!d.group||!d.name||!String(d.num||'').trim())return alert('Заповніть групу, прізвище та номер у журналі.');
+  const keep={...d};S=blank();S.reg=keep;V=mkV(keep);save();R();
+}
+function wipe(){
+  if(!confirm('Видалити всі введені дані й результати?'))return;
+  try{localStorage.removeItem(KEY)}catch(e){}S=blank();V=null;save();R();
+}
+
+/* ---------- 1. Подача й робоча швидкість ---------- */
+function scr1(){
+  const v=vNow(),q=feed(V.U,V.psi,V.B,v),qS=qSetNow(),
+        vq=speedFor(qS,V.U,V.psi,V.B),kq=q/V.qNom,gf=grainFlow(V.U,V.B,v);
+  let s=H('1. Скільки хлібної маси заходить у молотарку',
+    'Усі втрати комбайна ростуть від однієї величини — подачі. Доки вона невідома, налаштовувати нічого: та сама цифра обертів барабана на 10 кг/с і на 20 кг/с дає різний результат.');
+  s+='<p><b>Навіщо.</b> У молотарку заходить не зерно, а вся зрізана маса: зерно плюс солома. Паспортна пропускна здатність комбайна q<sub>ном</sub> — це скільки цієї маси за секунду він здатен пропустити, не виходячи за норми втрат.</p>';
+  s+='<ol class="st">'+
+    '<li>Випишіть із завдання врожайність <b>U</b>, відношення соломи до зерна <b>ψ</b> та ширину захвату жатки <b>B</b>.</li>'+
+    '<li>Задайте робочу швидкість <b>v</b> і порахуйте подачу за формулою нижче.</li>'+
+    '<li>Порівняйте подачу з паспортною q<sub>ном</sub> = '+F(V.qNom,1)+' кг/с: знайдіть завантаження у відсотках.</li>'+
+    '<li>Розв’яжіть ту саму формулу навпаки: яка швидкість дає уставку подачі '+F(qS,1)+' кг/с.</li>'+
+    '<li>Виконайте перший прохід «як є» — машиною, якою вона приїхала з двору.</li></ol>';
+  s+='<div class="fm">q = U · (1 + ψ) · B · v / 36 000,&nbsp; кг/с &nbsp;&nbsp;|&nbsp;&nbsp; v = 36 000 · q<sub>уст</sub> / (U · (1 + ψ) · B),&nbsp; км/год</div>';
+  s+='<div class="r3">'+
+    '<div><label>U, кг/га</label><input type="text" value="'+TH(V.U)+'" disabled></div>'+
+    '<div><label>ψ (солома до зерна)</label><input type="text" value="'+F(V.psi,2)+'" disabled></div>'+
+    '<div><label>B, м</label><input type="text" value="'+F(V.B,1)+'" disabled></div></div>';
+  s+='<div class="r3">'+
+    '<div>'+inp('v','Робоча швидкість v, км/год',F(V.vp,1))+
+     '<em class="sub">у межах '+F(V.vMin,1)+'…'+F(V.vMax,1)+' км/год</em></div>'+
+    '<div>'+inp('bd.q','Подача q, кг/с','?')+'<em class="sub" id="chk_q">'+chk(S.bd.q,q,.02,.1)+'</em></div>'+
+    '<div>'+inp('bd.vq','Швидкість для уставки, км/год','?')+'<em class="sub" id="chk_vq">'+chk(S.bd.vq,vq,.03,.1)+'</em></div></div>';
+  s+='<div class="hr"></div>';
+  s+='<div id="s1_gs">'+gsc([['завантаження молотарки',F(r1(100*kq),1)+' %',kq>1?C('bad'):kq>.95?C('warn'):C('ok')],
+    ['подача q',F(r2(q),2)+' кг/с'],['зерновий потік',F(r2(gf),2)+' кг/с'],
+    ['бункер наповниться за',F(r1(V.mBunk/gf/60),1)+' хв']])+'</div>';
+  s+='<div class="fig" id="s1_svg">'+combineSVG({h:hNow(),loss:null,fill:.45,kn:nbNow()/V.nOpt,kv:nvNow()/V.nvOpt,hLowM:V.hLow/100})+'</div>';
+  s+='<p class="cap">Рисунок 1 — Шлях хлібної маси в комбайні. Товста лінія — потік маси: жатка, похила камера, барабан із підбарабанням, сепарація, очистка, бункер. Масштаб однаковий по обох осях.</p>';
+  s+='<div class="hr"></div><h3>Дослід: як подача залежить від швидкості</h3>';
+  {const ser=[{name:'подача q, кг/с',color:C('acc'),pts:[]},{name:'паспортна q',color:C('bad'),pts:[],dash:1}];
+   for(let vv=V.vMin;vv<=V.vMax+.001;vv+=.1){ser[0].pts.push([vv,feed(V.U,V.psi,V.B,vv)]);ser[1].pts.push([vv,V.qNom])}
+   s+='<div class="fig">'+chart('c1',ser,{xl:'швидкість v, км/год',yl:'подача q, кг/с',h:208,
+     vl:[[v,C('am'),'ваша v']],bands:[[V.qNom,V.qNom*2.2,C('bad')]]})+'</div>';}
+  s+='<p class="hint">Проведіть пальцем або курсором по графіку — симулятор покаже значення в точці.</p>';
+  s+='<div class="hr"></div><h3>Перший прохід: «як є»</h3>';
+  s+='<p>Комбайн приїхав із двору з тими налаштуваннями, які на ньому стояли. Проїдьте обліковий прохід, не чіпаючи нічого, — це база для всіх подальших порівнянь.</p>';
+  s+='<button class="p" onclick="run(\'base\')">Виконати прохід «як є»</button>';
+  if(S.tr.base){
+    const p=S.tr.base;
+    s+=kvc([['втрати всього',nrm(p.pTot,V.nTot,'%')],['за жаткою',nrm(p.pH,V.nH,'%')],
+      ['недомолот',F(p.pT,2)+' %'],['сепарація',F(p.pS,2)+' %'],['очистка',F(p.pC,2)+' %'],
+      ['дроблення',nrm(p.dmg,V.nDmg,'%')],['засміченість',nrm(p.z,V.nZ,'%')],
+      ['продуктивність',F(p.W,2)+' га/год']]);
+    s+='<div class="rb"><b>Налаштування, з якими приїхала машина:</b> барабан '+F(p.nb)+' об/хв, '+
+      'зазор підбарабання '+F(p.d)+' мм, вентилятор '+F(p.nv)+' об/хв, висота зрізу '+F(p.h)+' см.'+
+      (p.normOk?' Норми витримано.':' <b class="no">Норми не витримано</b> — далі ви знайдете, чому.')+'</div>';
+  }
+  s+=recBox(1);
+  s+=nb([0,'Варіант'],[2,'Молотильний апарат']);
+  return s;
+}
+
+/* ---------- 2. Молотильний апарат ---------- */
+function scr2(){
+  const Q=QS({}),m=mode(V,Q),I=V.ideal,nbv=nbNow(),dv=dNow();
+  let s=H('2. Молотильний апарат: оберти барабана й зазор підбарабання',
+    'Тут вирішується головне протиріччя комбайна. Інтенсивніший обмолот забирає зерно з колоса, але розбиває те, що вже вимолочене.');
+  s+='<p><b>Навіщо.</b> Зерно відділяється від колоса ударом бича барабана й протиранням по прутках підбарабання. Мінімуму жодна з величин не має — мінімум має їхня сума «недомолот + дроблення».</p>';
+  s+='<div class="fm">н<sub>недомолот</sub> ↓ &nbsp;при&nbsp; n<sub>б</sub> ↑ або δ ↓ &nbsp;&nbsp;|&nbsp;&nbsp; н<sub>дроблення</sub> ↑ &nbsp;при&nbsp; n<sub>б</sub> ↑ або δ ↓</div>';
+  s+='<ol class="st">'+
+    '<li>Знайдіть у додатку А рекомендації для своєї культури: n = '+V.nOpt+' об/хв, δ = '+V.dOpt+' мм.</li>'+
+    '<li>Виставте зазор підбарабання за таблицею. Це механічне регулювання — у полі його не крутять.</li>'+
+    '<li>Міняючи тільки оберти барабана, знайдіть мінімум суми «недомолот + дроблення» на графіку нижче.</li>'+
+    '<li>Запишіть знайдений оптимум і перевірте, чи дроблення вкладається в норму '+F(V.nDmg,1)+' %.</li>'+
+    '<li>Поясніть своїми словами, чому зазор ставлять за таблицею, а оберти — за результатом.</li></ol>';
+  s+='<div class="r3">'+
+    '<div>'+inp('nb','Оберти барабана n<sub>б</sub>, об/хв',String(V.nOpt))+
+     '<em class="sub">межі '+V.nbMin+'…'+V.nbMax+'</em></div>'+
+    '<div>'+inp('d','Зазор підбарабання δ, мм',String(V.dOpt))+
+     '<em class="sub">межі '+V.dMin+'…'+V.dMax+'</em></div>'+
+    '<div><label>Вологість зерна</label><input type="text" value="'+F(V.w,1)+' % (таблиця для '+V.wOpt+' %)" disabled></div></div>';
+  s+='<div id="s2_gs">'+gsc([['недомолот',F(m.pT,2)+' %',C('bad')],['дроблення',F(m.dmg,2)+' %',
+    m.dmg>V.nDmg?C('bad'):C('warn')],['сума',F(r2(m.pT+m.dmg),2)+' %'],
+    ['повні втрати',F(m.pTot,2)+' %',m.pTot>V.nTot?C('bad'):C('ok')]])+'</div>';
+  s+='<div class="fig" id="s2_svg">'+threshSVG(nbv,dv,{pT:m.pT,dmg:m.dmg})+'</div>';
+  s+='<p class="cap">Рисунок 2 — Молотильний апарат: барабан із бичами, підбарабання та зазор δ на виході.</p>';
+  s+='<div class="hr"></div><h3>Дослід 1: крива суми втрат за обраного зазору δ = '+F(dv)+' мм</h3>';
+  {const s1={name:'недомолот',color:C('bad'),pts:[]},s2={name:'дроблення',color:C('warn'),pts:[]},
+         s3={name:'сума',color:C('acc'),pts:[],w:2.6},s4={name:'норма дроблення',color:C('warn'),pts:[],dash:1};
+   for(let nn=V.nbMin;nn<=V.nbMax;nn+=10){
+     const QQ={nb:nn,d:dv,nv:nvNow(),h:hNow(),v:vNow(),w:V.w},t=lossThresh(V,QQ),g=grainDamage(V,QQ);
+     if(t+g>12)continue;
+     s1.pts.push([nn,t]);s2.pts.push([nn,g]);s3.pts.push([nn,t+g]);s4.pts.push([nn,V.nDmg]);
+   }
+   s+='<div class="fig">'+chart('c2',[s1,s2,s3,s4],{xl:'оберти барабана, об/хв',
+     yl:'утрати, % (для δ = '+F(dv)+' мм)',h:230,y1:Math.min(6,Math.max(V.nDmg*1.4,2.5)),
+     vl:[[nbv,C('am'),'ваші оберти'],[V.nOpt,C('sub'),'таблиця']]})+'</div>';}
+  s+='<h3>Дослід 2: 2D-карта «похилої долини» (оберти барабана × зазор підбарабання)</h3>';
+  s+='<p class="hint">Теплова карта наочно показує, чому існує ціла лінія рівноцінних поєднань «n<sub>б</sub> — δ» (зелена похила долина).</p>';
+  s+='<div class="fig" id="s2_val">'+valleySVG(nbv,dv)+'</div>';
+  s+='<div class="r3">'+
+    '<div>'+inp('bd.nbOpt','Знайдені оптимальні оберти, об/хв','?')+
+     '<em class="sub" id="chk_nbOpt">'+chk(S.bd.nbOpt,I.nb,.06,20)+'</em></div>'+
+    '<div>'+inp('bd.dOpt','Прийнятий зазор, мм','?')+
+     '<em class="sub" id="chk_dOpt">'+chk(S.bd.dOpt,I.d,.15,2)+'</em></div>'+
+    '<div><label>Сума в оптимумі</label><input type="text" value="'+
+     (function(){const mi=mode(V,{...I,w:V.w});return F(r2(mi.pT+mi.dmg),2)+' %'})()+'" disabled></div></div>';
+  s+='<label for="iwhy">Чому зазор ставлять за таблицею, а оберти доводять за результатом?</label>'+
+    '<textarea id="iwhy" rows="3" oninput="set(\'why\',this.value)" placeholder="Ваше пояснення…">'+
+    esc(S.why||'')+'</textarea>';
+  s+=recBox(2);
+  s+=nb([1,'Подача й швидкість'],[3,'Очистка']);
+  return s;
+}
+
+/* ---------- 3. Очистка й чистота зерна ---------- */
+function scr3(){
+  const Q=QS({}),m=mode(V,Q),I=V.ideal,nvv=nvNow(),kq=m.kq,kv=m.kv;
+  let s=H('3. Очистка: повітря проти чистоти зерна',
+    'Друге протиріччя комбайна. Повітря вентилятора виносить полову — і разом із нею легке зерно.');
+  s+='<p><b>Навіщо.</b> Якщо повітря <b>замало</b>, полова лежить на решеті суцільним шаром і зносить зерно за комбайн, а бункерне зерно засмічується. Якщо повітря <b>забагато</b>, потік видуває дрібне та щупле зерно. Між цими крайностями лежить мінімум втрат очистки.</p>';
+  s+='<div class="r3">'+
+    '<div>'+inp('nv','Оберти вентилятора n<sub>в</sub>, об/хв',String(V.nvOpt))+
+     '<em class="sub">межі '+V.nvMin+'…'+V.nvMax+'; розрахункові '+V.nvOpt+'</em></div>'+
+    '<div><label>Завантаження молотарки</label><input type="text" value="'+F(r1(kq*100),1)+' %" disabled></div>'+
+    '<div><label>Зазор підбарабання</label><input type="text" value="'+F(dNow())+' мм" disabled>'+
+     '<em class="sub">тісніший зазор → більше дрібного вороху</em></div></div>';
+  s+='<div id="s3_gs">'+gsc([['утрати очистки',F(m.pC,2)+' %',C('bad')],
+    ['засміченість',F(m.z,2)+' %',m.z>V.nZ?C('bad'):C('ok')],
+    ['повні втрати',F(m.pTot,2)+' %',m.pTot>V.nTot?C('bad'):C('ok')],
+    ['повітря від розрахункового',F(r1(kv*100),0)+' %']])+'</div>';
+  s+='<div class="fig" id="s3_svg">'+cleanSVG(nvv,kv,{pC:m.pC})+'</div>';
+  s+='<p class="cap">Рисунок 3 — Очистка: верхнє й нижнє решета, вентилятор і повітряний потік.</p>';
+  s+='<div class="hr"></div><h3>Дослід: крива з двома схилами</h3>';
+  {const s1={name:'утрати очистки, %',color:C('bad'),pts:[],w:2.6},
+         s2={name:'засміченість, %',color:C('acc2'),pts:[]},
+         s3={name:'норма засміченості',color:C('acc2'),pts:[],dash:1};
+   for(let nn=V.nvMin;nn<=V.nvMax;nn+=10){
+     const kk=nn/V.nvOpt,pc=lossClean(V,kq,kk),zz=trash(V,kq,kk,dNow());
+     if(pc>8&&zz>12)continue;
+     s1.pts.push([nn,Math.min(8,pc)]);s2.pts.push([nn,Math.min(12,zz)]);s3.pts.push([nn,V.nZ]);
+   }
+   s+='<div class="fig">'+chart('c3',[s1,s2,s3],{xl:'оберти вентилятора, об/хв',
+     yl:'утрати очистки та засміченість, %',h:234,y1:Math.max(V.nZ*1.8,3.5),
+     vl:[[nvv,C('am'),'ваші оберти'],[V.nvOpt,C('sub'),'розрахункові']]})+'</div>';}
+  s+='<div class="r3">'+
+    '<div>'+inp('bd.nvOpt','Знайдені оптимальні оберти, об/хв','?')+
+     '<em class="sub" id="chk_nvOpt">'+chk(S.bd.nvOpt,I.nv,.06,30)+'</em></div>'+
+    '<div><label>Утрати очистки в оптимумі</label><input type="text" value="'+
+     F(r2(lossClean(V,kq,I.nv/V.nvOpt)),2)+' %" disabled></div>'+
+    '<div><label>Засміченість в оптимумі</label><input type="text" value="'+
+     F(r2(trash(V,kq,I.nv/V.nvOpt,V.dOpt)),2)+' %" disabled></div></div>';
+  s+=recBox(3);
+  s+=nb([2,'Молотильний апарат'],[4,'Жатка й автоматика']);
+  return s;
+}
+
+/* ---------- 4. Жатка й автоматика подачі ---------- */
+let _c5Cache=null;
+function getC5Passes(){
+  const key=V.id+'|'+nbNow()+'|'+dNow()+'|'+nvNow()+'|'+hNow()+'|'+qSetNow();
+  if(_c5Cache&&_c5Cache.key===key)return _c5Cache;
+  const pc=pass(V,QS({auto:0,sync:0,v:V.vCons})),pa_=pass(V,QS({auto:1,sync:1}));
+  _c5Cache={key,pc,pa_};return _c5Cache;
+}
+function scr4(){
+  const Q=QS({}),m=mode(V,Q),hv=hNow(),v=vNow();
+  let s=H('4. Жатка й автоматика подачі',
+    'Жатка втрачає зерно двома способами: лишає його нижче ножа й вибиває мотовилом. Автоматика подачі не зменшує втрат — вона повертає гектари.');
+  s+='<p><b>Навіщо.</b> У вашій культурі нижні продуктивні органи починаються з висоти '+F(V.hLow)+' см, тому ніж ведуть трохи нижче: рекомендована висота зрізу '+F(V.hCut)+' см.</p>';
+  s+='<div class="r3">'+
+    '<div>'+inp('h','Висота зрізу h, см',String(V.hCut))+
+     '<em class="sub">нижні продуктивні органи з '+F(V.hLow)+' см</em></div>'+
+    '<div>'+inp('bd.hOpt','Рекомендована висота, см','?')+
+     '<em class="sub" id="chk_hOpt">'+chk(S.bd.hOpt,V.hCut,0,2)+'</em></div>'+
+    '<div><label>Утрати за жаткою</label><input type="text" value="'+F(m.pH,2)+
+     ' % (норма ≤ '+F(V.nH,1)+' %)" disabled></div></div>';
+  {const s1={name:'утрати за жаткою, %',color:C('bad'),pts:[],w:2.6},
+         s2={name:'норма',color:C('bad'),pts:[],dash:1};
+   for(let hh=Math.max(2,V.hLow-14);hh<=V.hLow+26;hh+=1){s1.pts.push([hh,lossHead(V,{h:hh,v})]);s2.pts.push([hh,V.nH])}
+   s+='<div class="fig">'+chart('c4',[s1,s2],{xl:'висота зрізу h, см',yl:'утрати за жаткою, %',
+     h:200,vl:[[hv,C('am'),'ваша h'],[V.hLow,C('sub'),'нижні органи']]})+'</div>';}
+  s+='<div class="hr"></div><h3>Автоматика подачі</h3>';
+  s+='<div class="r3">'+
+    '<div>'+inp('qSet','Уставка подачі q<sub>уст</sub>, кг/с',F(V.qSet,1))+
+     '<em class="sub">'+F(r1(100*qSetNow()/V.qNom),0)+' % паспортної</em></div>'+
+    '<div><label>Обережна швидкість без автоматики</label><input type="text" value="'+
+     F(V.vCons,1)+' км/год" disabled><em class="sub">за врожайністю '+TH(V.U90)+' кг/га</em></div>'+
+    '<div><label>Швидкість за середньою врожайністю</label><input type="text" value="'+
+     F(V.vp,1)+' км/год" disabled><em class="sub">на '+F(r1(100*(V.vp/V.vCons-1)),0)+' % більша</em></div></div>';
+  s+='<div class="ck">'+fixBox('auto','Автоматика подачі: тримати завантаження на уставці, змінюючи швидкість')+
+    fixBox('sync','Синхронізація з транспортом (вивантаження на ходу, без зупинки)')+
+    fixBox('calY','Калібрувати датчик урожайності за ваговою машиною')+'</div>';
+  if(!S.calY)s+='<p class="warn-b">Датчик урожайності не калібрований: усі цифри намолоту, які він покаже, будуть зі зсувом. Облік по полю вийде неправильним, хоча зерно зібране правильно.</p>';
+  s+='<div class="hr"></div><h3>Дослід: що бачить молотарка впродовж проходу</h3>';
+  {const{pc,pa_}=getC5Passes();
+   const s1={name:'без автоматики (обережна v)',color:C('sub'),pts:[]},
+         s2={name:'з автоматикою подачі',color:C('acc'),pts:[],w:2.6},
+         s3={name:'уставка подачі',color:C('ok'),pts:[],dash:1},
+         s4={name:'паспортна q',color:C('bad'),pts:[],dash:1};
+   pc.segs.forEach((g,i)=>{s1.pts.push([i+1,g.q]);s3.pts.push([i+1,qSetNow()]);s4.pts.push([i+1,V.qNom])});
+   pa_.segs.forEach((g,i)=>s2.pts.push([i+1,g.q]));
+   s+='<div class="fig">'+chart('c5',[s1,s2,s3,s4],{xl:'ділянка обліку',yl:'подача q, кг/с',
+     h:226,nx:6,xf:v=>F(Math.round(v))})+'</div>';
+   s+=kvc([['розкид подачі без автоматики','CV = '+F(pc.qCv,1)+' %'],
+     ['розкид з автоматикою','CV = '+F(pa_.qCv,1)+' %'],
+     ['середня швидкість без автоматики',F(pc.vAvg,1)+' км/год'],
+     ['середня швидкість з автоматикою',F(pa_.vAvg,1)+' км/год'],
+     ['продуктивність без автоматики',F(pc.W,2)+' га/год'],
+     ['продуктивність з автоматикою',F(pa_.W,2)+' га/год'],
+     ['перевантажених ділянок без автоматики',String(pc.over)+' з '+V.NSEG],
+     ['перевантажених з автоматикою',String(pa_.over)+' з '+V.NSEG]]);}
+  s+=recBox(4);
+  s+=nb([3,'Очистка'],[5,'Прохід полем і економіка']);
+  return s;
+}
+
+/* ---------- 5. Прохід полем і економіка ---------- */
+function scr5(){
+  const t=S.tr,rr=ref();
+  let s=H('5. Обліковий прохід, бункер і економіка',
+    'Три проходи поспіль. Вони відповідають на три різні питання — і лише разом дають чесну цифру окупності.');
+  s+='<p><b>Навіщо.</b> Більшу частину виграшу від «як приїхала» до «налаштовано з автоматикою» дає <b>звичайне регулювання ключем</b>, яке не коштує нічого. Тому проходів три, а окупність комплекту автоматики рахують лише від третього проходу до другого.</p>';
+  s+='<div class="tw"><table class="t2">'+
+    tr('Прохід 1 — «як є»','машина з тими налаштуваннями, з якими приїхала; планова швидкість')+
+    tr('Прохід 2 — «налаштовано»','ваші оберти, зазор, вентилятор і висота зрізу; швидкість обережна, '+
+      F(V.vCons,1)+' км/год, автоматика й калібрування вимкнені. Коштує нуль гривень')+
+    tr('Прохід 3 — «з автоматикою»','той самий лад плюс автоматика подачі, синхронізація з транспортом '+
+      'і калібрований датчик урожайності. Коштує '+TH(V.Csys)+' грн')+
+    '</table></div>';
+  s+='<div class="btns">'+
+    '<button class="'+(t.base?'g':'p')+'" onclick="run(\'base\')">1. Прохід «як є»</button>'+
+    '<button class="'+(t.man?'g':'p')+'" onclick="run(\'man\')">2. Прохід «налаштовано»</button>'+
+    '<button class="'+(t.aut?'g':'p')+'" onclick="run(\'aut\')">3. Прохід «з автоматикою»</button>'+
+    '</div>';
+  if(!t.base)s+='<p class="hint">Почніть із першого проходу.</p>';
+  if(t.base){
+    const rows=[['як є',t.base],['налаштовано',t.man],['з автоматикою',t.aut]].filter(r=>r[1]);
+    s+='<div class="tw"><table class="t3"><thead><tr><th>Показник</th>'+
+      rows.map(r=>'<th>'+r[0]+'</th>').join('')+'</tr></thead><tbody>';
+    const rw=(lab,f,lim,inv)=>{
+      s+='<tr><th>'+lab+'</th>'+rows.map(r=>{
+        const v=f(r[1]),bad=lim!=null&&(inv?v<lim:v>lim);
+        return'<td'+(bad?' class="no"':lim!=null?' class="ok"':'')+'>'+v+'</td>';
+      }).join('')+'</tr>';
+    };
+    rw('утрати всього, %',p=>F(p.pTot,2),V.nTot);
+    rw('за жаткою, %',p=>F(p.pH,2),V.nH);
+    rw('недомолот, %',p=>F(p.pT,2));
+    rw('сепарація, %',p=>F(p.pS,2));
+    rw('очистка, %',p=>F(p.pC,2));
+    rw('дроблення, %',p=>F(p.dmg,2),V.nDmg);
+    rw('засміченість, %',p=>F(p.z,2),V.nZ);
+    rw('середня подача, кг/с',p=>F(p.qAvg,2));
+    rw('розкид подачі CV, %',p=>F(p.qCv,1));
+    rw('середня швидкість, км/год',p=>F(p.vAvg,1));
+    rw('продуктивність W, га/год',p=>F(p.W,2));
+    rw('зупинок на вивантаження',p=>String(p.stops)+' ('+F(Math.round(p.tStop/60))+' хв)');
+    rw('похибка датчика врожайності, %',p=>F(p.errY,1));
+    rw('норми витримано',p=>p.normOk?'так':'ні');
+    s+='</tbody></table></div>';
+  }
+  if(t.aut||t.man){
+    const l=t.aut||t.man;
+    s+='<div class="fig">'+mapSVG(l)+'</div>';
+    s+='<p class="cap">Рисунок 4 — Карта врожайності облікової смуги з човниковою траєкторією проходу. Темніші смуги — вища врожайність; кружки — місця наповнення бункера.</p>';
+  }
+  if(t.base){
+    const l=t.aut||t.man||t.base;
+    s+='<div class="hr"></div><h3>Бункер і вивантаження</h3>';
+    s+='<p>Бункер '+F(V.Vb,1)+' м³ при натурі '+TH(V.rho)+' кг/м³ вміщає '+TH(V.mBunk)+
+      ' кг зерна. Шнек вивантажує '+F(V.Qun,1)+' кг/с, тобто повний бункер — '+
+      F(r1(V.mBunk/V.Qun))+' с. Без синхронізації до цього часу додається маневр '+F(V.tMan)+' с.</p>';
+    {const s1={name:'без синхронізації',color:C('sub'),pts:[]},
+           s2={name:'із синхронізацією',color:C('acc'),pts:[],w:2.6},
+           s3={name:'повний бункер',color:C('bad'),pts:[],dash:1};
+     let b1=0,b2=0;
+     (t.man||t.base).segs.forEach((g,i)=>{b1+=g.grain;if(b1>=V.mBunk)b1-=V.mBunk;s1.pts.push([i+1,b1/1000]);s3.pts.push([i+1,V.mBunk/1000])});
+     (t.aut||t.base).segs.forEach((g,i)=>{b2+=g.grain;if(b2>=V.mBunk)b2-=V.mBunk;s2.pts.push([i+1,b2/1000])});
+     s+='<div class="fig">'+chart('c6',[s1,s2,s3],{xl:'ділянка обліку',yl:'зерно в бункері, т',
+       h:200,nx:6,xf:v=>F(Math.round(v))})+'</div>';}
+    s+=kvc([['повний бункер',TH(V.mBunk)+' кг'],['час вивантаження',F(r1(V.mBunk/V.Qun))+' с'],
+      ['маневр при зупинці',F(V.tMan)+' с'],['вивантажень за прохід',String(l.unloads)]]);
+  }
+  if(t.aut){
+    const l=t.aut;
+    s+='<div class="hr"></div><h3>Облік намолоту й сушіння</h3>';
+    s+='<div class="r3">'+
+      '<div><label>Показання датчика, кг/га</label><input type="text" value="'+F(l.Ushow,1)+'" disabled></div>'+
+      '<div>'+inp('bd.Ureal','Фактична врожайність, кг/га','?')+
+       '<em class="sub" id="chk_Ureal">'+chk(S.bd.Ureal,l.Ureal,.03,40)+'</em></div>'+
+      '<div>'+inp('bd.W','Продуктивність W, га/год','?')+
+       '<em class="sub" id="chk_W">'+chk(S.bd.W,l.W,.04,.1)+'</em></div></div>';
+    s+='<p>Зерно зібрано з вологістю '+F(V.w,1)+' %, а базисна вологість — '+F(V.wBase)+
+      ' %. Порахуйте для намолоту проходу ('+TH(l.grain)+' кг):</p>';
+    s+='<div class="fm">m<sub>в</sub> = m · (w<sub>1</sub> − w<sub>2</sub>) / (100 − w<sub>2</sub>),&nbsp; кг &nbsp;&nbsp;|&nbsp;&nbsp; T<sub>%</sub> = (m / 1000) · (w<sub>1</sub> − w<sub>2</sub>),&nbsp; т·%</div>';
+    s+='<div class="r3">'+
+      '<div>'+inp('bd.mw','Маса води m<sub>в</sub>, кг','?')+'<em class="sub" id="chk_mw">'+chk(S.bd.mw,rr.mw,.04,30)+'</em></div>'+
+      '<div>'+inp('bd.tp','Тонно-відсотки, т·%','?')+'<em class="sub" id="chk_tp">'+chk(S.bd.tp,rr.tp,.04,1)+'</em></div>'+
+      '<div><label>Вартість сушіння</label><input type="text" value="'+TH(rr.dryC)+' грн" disabled>'+
+       '<em class="sub">за тарифом '+F(V.Cdry,1)+' грн/т·%</em></div></div>';
+  }
+  if(t.aut&&t.man&&t.base){
+    const e=ecRef(S,V);
+    s+='<div class="hr"></div><h3>Економіка: що дав ключ, а що куплений комплект</h3>';
+    s+='<div class="fm">Вартість утрат = (н<sub>втрати</sub> + k<sub>др</sub> · н<sub>дроблення</sub>) / 100 · (U / 1000) · Ц<sub>зерна</sub>,&nbsp; грн/га</div>';
+    s+='<div class="tw"><table class="t2">'+
+      tr('Ефект регулювання (прохід 1 → 2)',F(e.gaReg,1)+' грн/га → за сезон '+TH(e.Ereg)+
+        ' грн. <b>Коштує нуль:</b> це робота ключем')+
+      tr('Автоматика: зерно (прохід 2 → 3)',F(e.gaAut,1)+' грн/га'+
+        (e.gaAut<0?' — від’ємний: машина працює з вищим завантаженням, і втрати трохи більші':''))+
+      tr('Автоматика: час (прохід 2 → 3)',F(e.gaChas,1)+' грн/га, з яких '+
+        F(e.gaStop,1)+' грн/га дала синхронізація з транспортом і '+
+        F(e.gaSpeed,1)+' грн/га — зняття запасу швидкості')+
+      tr('Разом від автоматики',TH(e.Eaut)+' грн/сезон при навантаженні '+TH(V.Ssez)+' га')+
+      tr('Обслуговування комплекту (10 %)',TH(e.Cex)+' грн/рік (чистий ефект '+TH(e.Enet)+' грн/рік)')+
+      tr('Окупність',e.T==null?'<b class="no">не окупається цими двома ефектами</b>':
+        '<b>'+F(e.T,2)+' року</b> при вартості комплекту '+TH(V.Csys)+' грн')+
+      '</table></div>';
+    s+='<div class="r3">'+
+      '<div>'+inp('ec.Ereg','Ефект регулювання, грн/сезон','?')+
+       '<em class="sub" id="chk_Ereg">'+chk(S.ec.Ereg,e.Ereg,.04,800)+'</em></div>'+
+      '<div>'+inp('ec.Eaut','Ефект автоматики, грн/сезон','?')+
+       '<em class="sub" id="chk_Eaut">'+chk(S.ec.Eaut,e.Eaut,.04,800)+'</em></div>'+
+      '<div>'+inp('ec.T','Окупність, років (або «не окупається»)','?',{im:'text'})+
+       '<em class="sub" id="chk_T">'+(e.T==null?'<span class="sub">не окупається</span>':chk(S.ec.T,e.T,.08,.05))+'</em></div></div>';
+  }
+  s+=recBox(5);
+  s+=nb([4,'Жатка й автоматика'],[6,'Підсумковий протокол']);
+  return s;
+}
+
+/* ---------- 6. Протокол ---------- */
+function scr6(){
+  const sc=score(S,V),tt=sc.reduce((a,b)=>a+b,0);
+  let s='<div class="pr-hdr"><h1>Уманський національний університет садівництва · Кафедра агроінженерії</h1>'+
+    '<p>Протокол лабораторної роботи № 10 «Системи керування зернозбиральним комбайном»</p></div>';
+  s+=H('Підсумковий протокол',
+    'Перепишіть ці рядки у звіт або збережіть сторінку як PDF. Код унизу підтверджує виконання саме на вашому варіанті.');
+  s+='<div class="tw"><table class="t2">'+
+    tr('Студент',esc((S.reg&&S.reg.name)||'—')+', група '+esc((S.reg&&S.reg.group)||'—')+
+      ', № '+esc((S.reg&&S.reg.num)||'—'))+
+    tr('Варіант',esc(V.id))+
+    tr('Комбайн і культура',esc(V.a.p)+' / '+esc(V.crop))+'</table></div>';
+  for(let i=1;i<=5;i++)s+='<div class="rb"><b>'+i+'. '+esc(TT[i].replace(/^\d+\.\s*/,''))+
+    '</b><br>'+esc(rec(i))+'</div>';
+  s+='<h3>Бали за розділами</h3>';
+  s+=gsc([['1. Подача',F(sc[0],1)+' / 18'],['2. Молотильний апарат',F(sc[1],1)+' / 22'],
+    ['3. Очистка',F(sc[2],1)+' / 20'],['4. Жатка й автоматика',F(sc[3],1)+' / 18'],
+    ['5. Прохід і економіка',F(sc[4],1)+' / 22'],
+    ['Разом',F(r1(tt),1)+' / 100',tt>=75?C('ok'):tt>=50?C('warn'):C('bad')]]);
+  s+='<div class="rb"><b>Код виконання:</b> <code>'+esc(pcode())+'</code></div>';
+  s+='<div class="btns"><button class="p" onclick="window.print()">Зберегти як PDF (друк)</button>'+
+    '<button class="g" onclick="cpAll()">Скопіювати протокол</button></div>';
+  s+=nb([5,'Прохід полем'],[7,'Досліди']);
+  return s;
+}
+function cpAll(){
+  const t=[1,2,3,4,5].map(i=>i+'. '+rec(i)).join('\n\n')+'\n\nКод: '+pcode();
+  try{navigator.clipboard.writeText(t);alert('Протокол скопійовано.')}catch(e){alert(t)}
+}
+
+/* ---------- 7. Досліди «що буде, якщо…» (плавні повзунки без зриву) ---------- */
+function labSet(k,v,dec,unit){
+  const p=k.split('.');let o=S;for(let i=0;i<p.length-1;i++)o=o[p[i]];
+  o[p[p.length-1]]=Number(v);save();
+  const lbl=document.getElementById('sv_'+k.replace(/\./g,'_'));
+  if(lbl)lbl.textContent=F(Number(v),dec)+' '+(unit||'');
+  const L=S.lab,Q={nb:L.nb,d:L.d,nv:L.nv,h:L.h,v:L.v,qSet:L.qSet,w:V.w,U:V.U,auto:0,sync:0,calY:1},m=mode(V,Q);
+  const gEl=document.getElementById('lab_gcs');
+  if(gEl)gEl.innerHTML=labGaugesHTML(m);
+  const kEl=document.getElementById('lab_kvc');
+  if(kEl)kEl.innerHTML=labKvcHTML(m);
+  const sEl=document.getElementById('lab_svg');
+  if(sEl)sEl.innerHTML=combineSVG({h:L.h,loss:m,fill:.6,kn:L.nb/V.nOpt,kv:m.kv,hLowM:V.hLow/100});
+}
+function labGaugesHTML(m){
+  return gc(m.pTot,0,Math.max(4,V.nTot*3),'повні втрати','%',[[0,V.nTot,C('ok')],[V.nTot,Math.max(4,V.nTot*3),C('bad')]])+
+    gc(m.dmg,0,Math.max(4,V.nDmg*2),'дроблення','%',[[0,V.nDmg,C('ok')],[V.nDmg,Math.max(4,V.nDmg*2),C('bad')]])+
+    gc(m.z,0,Math.max(6,V.nZ*2),'засміченість','%',[[0,V.nZ,C('ok')],[V.nZ,Math.max(6,V.nZ*2),C('bad')]])+
+    gc(m.q,0,V.qNom*1.6,'подача','кг/с',[[0,V.qNom,C('ok')],[V.qNom,V.qNom*1.6,C('bad')]]);
+}
+function labKvcHTML(m){
+  return kvc([['за жаткою',F(m.pH,2)+' %'],['недомолот',F(m.pT,2)+' %'],
+    ['сепарація',F(m.pS,2)+' %'],['очистка',F(m.pC,2)+' %'],
+    ['завантаження',F(r1(m.kq*100),0)+' %'],['повітря',F(r1(m.kv*100),0)+' %']]);
+}
+function scr7(){
+  const L=S.lab,Q={nb:L.nb,d:L.d,nv:L.nv,h:L.h,v:L.v,qSet:L.qSet,w:V.w,U:V.U,auto:0,sync:0,calY:1},m=mode(V,Q);
+  let s=H('Досліди «що буде, якщо…»',
+    'Жодне з цих значень не йде у звіт. Поле для того, щоб покрутити кожну ручку окремо й побачити, що вона робить.');
+  s+='<div class="sls">'+
+    sld('lab.nb',V.nbMin,V.nbMax,10,'Оберти барабана','об/хв')+
+    sld('lab.d',V.dMin,V.dMax,1,'Зазор підбарабання','мм')+
+    sld('lab.nv',V.nvMin,V.nvMax,10,'Оберти вентилятора','об/хв')+
+    sld('lab.h',2,Math.round(V.hLow*1.6+20),1,'Висота зрізу','см')+
+    sld('lab.v',V.vMin,V.vMax,.1,'Швидкість','км/год')+
+    '</div>';
+  s+='<div class="gcs" id="lab_gcs">'+labGaugesHTML(m)+'</div>';
+  s+='<div id="lab_kvc">'+labKvcHTML(m)+'</div>';
+  s+='<div class="fig" id="lab_svg">'+combineSVG({h:L.h,loss:m,fill:.6,kn:L.nb/V.nOpt,kv:m.kv,hLowM:V.hLow/100})+'</div>';
+  s+='<div class="btns"><button class="g" onclick="labReset(0)">Повернути «як є»</button>'+
+    '<button class="g" onclick="labReset(1)">Поставити еталон</button>'+
+    '<button class="g" onclick="labReset(2)">Узяти мої налаштування</button></div>';
+  s+=nb([6,'Протокол'],[8,'Калькулятор']);
+  return s;
+}
+function labReset(k){
+  const I=V.ideal;
+  S.lab=k==1?{nb:I.nb,d:I.d,nv:I.nv,h:V.hCut,v:V.vp,qSet:V.qSet}
+       :k==2?{nb:nbNow(),d:dNow(),nv:nvNow(),h:hNow(),v:vNow(),qSet:qSetNow()}
+       :{nb:V.start.nb,d:V.start.d,nv:V.start.nv,h:V.start.h,v:V.vp,qSet:V.qSet};
+  save();R();
+}
+
+/* ---------- 8. Калькулятор (із захистом від ділення на нуль та блоком економіки) ---------- */
+function calcResultsHTML(){
+  const c=S.calc,g=k=>n(c[k]);
+  const U=g('U'),psi=g('psi'),B=g('B'),v=g('v'),qNom=g('qNom'),qUst=g('q');
+  const q=(U!=null&&psi!=null&&B!=null&&v!=null)?feed(U,psi,B,v):null;
+  const load=(q!=null&&qNom!=null&&qNom>0)?100*q/qNom:null;
+  const den=(U!=null&&psi!=null&&B!=null)?(U*(1+psi)*B):0;
+  const vq=(qUst!=null&&den>0)?(36000*qUst/den):null;
+
+  const Vb=g('Vb'),rho=g('rho'),mb=(Vb!=null&&rho!=null)?Vb*rho:null;
+  const m=g('m'),w1=g('w1'),w2=g('w2'),Cdry=g('Cdry');
+  const mw=(m!=null&&w1!=null&&w2!=null&&w2<100)?dryMass(m,w1,w2):null;
+  const tp=(m!=null&&w1!=null&&w2!=null)?(m/1000*Math.max(0,w1-w2)):null;
+
+  const pTot=g('pTot'),dmg=g('dmg'),kDmg=g('kDmg'),Cz=g('Cz'),Ssez=g('Ssez'),
+        W2=g('W2'),W3=g('W3'),Chour=g('Chour'),Csys=g('Csys');
+  const cLoss=(pTot!=null&&dmg!=null&&kDmg!=null&&U!=null&&Cz!=null)
+    ?((pTot+(kDmg/100)*dmg)/100*(U/1000)*Cz):null;
+  const eTime=(W2!=null&&W2>0&&W3!=null&&W3>0&&Chour!=null)?((1/W2-1/W3)*Chour):null;
+  const eSez=(eTime!=null&&Ssez!=null)?(eTime*Ssez):null;
+  const cMaint=(Csys!=null)?(0.10*Csys):null;
+  const eNet=(eSez!=null&&cMaint!=null)?(eSez-cMaint):null;
+  const payT=(eNet!=null&&eNet>0&&Csys!=null)?(Csys/eNet):null;
+
+  return kvc([
+    ['подача q',q==null?'—':F(r2(q),2)+' кг/с'],
+    ['завантаження',load==null?'—':F(r1(load),1)+' %'],
+    ['швидкість для уставки',vq==null?'—':F(r2(vq),2)+' км/год'],
+    ['зерна в бункері',mb==null?'—':TH(mb)+' кг'],
+    ['маса води m_в',mw==null?'—':TH(mw)+' кг'],
+    ['тонно-відсотки',tp==null?'—':F(r1(tp),1)+' т·%'],
+    ['вартість сушіння',tp==null||Cdry==null?'—':TH(tp*Cdry)+' грн'],
+    ['вартість утрат на 1 га',cLoss==null?'—':F(r1(cLoss),1)+' грн/га'],
+    ['економія часу на 1 га',eTime==null?'—':F(r1(eTime),1)+' грн/га'],
+    ['річний ефект по часу',eSez==null?'—':TH(eSez)+' грн/рік'],
+    ['обслуговування (10 %)',cMaint==null?'—':TH(cMaint)+' грн/рік'],
+    ['окупність комплекту',eNet==null?'—':(payT==null?'не окупається':F(r2(payT),2)+' року')]
+  ]);
+}
+function scr8(){
+  let s=H('Калькулятор формул роботи',
+    'Ті самі формули, що в методичці. Поля незалежні від завдання — вводьте будь-які числа без втрати фокусу.');
+  s+='<h3>1. Подача, бункер і сушіння</h3>';
+  s+='<div class="r4">'+inp('calc.U','U, кг/га','6300')+inp('calc.psi','ψ','1,13')+
+    inp('calc.B','B, м','9,0')+inp('calc.v','v, км/год','5,2')+'</div>';
+  s+='<div class="r4">'+inp('calc.qNom','q<sub>ном</sub>, кг/с',F(V.qNom,1))+
+    inp('calc.q','q<sub>уст</sub>, кг/с',F(V.qSet,1))+
+    inp('calc.Vb','V<sub>б</sub>, м³',F(V.Vb,1))+inp('calc.rho','ρ, кг/м³',String(V.rho))+'</div>';
+  s+='<div class="r4">'+inp('calc.m','Маса зерна m, кг','42622')+inp('calc.w1','w₁, %',F(V.w,1))+
+    inp('calc.w2','w₂ (базисна), %',String(V.wBase))+inp('calc.Cdry','Тариф сушіння, грн/т·%',F(V.Cdry,1))+'</div>';
+  s+='<h3>2. Економіка втрат та окупність автоматики</h3>';
+  s+='<div class="r4">'+inp('calc.pTot','Утрати всього, %','0,97')+inp('calc.dmg','Дроблення, %','0,47')+
+    inp('calc.kDmg','Знижка на дроблене, %','29')+inp('calc.Cz','Ціна зерна, грн/т','9700')+'</div>';
+  s+='<div class="r4">'+inp('calc.W2','W₂ (налаштовано), га/год','3,73')+inp('calc.W3','W₃ (з автоматикою), га/год','4,63')+
+    inp('calc.Chour','Комбайно-година, грн','7427')+inp('calc.Ssez','Сезон S<sub>сез</sub>, га','850')+'</div>';
+  s+='<div class="r4">'+inp('calc.Csys','Ціна комплекту, грн','404000')+'</div>';
+  s+='<div id="s8_body">'+calcResultsHTML()+'</div>';
+  s+=nb([7,'Досліди'],null);
+  return s;
+}
+
+/* ---------- Навігація, банер, термінал ---------- */
+function nav(){
+  return TT.map((t,i)=>{
+    const d=V?done(i):0,cls=(S.step==i?' on':'')+(d==1?' dn':d?' pt':'');
+    if(i>=LAB&&!V)return'';
+    return'<button class="nv'+cls+'" onclick="go('+i+')">'+
+      '<span class="n">'+(i<=NST?(i||'0'):(i==LAB?'Л':'К'))+'</span>'+esc(t)+
+      (d==1?'<span class="tick">✓</span>':'')+'</button>';
+  }).join('');
+}
+function bann(){
+  if(!V)return'';
+  if(S.demo)return'<div class="ban"><span>Відкрито <b>приклад виконання</b> з методички (варіант '+esc(V.id)+
+    '). Уведіть свої дані на кроці «Реєстрація», щоб отримати власний варіант.</span></div>';
+  return'';
+}
+function dashP(){
+  if(!V)return'';
+  const Q=QS({}),m=mode(V,Q),l=S.tr.aut||S.tr.man||S.tr.base;
+  const bar=pct=>'<div class="mbar"><i style="width:'+cl(Math.round(pct),0,100)+'%"></i></div>';
+  let s='<div class="dh"><span>Термінал у кабіні</span><span>'+esc(V.id)+'</span></div>';
+  s+='<div class="dg">'+
+    '<div class="dv'+(m.pTot>V.nTot?' bad':' ok')+'"><b>'+F(m.pTot,2)+'</b><span>утрати, %</span>'+bar(m.pTot/V.nTot*65)+'</div>'+
+    '<div class="dv'+(m.dmg>V.nDmg?' bad':' ok')+'"><b>'+F(m.dmg,2)+'</b><span>дроблення, %</span>'+bar(m.dmg/V.nDmg*65)+'</div>'+
+    '<div class="dv'+(m.z>V.nZ?' bad':' ok')+'"><b>'+F(m.z,2)+'</b><span>засміч., %</span>'+bar(m.z/V.nZ*65)+'</div>'+
+    '<div class="dv'+(m.kq>1?' bad':m.kq>.95?' wr':' ok')+'"><b>'+F(r1(m.kq*100),0)+'</b><span>завант., %</span>'+bar(m.kq*100)+'</div>'+
+    '</div>';
+  s+='<div class="dl">'+
+    '<div><span>барабан</span><b>'+F(nbNow())+' об/хв</b></div>'+
+    '<div><span>зазор</span><b>'+F(dNow())+' мм</b></div>'+
+    '<div><span>вентилятор</span><b>'+F(nvNow())+' об/хв</b></div>'+
+    '<div><span>висота зрізу</span><b>'+F(hNow())+' см</b></div>'+
+    '<div><span>швидкість</span><b>'+F(vNow(),1)+' км/год</b></div>'+
+    '<div><span>подача</span><b>'+F(m.q,2)+' кг/с</b></div>'+
+    '<div><span>автоматика</span><b>'+(S.auto?'увімк.':'вимк.')+'</b></div>'+
+    '<div><span>синхронізація</span><b>'+(S.sync?'увімк.':'вимк.')+'</b></div>'+
+    '</div>';
+  if(l)s+='<div class="dh">Останній прохід</div><div class="dl">'+
+    '<div><span>утрати</span><b>'+F(l.pTot,2)+' %</b></div>'+
+    '<div><span>W</span><b>'+F(l.W,2)+' га/год</b></div>'+
+    '<div><span>намолот</span><b>'+TH(l.grain)+' кг</b></div>'+
+    '<div><span>норми</span><b class="'+(l.normOk?'ok':'no')+'">'+(l.normOk?'так':'ні')+'</b></div>'+
+    '</div>';
+  s+='<div class="dh">Норми якості</div><div class="dl">'+
+    '<div><span>утрати всього</span><b>≤ '+F(V.nTot,1)+' %</b></div>'+
+    '<div><span>за жаткою</span><b>≤ '+F(V.nH,1)+' %</b></div>'+
+    '<div><span>дроблення</span><b>≤ '+F(V.nDmg,1)+' %</b></div>'+
+    '<div><span>засміченість</span><b>≤ '+F(V.nZ,1)+' %</b></div>'+
+    '</div>';
+  return s;
+}
+function go(i){S.step=i;save();R();scrollTo({top:0,behavior:'smooth'})}
+
+/* ---------- Повне малювання екрана ---------- */
+function R(){
+  const m=document.getElementById('mn');
+  document.getElementById('nv').innerHTML=nav();
+  document.getElementById('bn').innerHTML=bann();
+  document.getElementById('ds').innerHTML=dashP();
+  document.getElementById('chip').textContent=V?('варіант '+V.id+' · '+F(r1(tot()),1)+' / 100'):'варіант не отримано';
+  if(!S.reg||!V)S.step=0;
+  m.innerHTML=[scr0,scr1,scr2,scr3,scr4,scr5,scr6,scr7,scr8][S.step]();
+  for(const id of ['c1','c2','c3','c4','c5','c6'])chBind(id,chTip(id));
+}
+function chTip(id){
+  if(id=='c1')return x=>{
+    const q=feed(V.U,V.psi,V.B,x);
+    return'v = '+F(r2(x),1)+' км/год<br>q = '+F(r2(q),2)+' кг/с<br>завантаження '+F(r1(100*q/V.qNom),0)+' %';
+  };
+  if(id=='c2')return x=>{
+    const nn=Math.round(x/10)*10,QQ={nb:nn,d:dNow(),nv:nvNow(),h:hNow(),v:vNow(),w:V.w},
+          t=lossThresh(V,QQ),g=grainDamage(V,QQ);
+    return'n<sub>б</sub> = '+F(nn)+' об/хв (δ = '+F(dNow())+' мм)<br>недомолот '+F(r2(t),2)+' %<br>дроблення '+F(r2(g),2)+
+      ' %<br><b>сума '+F(r2(t+g),2)+' %</b>';
+  };
+  if(id=='c3')return x=>{
+    const kq=mode(V,QS({})).kq,d=dNow(),nn=Math.round(x/10)*10,kk=nn/V.nvOpt;
+    return'n<sub>в</sub> = '+F(nn)+' об/хв<br>утрати очистки '+F(r2(lossClean(V,kq,kk)),2)+
+      ' %<br>засміченість '+F(r2(trash(V,kq,kk,d)),2)+' %';
+  };
+  if(id=='c4')return x=>{
+    const hh=Math.round(x);
+    return'h = '+F(hh)+' см<br>утрати за жаткою '+F(r2(lossHead(V,{h:hh,v:vNow()})),2)+' %';
+  };
+  if(id=='c5'){
+    const{pc,pa_}=getC5Passes();
+    return x=>{
+      const i=Math.round(x)-1;if(i<0||i>=pc.segs.length)return null;
+      return'ділянка '+(i+1)+'<br>U = '+TH(pc.segs[i].U)+' кг/га<br>без автоматики q = '+
+        F(pc.segs[i].q,2)+' кг/с<br>з автоматикою q = '+F(pa_.segs[i].q,2)+' кг/с, v = '+F(pa_.segs[i].v,1)+' км/год';
+    };
+  }
+  if(id=='c6'){
+    const t=S.tr,p1=t.man||t.base,p2=t.aut||t.base;
+    if(!p1)return()=>null;
+    const b1=[],b2=[];let s1=0,s2=0;
+    p1.segs.forEach(g=>{s1+=g.grain;if(s1>=V.mBunk)s1-=V.mBunk;b1.push(s1)});
+    p2.segs.forEach(g=>{s2+=g.grain;if(s2>=V.mBunk)s2-=V.mBunk;b2.push(s2)});
+    return x=>{
+      const i=Math.round(x)-1;if(i<0||i>=b1.length)return null;
+      return'ділянка '+(i+1)+'<br>без синхр.: '+F(r2(b1[i]/1000),2)+' т ('+F(r1(100*b1[i]/V.mBunk),0)+' %)<br>'+
+        'із синхр.: '+F(r2(b2[i]/1000),2)+' т ('+F(r1(100*b2[i]/V.mBunk),0)+' %)';
+    };
+  }
+  return()=>null;
+}
+
+/* ===== Запуск ===== */
+theme(0);
+if(!S){demoState();save()}
+let RW=innerWidth;
+addEventListener('resize',()=>{if(Math.abs(innerWidth-RW)>8){RW=innerWidth;clearTimeout(R.t);R.t=setTimeout(R,180)}});
+R();
+</script></body></html>
